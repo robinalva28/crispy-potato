@@ -1,4 +1,4 @@
-import type { Expense } from '../types.ts';
+import type { Expense, Month } from '../types.ts';
 
 /**
  * Desplaza una fecha ISO "YYYY-MM-DD" al mismo día en un mes nuevo.
@@ -16,6 +16,12 @@ export function shiftDueDateToMonth(dueDate: string | null, newMonthId: string):
   const lastDay = new Date(ny, nm, 0).getDate();
   const clampedDay = Math.min(d, lastDay);
   return `${ny}-${String(nm).padStart(2, '0')}-${String(clampedDay).padStart(2, '0')}`;
+}
+
+/** ¿Se permite cargar/reemplazar un mes con foto de apuntes? (máximo 1 reemplazo) */
+export function canUsePhoto(month: Month | null): boolean {
+  if (!month) return false;
+  return (month.photoReplacements ?? 0) < 1;
 }
 
 /**

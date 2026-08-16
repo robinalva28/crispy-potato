@@ -14,6 +14,10 @@ export interface Month {
   status: 'abierto' | 'cerrado';
   /** Límites de gasto por categoría (opcional). Clave = categoría, valor = monto límite en ARS. */
   categoryBudgets?: Partial<Record<Category, number>>;
+  /** Origen del mes: manual o creado/cargado con foto de apuntes. */
+  source?: 'manual' | 'photo';
+  /** Cuántas veces se reemplazó el mes entero con foto (máximo 1). */
+  photoReplacements?: number;
 }
 
 export interface Expense {

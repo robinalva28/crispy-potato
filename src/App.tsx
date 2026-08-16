@@ -10,6 +10,9 @@ import { ExpenseRow } from './components/ExpenseRow.tsx';
 import { ExpenseGroup } from './components/ExpenseGroup.tsx';
 import { CategoryBars } from './components/CategoryBars.tsx';
 import { ExpenseForm } from './components/ExpenseForm.tsx';
+import { PhotoExpenseModal } from './components/PhotoExpenseModal.tsx';
+import type { ExpenseDraft } from './utils/photoExtract.ts';
+import { canUsePhoto } from './utils/monthUtils.ts';
 import { GuideModal } from './components/GuideModal.tsx';
 import { SavingsCalculator } from './components/SavingsCalculator.tsx';
 import { SavingsGoalForm } from './components/SavingsGoalForm.tsx';
@@ -74,11 +77,13 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [editingBudgets, setEditingBudgets] = useState(false);
   const [budgetInputs, setBudgetInputs] = useState<Partial<Record<Category, string>>>({});
+  const [showPhotoModal, setShowPhotoModal] = useState(false);
   const expenseFormRef = useRef<HTMLDivElement | null>(null);
 
   const { activeMonth } = budget;
   const filteredExpenses = filterExpensesByText(budget.monthExpenses, searchQuery);
   const monthBudgets = activeMonth?.categoryBudgets ?? {};
+  const photoAllowed = canUsePhoto(activeMonth);
 
   // Guía de uso: aparece automáticamente la primera vez que se abre la app
   useEffect(() => {
@@ -241,6 +246,40 @@ export default function App() {
     }
     setBudgetInputs(inputs);
     setEditingBudgets(true);
+  }
+
+  /**
+   * Guarda los gastos detectados por foto (REEMPLAZO ENTERO del mes).
+   * - Borra todos los gastos existentes del mes.
+   * - Agrega los gastos de la foto.
+   * - Marca source='photo' y photoReplacements=1 (máximo 1 reemplazo).
+   */
+  async function handlePhotoSave(drafts: ExpenseDraft[], monthId: string) {
+    if (!canUsePhoto(activeMonth)) return;
+
+    await db.transaction('rw', db.months, db.expenses, async () => {
+      await db.expenses.where('monthId').equals(monthId).delete();
+      await db.expenses.bulkAdd(
+        drafts
+          .filter((d) => d.name.trim() !== '')
+          .map((d) => ({
+            monthId,
+            name: d.name.trim(),
+            category: d.category as Category,
+            amountArs: d.amountArs,
+            estimatedArs: null,
+            amountUsd: d.amountUsd || 0,
+            usdRate: d.usdRate || 0,
+            dueDate: null,
+            paid: false,
+            notes: d.notes.trim(),
+          }))
+      );
+      await db.months.update(monthId, { source: 'photo', photoReplacements: 1 });
+    });
+
+    await budget.refresh();
+    fdb.success();
   }
 
   /** Guarda los presupuestos por categoría del mes activo. */
@@ -471,6 +510,15 @@ export default function App() {
                   >
                     + Agregar Gasto
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowPhotoModal(true)}
+                    disabled={!photoAllowed}
+                    title={photoAllowed ? 'Cargar el mes con una foto de apuntes' : 'Este mes ya fue cargado con foto (se permite solo una vez)'}
+                    className="w-full mt-2 px-3 py-2 text-sm font-semibold bg-violet-600 text-white rounded-md hover:bg-violet-700 transition disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    📷 Foto de apuntes
+                  </button>
                 </>
               )}
               {activeMonth.status === 'cerrado' && (
@@ -585,6 +633,14 @@ export default function App() {
             </button>
           </div>
         </>
+      )}
+
+      {showPhotoModal && activeMonth && (
+        <PhotoExpenseModal
+          month={activeMonth}
+          onSave={handlePhotoSave}
+          onClose={() => setShowPhotoModal(false)}
+        />
       )}
 
       <GuideModal

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import type { Expense } from '../types.ts';
-import { buildClonedExpenses, shiftDueDateToMonth } from './monthUtils.ts';
+import { buildClonedExpenses, canUsePhoto, shiftDueDateToMonth } from './monthUtils.ts';
 
 const prev: Expense[] = [
   {
@@ -67,6 +67,24 @@ describe('buildClonedExpenses', () => {
 
   it('no copia el id original', () => {
     expect(clones.every((c) => c.id === undefined)).toBe(true);
+  });
+});
+
+describe('canUsePhoto', () => {
+  it('permite si no tiene la propiedad (mes manual viejo)', () => {
+    expect(canUsePhoto({ id: '2026-07', label: 'Julio', income: 100, status: 'abierto' })).toBe(true);
+  });
+
+  it('permite con photoReplacements 0', () => {
+    expect(canUsePhoto({ id: '2026-07', label: 'Julio', income: 100, status: 'abierto', photoReplacements: 0 })).toBe(true);
+  });
+
+  it('BLOQUEA con photoReplacements 1 (ya reemplazado con foto)', () => {
+    expect(canUsePhoto({ id: '2026-07', label: 'Julio', income: 100, status: 'abierto', photoReplacements: 1 })).toBe(false);
+  });
+
+  it('devuelve false si el mes es null', () => {
+    expect(canUsePhoto(null)).toBe(false);
   });
 });
 
