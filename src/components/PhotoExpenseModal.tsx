@@ -294,7 +294,7 @@ export function PhotoExpenseModal({ month, onSave, onClose }: Props) {
 }
 
 /**
- * Convierte un File/Blob a base64 comprimido (resize 1280px + JPEG 92%).
+ * Convierte un File/Blob a base64 comprimido (resize 1920px + JPEG 92%).
  * Usa createImageBitmap con imageOrientation: 'from-image' para respetar
  * la orientación EXIF de la cámara (sin esto, la foto del celular se dibuja
  * rotada/volteada en el canvas y LLaVA no puede leer el texto).
@@ -305,7 +305,8 @@ async function fileToBase64(file: File): Promise<string> {
   if (typeof createImageBitmap !== 'undefined') {
     try {
       const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
-      const MAX = 1280;
+      // Foto de apuntes: alta definición (1 foto/mes, vale la pena la calidad)
+      const MAX = 1920;
       let { width, height } = bitmap;
       if (width > MAX || height > MAX) {
         if (width > height) {
@@ -341,7 +342,7 @@ async function fileToBase64(file: File): Promise<string> {
       const img = new Image();
       img.onload = () => {
         try {
-          const MAX = 1280;
+          const MAX = 1920;
           let { width, height } = img;
           if (width > MAX || height > MAX) {
             if (width > height) {
