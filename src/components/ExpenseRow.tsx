@@ -1,5 +1,5 @@
 import type { Expense } from '../types.ts';
-import { getExpenseTotal, fmtARS, fmtNumber, fmtDate } from '../utils/money.ts';
+import { getExpenseTotal, fmtARS, fmtUSD, fmtDate } from '../utils/money.ts';
 
 interface Props {
   expense: Expense;
@@ -67,7 +67,7 @@ export function ExpenseRow({ expense, onTogglePaid, onDelete, onEdit, onDuplicat
           <span className="text-[11px] text-neutral-400 whitespace-nowrap dark:text-neutral-500">
             {hasUsd && (
               <>
-                + US${fmtNumber(expense.amountUsd)} a {fmtARS(expense.usdRate)}
+                + {fmtUSD(expense.amountUsd)} a {fmtARS(expense.usdRate)}
               </>
             )}
             {hasUsd && <span className="text-neutral-300 dark:text-neutral-700 mx-1">·</span>}

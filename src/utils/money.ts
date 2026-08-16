@@ -65,11 +65,16 @@ export function fmtARS(value: number, decimals = 0): string {
 }
 
 /** Formatea un número genérico (sin símbolo) con formato es-AR. */
-export function fmtNumber(value: number, decimals = 2): string {
+export function fmtNumber(value: number, decimals = 0): string {
   return new Intl.NumberFormat('es-AR', {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   }).format(value);
+}
+
+/** Formatea un monto en USD con formato local (u$d 25,00). */
+export function fmtUSD(value: number, decimals = 2): string {
+  return `u$d ${fmtNumber(value, decimals)}`;
 }
 
 /** Formatea un porcentaje. */

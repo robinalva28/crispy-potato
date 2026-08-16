@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Category, Expense } from '../types.ts';
-import { parseLocalNumber } from '../utils/format.ts';
+import { parseLocalNumber, formatInputNumber } from '../utils/format.ts';
 
 const CATEGORIES: Category[] = [
   'vivienda', 'servicios', 'tarjetas', 'eventos', 'salud', 'impuestos', 'otros',
@@ -35,10 +35,10 @@ function toForm(e: Expense | null): FormState {
   return {
     name: e.name,
     category: e.category,
-    amountArs: e.amountArs != null ? String(e.amountArs) : '',
-    estimatedArs: e.estimatedArs != null ? String(e.estimatedArs) : '',
-    amountUsd: e.amountUsd > 0 ? String(e.amountUsd) : '',
-    usdRate: e.usdRate > 0 ? String(e.usdRate) : '',
+    amountArs: e.amountArs != null ? formatInputNumber(e.amountArs) : '',
+    estimatedArs: e.estimatedArs != null ? formatInputNumber(e.estimatedArs) : '',
+    amountUsd: e.amountUsd > 0 ? formatInputNumber(e.amountUsd) : '',
+    usdRate: e.usdRate > 0 ? formatInputNumber(e.usdRate) : '',
     dueDate: e.dueDate ?? '',
     paid: e.paid,
     notes: e.notes ?? '',
@@ -66,7 +66,7 @@ export function ExpenseForm({ initial, onSave, onCancel, onGetLastUsdRate }: Pro
     if (raw !== '' && form.usdRate === '' && onGetLastUsdRate) {
       const lastRate = await onGetLastUsdRate();
       if (lastRate != null && lastRate > 0) {
-        set('usdRate', String(lastRate));
+        set('usdRate', formatInputNumber(lastRate));
       }
     }
   }
@@ -138,51 +138,51 @@ export function ExpenseForm({ initial, onSave, onCancel, onGetLastUsdRate }: Pro
       <div className="grid grid-cols-2 gap-2">
         <div>
           <label className="block text-[11px] text-neutral-500 font-medium mb-1 dark:text-neutral-400">
-            Monto ARS
+            Monto ARS ($)
           </label>
           <input
             inputMode="decimal"
             className={inputCls}
             value={form.amountArs}
             onChange={(e) => set('amountArs', e.target.value)}
-            placeholder="688.000"
+            placeholder="$ 688.000"
           />
         </div>
         <div>
           <label className="block text-[11px] text-neutral-500 font-medium mb-1 dark:text-neutral-400">
-            Estimado ARS {!form.amountArs && <span className="text-amber-600 dark:text-amber-400">(por confirmar)</span>}
+            Estimado ARS ($) {!form.amountArs && <span className="text-amber-600 dark:text-amber-400">(por confirmar)</span>}
           </label>
           <input
             inputMode="decimal"
             className={inputCls}
             value={form.estimatedArs}
             onChange={(e) => set('estimatedArs', e.target.value)}
-            placeholder="80.000"
+            placeholder="$ 80.000"
           />
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-2">
         <div>
-          <label className="block text-[11px] text-neutral-500 font-medium mb-1 dark:text-neutral-400">Monto USD</label>
+          <label className="block text-[11px] text-neutral-500 font-medium mb-1 dark:text-neutral-400">Monto USD (u$d)</label>
           <input
             inputMode="decimal"
             className={inputCls}
             value={form.amountUsd}
             onChange={(e) => handleAmountUsdChange(e.target.value)}
-            placeholder="10,90"
+            placeholder="u$d 10,90"
           />
         </div>
         <div>
           <label className="block text-[11px] text-neutral-500 font-medium mb-1 dark:text-neutral-400">
-            Cotización USD{hasUsd && <span className="text-amber-600 dark:text-amber-400"> (requerido)</span>}
+            Cotización USD ($){hasUsd && <span className="text-amber-600 dark:text-amber-400"> (requerido)</span>}
           </label>
           <input
             inputMode="decimal"
             className={inputCls}
             value={form.usdRate}
             onChange={(e) => set('usdRate', e.target.value)}
-            placeholder="1.200"
+            placeholder="$ 1.200"
             required={hasUsd}
           />
         </div>

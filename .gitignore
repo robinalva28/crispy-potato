@@ -30,3 +30,6 @@ DECISIONS.md
 !src/**/*.png
 !scripts/**/*.png
 !public/icon.svg
+
+# Deploy directo del worker (local — wrangler.toml rompe Cloudflare Pages)
+wrangler.toml

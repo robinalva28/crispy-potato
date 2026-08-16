@@ -16,13 +16,14 @@ import { canUsePhoto } from './utils/monthUtils.ts';
 import { GuideModal } from './components/GuideModal.tsx';
 import { SavingsCalculator } from './components/SavingsCalculator.tsx';
 import { SavingsGoalForm } from './components/SavingsGoalForm.tsx';
-import { parseLocalNumber } from './utils/format.ts';
+import { parseLocalNumber, formatInputNumber } from './utils/format.ts';
 import {
   categoryTotals,
   CATEGORY_ORDER,
   CATEGORY_LABELS,
   getExpenseTotal,
   fmtARS,
+  fmtUSD,
   filterExpensesByText,
 } from './utils/money.ts';
 import { feedback as playFeedback } from './utils/feedback.ts';
@@ -150,8 +151,8 @@ export default function App() {
   async function saveMonth(e: React.FormEvent) {
     e.preventDefault();
     if (!editingMonth) return;
-    const income = Number(editingMonth.income);
-    if (isNaN(income) || income < 0) return;
+    const income = parseLocalNumber(editingMonth.income) ?? 0;
+    if (income < 0) return;
     await budget.updateMonth(editingMonth.month.id, {
       label: editingMonth.label || monthLabelFromId(editingMonth.month.id),
       income,
@@ -225,7 +226,7 @@ export default function App() {
     if (expense.amountArs == null) {
       setConfirmAmount(expense);
       setConfirmAmountValue(
-        expense.estimatedArs != null ? String(expense.estimatedArs) : ''
+        expense.estimatedArs != null ? formatInputNumber(expense.estimatedArs) : ''
       );
       return;
     }
@@ -253,7 +254,7 @@ export default function App() {
     const inputs: Partial<Record<Category, string>> = {};
     for (const cat of CATEGORY_ORDER) {
       const val = activeMonth.categoryBudgets?.[cat];
-      inputs[cat] = val != null ? String(val) : '';
+      inputs[cat] = val != null ? formatInputNumber(val) : '';
     }
     setBudgetInputs(inputs);
     setEditingBudgets(true);
@@ -381,7 +382,7 @@ export default function App() {
                     setEditingMonth({
                       month: activeMonth,
                       label: activeMonth.label,
-                      income: String(activeMonth.income),
+                      income: formatInputNumber(activeMonth.income),
                     });
                   }
                 }}
@@ -694,7 +695,7 @@ export default function App() {
                 <div className="flex justify-between">
                   <span className="text-neutral-500 dark:text-neutral-400">Componente USD</span>
                   <span className="font-semibold text-neutral-900 dark:text-neutral-100">
-                    US${confirmAmount.amountUsd} a {fmtARS(confirmAmount.usdRate)}
+                    {fmtUSD(confirmAmount.amountUsd)} a {fmtARS(confirmAmount.usdRate)}
                   </span>
                 </div>
               )}
@@ -872,9 +873,7 @@ export default function App() {
                 Ingreso (ARS)
               </label>
               <input
-                type="number"
-                step="any"
-                min="0"
+                inputMode="decimal"
                 value={editingMonth.income}
                 onChange={(e) => setEditingMonth({ ...editingMonth, income: e.target.value })}
                 className="w-full px-2 py-1.5 text-sm border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-100"
