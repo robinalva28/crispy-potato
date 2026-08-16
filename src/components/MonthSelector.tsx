@@ -18,6 +18,11 @@ export function MonthSelector({ months, activeMonthId, onSelect, onCreate }: Pro
   const [newId, setNewId] = useState(() => currentMonthId());
   const [newLabel, setNewLabel] = useState('');
   const [newIncome, setNewIncome] = useState('');
+  const [scrolled, setScrolled] = useState(false);
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    setScrolled(e.currentTarget.scrollLeft > 8);
+  };
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
@@ -35,11 +40,16 @@ export function MonthSelector({ months, activeMonthId, onSelect, onCreate }: Pro
 
   return (
     <div className="border-b border-neutral-200 bg-neutral-50 dark:border-neutral-800 dark:bg-neutral-900/60">
-      <div className="px-4 py-2 flex items-center gap-2 overflow-x-auto">
+      <div
+        onScroll={handleScroll}
+        className="px-2 py-2 flex items-center gap-2 overflow-x-auto"
+      >
         <button
           type="button"
           onClick={() => setShowModal(true)}
-          className="shrink-0 px-3 py-1.5 text-xs font-semibold bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition"
+          className={`sticky left-2 z-10 shrink-0 px-3 text-xs font-semibold bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-all duration-200 shadow-sm ${
+            scrolled ? 'py-1 text-[10px]' : 'py-1.5'
+          }`}
         >
           + Crear Mes
         </button>
