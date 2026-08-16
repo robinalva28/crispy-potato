@@ -40,6 +40,16 @@ export function monthlySavings(month: Month, expenses: Expense[]): number {
 }
 
 /**
+ * Historial de ahorro mes a mes (orden cronológico ascendente).
+ * Solo incluye meses que EXISTEN (tienen fila en la tabla months).
+ */
+export function monthlySavingsHistory(months: Month[], expenses: Expense[]): { monthId: string; savings: number }[] {
+  return [...months]
+    .sort((a, b) => a.id.localeCompare(b.id))
+    .map((m) => ({ monthId: m.id, savings: monthlySavings(m, expenses) }));
+}
+
+/**
  * Ahorro del ÚLTIMO MES CERRADO (el más reciente por id).
  * Es la "línea base" que se usa para estimar meses futuros sin data.
  * Devuelve null si no hay ningún mes cerrado.

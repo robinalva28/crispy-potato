@@ -12,6 +12,8 @@ export interface Month {
   label: string; // "Julio 2026" (editable por el usuario)
   income: number; // Ingreso principal del mes (ej: 4000000)
   status: 'abierto' | 'cerrado';
+  /** Límites de gasto por categoría (opcional). Clave = categoría, valor = monto límite en ARS. */
+  categoryBudgets?: Partial<Record<Category, number>>;
 }
 
 export interface Expense {

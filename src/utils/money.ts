@@ -38,6 +38,20 @@ export function remaining(month: Month, expenses: Expense[]): number {
   return month.income - projectedTotal(month.id, expenses);
 }
 
+/** Total de gastos PAGADOS (paid = true) en un mes. */
+export function paidTotal(monthId: string, expenses: Expense[]): number {
+  return expenses
+    .filter((e) => e.monthId === monthId && e.paid)
+    .reduce((sum, e) => sum + getExpenseTotal(e), 0);
+}
+
+/** Total de gastos PENDIENTES (paid = false) en un mes. */
+export function unpaidTotal(monthId: string, expenses: Expense[]): number {
+  return expenses
+    .filter((e) => e.monthId === monthId && !e.paid)
+    .reduce((sum, e) => sum + getExpenseTotal(e), 0);
+}
+
 // --- Formatters es-AR ---
 
 /** Formatea un número en ARS con formato es-AR (punto de miles, coma decimal). */
@@ -76,6 +90,32 @@ export const CATEGORY_LABELS: Record<Category, string> = {
 export const CATEGORY_ORDER: Category[] = [
   'vivienda', 'tarjetas', 'servicios', 'impuestos', 'salud', 'eventos', 'otros',
 ];
+
+/** Filtra gastos por texto en nombre, notas o etiqueta de categoría (case-insensitive). */
+export function filterExpensesByText(expenses: Expense[], query: string): Expense[] {
+  const q = query.trim().toLowerCase();
+  if (!q) return expenses;
+  return expenses.filter((e) => {
+    if (e.name.toLowerCase().includes(q)) return true;
+    if (e.notes.toLowerCase().includes(q)) return true;
+    if (CATEGORY_LABELS[e.category].toLowerCase().includes(q)) return true;
+    return false;
+  });
+}
+
+export type BudgetStatus = 'ok' | 'warn' | 'over';
+
+/** Devuelve el estado del presupuesto de una categoría según el límite cargado. */
+export function categoryBudgetStatus(
+  spent: number,
+  budget: number | undefined
+): { pct: number; status: BudgetStatus } | null {
+  if (budget == null || budget <= 0) return null;
+  const pct = spent / budget;
+  if (pct > 1) return { pct, status: 'over' };
+  if (pct >= 0.8) return { pct, status: 'warn' };
+  return { pct, status: 'ok' };
+}
 
 /** Total gastado por cada categoría en un mes (proyectado, con la fórmula V2). */
 export function categoryTotals(monthId: string, expenses: Expense[]): Map<Category, number> {

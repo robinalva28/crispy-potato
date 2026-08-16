@@ -6,6 +6,10 @@ import {
   projectedTotal,
   remaining,
   categoryTotals,
+  paidTotal,
+  unpaidTotal,
+  filterExpensesByText,
+  categoryBudgetStatus,
 } from './money.ts';
 
 const { month, expenses } = seedDemo;
@@ -55,6 +59,68 @@ describe('totales del mes', () => {
 
   it('remaining = income - projected', () => {
     expect(remaining(month, expenses)).toBeCloseTo(3055000, 2);
+  });
+});
+
+describe('paidTotal / unpaidTotal', () => {
+  it('paidTotal suma solo los gastos pagados', () => {
+    // Alquiler 500000 + Expensas 80000 + Super 150000 + Luz 25000 + Internet 30000 + Compras 90000
+    expect(paidTotal(month.id, expenses)).toBeCloseTo(875000, 2);
+  });
+
+  it('unpaidTotal suma solo los pendientes', () => {
+    // Nafta 50000 + Cine 20000
+    expect(unpaidTotal(month.id, expenses)).toBeCloseTo(70000, 2);
+  });
+});
+
+describe('filterExpensesByText', () => {
+  it('filtra por nombre (case-insensitive)', () => {
+    const result = filterExpensesByText(expenses, 'INTERNET');
+    expect(result).toHaveLength(1);
+    expect(result[0].name).toBe('Internet');
+  });
+
+  it('filtra por la etiqueta de categoría', () => {
+    const result = filterExpensesByText(expenses, 'vivienda');
+    expect(result).toHaveLength(2);
+    expect(result.every((e) => e.category === 'vivienda')).toBe(true);
+  });
+
+  it('filtra por notas', () => {
+    const result = filterExpensesByText(expenses, 'por confirmar');
+    expect(result).toHaveLength(1);
+    expect(result[0].name).toBe('Nafta');
+  });
+
+  it('devuelve todos si la query está vacía', () => {
+    expect(filterExpensesByText(expenses, '')).toHaveLength(expenses.length);
+    expect(filterExpensesByText(expenses, '   ')).toHaveLength(expenses.length);
+  });
+
+  it('devuelve vacío si no hay coincidencias', () => {
+    expect(filterExpensesByText(expenses, 'zzz-no-existe')).toHaveLength(0);
+  });
+});
+
+describe('categoryBudgetStatus', () => {
+  it('devuelve null si no hay presupuesto', () => {
+    expect(categoryBudgetStatus(50000, undefined)).toBeNull();
+    expect(categoryBudgetStatus(50000, 0)).toBeNull();
+  });
+
+  it('marca ok por debajo del 80%', () => {
+    const res = categoryBudgetStatus(70000, 100000);
+    expect(res?.status).toBe('ok');
+    expect(res?.pct).toBeCloseTo(0.7, 2);
+  });
+
+  it('marca warn entre 80% y 100%', () => {
+    expect(categoryBudgetStatus(85000, 100000)?.status).toBe('warn');
+  });
+
+  it('marca over por encima del 100%', () => {
+    expect(categoryBudgetStatus(150000, 100000)?.status).toBe('over');
   });
 });
 

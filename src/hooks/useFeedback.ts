@@ -6,10 +6,16 @@
 import { useCallback } from 'react';
 import { feedback as feedbackFn, type FeedbackType } from '../utils/feedback.ts';
 
-export const SOUND_KEY = 'pe-sound-enabled';
+export const SOUND_KEY = 'pe-sound-enabled-v2';
 
 export function soundEnabledFromStorage(): boolean {
   try {
+    // Migración: si existía la clave v1 (activada para probar), la ignoramos.
+    // El sonido arranca DESACTIVADO por defecto en todos los dispositivos.
+    if (localStorage.getItem(SOUND_KEY) === null) {
+      localStorage.setItem(SOUND_KEY, '0');
+      localStorage.removeItem('pe-sound-enabled');
+    }
     return localStorage.getItem(SOUND_KEY) === '1';
   } catch {
     return false;

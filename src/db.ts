@@ -17,6 +17,12 @@ export class BudgetDB extends Dexie {
       expenses: '++id, monthId, name, category, amountArs, paid',
       savings: '++id, name, startMonth, endMonth',
     });
+    // v3: agrega categoryBudgets (campo opcional en Month, sin índice nuevo)
+    this.version(3).stores({
+      months: 'id, label, income, status',
+      expenses: '++id, monthId, name, category, amountArs, paid',
+      savings: '++id, name, startMonth, endMonth',
+    });
   }
 }
 

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { db } from './db.ts';
-import type { Expense, Month, SavingsGoal } from './types.ts';
+import type { Category, Expense, Month, SavingsGoal } from './types.ts';
 import { useBudget, monthLabelFromId } from './hooks/useBudget.ts';
 import { useSavings } from './hooks/useSavings.ts';
 import { useDarkMode } from './hooks/useDarkMode.ts';
@@ -14,7 +14,14 @@ import { GuideModal } from './components/GuideModal.tsx';
 import { SavingsCalculator } from './components/SavingsCalculator.tsx';
 import { SavingsGoalForm } from './components/SavingsGoalForm.tsx';
 import { parseLocalNumber } from './utils/format.ts';
-import { categoryTotals, CATEGORY_ORDER } from './utils/money.ts';
+import {
+  categoryTotals,
+  CATEGORY_ORDER,
+  CATEGORY_LABELS,
+  getExpenseTotal,
+  fmtARS,
+  filterExpensesByText,
+} from './utils/money.ts';
 import { feedback as playFeedback } from './utils/feedback.ts';
 import {
   useFeedback,
@@ -64,9 +71,14 @@ export default function App() {
   const [showSavingsGuide, setShowSavingsGuide] = useState(false);
   const [editingGoal, setEditingGoal] = useState<SavingsGoal | null>(null);
   const [addingGoal, setAddingGoal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [editingBudgets, setEditingBudgets] = useState(false);
+  const [budgetInputs, setBudgetInputs] = useState<Partial<Record<Category, string>>>({});
   const expenseFormRef = useRef<HTMLDivElement | null>(null);
 
   const { activeMonth } = budget;
+  const filteredExpenses = filterExpensesByText(budget.monthExpenses, searchQuery);
+  const monthBudgets = activeMonth?.categoryBudgets ?? {};
 
   // Guía de uso: aparece automáticamente la primera vez que se abre la app
   useEffect(() => {
@@ -168,6 +180,24 @@ export default function App() {
     fdb.delete();
   }
 
+  /** Duplica un gasto (para gastos fijos mensuales). La copia arranca sin pagar. */
+  async function handleDuplicate(id: number) {
+    const expense = budget.monthExpenses.find((e) => e.id === id);
+    if (!expense) return;
+    await budget.addExpense({
+      name: `${expense.name} (copia)`,
+      category: expense.category,
+      amountArs: expense.amountArs,
+      estimatedArs: expense.estimatedArs,
+      amountUsd: expense.amountUsd,
+      usdRate: expense.usdRate,
+      dueDate: expense.dueDate,
+      paid: false,
+      notes: expense.notes,
+    });
+    fdb.edit();
+  }
+
   /**
    * Toggle de pagado: si el gasto tiene amountArs null (por confirmar),
    * abre un modal para confirmar el monto real antes de marcar pagado.
@@ -199,6 +229,35 @@ export default function App() {
     });
     setConfirmAmount(null);
     fdb.success();
+  }
+
+  /** Abre el modal de presupuestos con los valores actuales del mes. */
+  function openBudgetEditor() {
+    if (!activeMonth) return;
+    const inputs: Partial<Record<Category, string>> = {};
+    for (const cat of CATEGORY_ORDER) {
+      const val = activeMonth.categoryBudgets?.[cat];
+      inputs[cat] = val != null ? String(val) : '';
+    }
+    setBudgetInputs(inputs);
+    setEditingBudgets(true);
+  }
+
+  /** Guarda los presupuestos por categoría del mes activo. */
+  async function saveBudgets(e: React.FormEvent) {
+    e.preventDefault();
+    if (!activeMonth) return;
+    const categoryBudgets: Partial<Record<Category, number>> = {};
+    for (const cat of CATEGORY_ORDER) {
+      const raw = budgetInputs[cat]?.trim();
+      if (raw) {
+        const val = parseLocalNumber(raw);
+        if (val != null && val > 0) categoryBudgets[cat] = val;
+      }
+    }
+    await budget.updateMonth(activeMonth.id, { categoryBudgets });
+    setEditingBudgets(false);
+    fdb.edit();
   }
 
   // --- CRUD segmentos de ahorro ---
@@ -307,13 +366,30 @@ export default function App() {
                     Sin gastos todavía. Toque "+ Agregar Gasto".
                   </div>
                 )}
+                {budget.monthExpenses.length > 0 && (
+                  <div className="px-3 py-2 border-b border-neutral-100 dark:border-neutral-800">
+                    <input
+                      type="search"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="🔍 Buscar gasto…"
+                      className="w-full px-3 py-1.5 text-sm bg-neutral-50 border border-neutral-200 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-100"
+                    />
+                  </div>
+                )}
+                {searchQuery.trim() !== '' && filteredExpenses.length === 0 && (
+                  <div className="px-4 py-6 text-center text-sm text-neutral-500 dark:text-neutral-400">
+                    Sin resultados para "{searchQuery.trim()}"
+                  </div>
+                )}
                 {!groupByCategory &&
-                  budget.monthExpenses.map((expense) => (
+                  filteredExpenses.map((expense) => (
                     <ExpenseRow
                       key={expense.id}
                       expense={expense}
                       onTogglePaid={activeMonth.status === 'abierto' ? handleTogglePaid : () => {}}
                       onDelete={activeMonth.status === 'abierto' ? requestDelete : () => {}}
+                      onDuplicate={activeMonth.status === 'abierto' ? handleDuplicate : () => {}}
                       onEdit={(exp) => {
                         if (activeMonth.status === 'abierto') setEditing({ expense: exp, adding: false });
                       }}
@@ -323,13 +399,13 @@ export default function App() {
                   <>
                     {activeMonth.status === 'abierto' && (
                       <div className="border-b border-neutral-200 dark:border-neutral-800">
-                        <CategoryBars totals={categoryTotals(activeMonth.id, budget.monthExpenses)} />
+                        <CategoryBars totals={categoryTotals(activeMonth.id, budget.monthExpenses)} budgets={monthBudgets} />
                       </div>
                     )}
                     {CATEGORY_ORDER.map((cat) => {
-                      const catExpenses = budget.monthExpenses.filter((e) => e.category === cat);
+                      const catExpenses = filteredExpenses.filter((e) => e.category === cat);
                       if (catExpenses.length === 0) return null;
-                      const totals = categoryTotals(activeMonth.id, budget.monthExpenses);
+                      const totals = categoryTotals(activeMonth.id, filteredExpenses);
                       return (
                         <div key={cat} className="divide-y divide-neutral-100 dark:divide-neutral-800">
                           <ExpenseGroup
@@ -338,6 +414,7 @@ export default function App() {
                             total={totals.get(cat) ?? 0}
                             onTogglePaid={activeMonth.status === 'abierto' ? handleTogglePaid : () => {}}
                             onDelete={activeMonth.status === 'abierto' ? requestDelete : () => {}}
+                            onDuplicate={activeMonth.status === 'abierto' ? handleDuplicate : () => {}}
                             onEdit={(exp) => {
                               if (activeMonth.status === 'abierto') setEditing({ expense: exp, adding: false });
                             }}
@@ -371,13 +448,22 @@ export default function App() {
             <footer className="px-4 py-3 bg-neutral-50 border-t border-neutral-200 dark:bg-neutral-900/60 dark:border-neutral-800">
               {activeMonth.status === 'abierto' && (
                 <>
-                  <button
-                    type="button"
-                    onClick={() => setGroupByCategory(!groupByCategory)}
-                    className="w-full mb-2 px-3 py-2 text-sm font-medium text-neutral-600 border border-neutral-300 rounded-md hover:bg-neutral-100 transition dark:text-neutral-400 dark:border-neutral-700 dark:hover:bg-neutral-800"
-                  >
-                    {groupByCategory ? '☰ Ver lista completa' : '🗂 Agrupar por categoría'}
-                  </button>
+                  <div className="w-full mb-2 flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setGroupByCategory(!groupByCategory)}
+                      className="flex-1 px-3 py-2 text-sm font-medium text-neutral-600 border border-neutral-300 rounded-md hover:bg-neutral-100 transition dark:text-neutral-400 dark:border-neutral-700 dark:hover:bg-neutral-800"
+                    >
+                      {groupByCategory ? '☰ Ver lista completa' : '🗂 Agrupar por categoría'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={openBudgetEditor}
+                      className="px-3 py-2 text-sm font-medium text-neutral-600 border border-neutral-300 rounded-md hover:bg-neutral-100 transition dark:text-neutral-400 dark:border-neutral-700 dark:hover:bg-neutral-800"
+                    >
+                      ⚙ Presupuestos
+                    </button>
+                  </div>
                   <button
                     type="button"
                     onClick={() => setEditing({ expense: null, adding: true })}
@@ -520,6 +606,39 @@ export default function App() {
             className="w-full max-w-sm bg-white rounded-xl shadow-xl p-4 space-y-3 dark:bg-neutral-900 dark:border dark:border-neutral-800"
           >
             <div className="font-bold text-neutral-900 dark:text-neutral-100">Confirmar gasto</div>
+
+            {/* Contexto completo del gasto por confirmar */}
+            <div className="bg-neutral-50 rounded-lg p-3 space-y-1 text-xs dark:bg-neutral-800/60">
+              <div className="flex justify-between">
+                <span className="text-neutral-500 dark:text-neutral-400">Categoría</span>
+                <span className="font-semibold text-neutral-900 dark:text-neutral-100">
+                  {CATEGORY_LABELS[confirmAmount.category]}
+                </span>
+              </div>
+              {confirmAmount.estimatedArs != null && (
+                <div className="flex justify-between">
+                  <span className="text-neutral-500 dark:text-neutral-400">Estimado</span>
+                  <span className="font-semibold text-neutral-900 dark:text-neutral-100">
+                    {fmtARS(confirmAmount.estimatedArs)}
+                  </span>
+                </div>
+              )}
+              {confirmAmount.amountUsd > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-neutral-500 dark:text-neutral-400">Componente USD</span>
+                  <span className="font-semibold text-neutral-900 dark:text-neutral-100">
+                    US${confirmAmount.amountUsd} a {fmtARS(confirmAmount.usdRate)}
+                  </span>
+                </div>
+              )}
+              <div className="flex justify-between pt-1 border-t border-neutral-200 dark:border-neutral-700">
+                <span className="text-neutral-500 dark:text-neutral-400">Total estimado</span>
+                <span className="font-bold text-neutral-900 dark:text-neutral-100">
+                  {fmtARS(getExpenseTotal(confirmAmount), 0)}
+                </span>
+              </div>
+            </div>
+
             <p className="text-sm text-neutral-600 dark:text-neutral-400">
               <span className="font-semibold">{confirmAmount.name}</span> estaba "por confirmar".
               Confirmá el monto real para marcarlo como pagado.
@@ -581,6 +700,51 @@ export default function App() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {editingBudgets && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <form
+            onSubmit={saveBudgets}
+            className="w-full max-w-sm bg-white rounded-xl shadow-xl p-4 space-y-3 dark:bg-neutral-900 dark:border dark:border-neutral-800"
+          >
+            <div className="font-bold text-neutral-900 dark:text-neutral-100">Presupuestos del mes</div>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400">
+              Definí un límite mensual por categoría (en ARS). Dejá vacío para no poner límite.
+            </p>
+
+            {CATEGORY_ORDER.map((cat) => (
+              <div key={cat}>
+                <label className="block text-[11px] text-neutral-500 font-medium mb-1 dark:text-neutral-400">
+                  {CATEGORY_LABELS[cat]}
+                </label>
+                <input
+                  inputMode="decimal"
+                  value={budgetInputs[cat] ?? ''}
+                  onChange={(e) => setBudgetInputs({ ...budgetInputs, [cat]: e.target.value })}
+                  placeholder="Sin límite"
+                  className="w-full px-2 py-1.5 text-sm border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-100"
+                />
+              </div>
+            ))}
+
+            <div className="flex gap-2 pt-1">
+              <button
+                type="submit"
+                className="flex-1 px-3 py-2 text-sm font-semibold bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition"
+              >
+                Guardar presupuestos
+              </button>
+              <button
+                type="button"
+                onClick={() => setEditingBudgets(false)}
+                className="px-3 py-2 text-sm font-medium text-neutral-600 border border-neutral-300 rounded-md hover:bg-neutral-100 transition dark:text-neutral-400 dark:border-neutral-700 dark:hover:bg-neutral-800"
+              >
+                Cancelar
+              </button>
+            </div>
+          </form>
         </div>
       )}
 

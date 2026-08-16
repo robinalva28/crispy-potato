@@ -10,9 +10,10 @@ interface Props {
   onTogglePaid: (id: number) => void;
   onDelete: (id: number) => void;
   onEdit: (expense: Expense) => void;
+  onDuplicate: (id: number) => void;
 }
 
-export function ExpenseGroup({ category, expenses, total, onTogglePaid, onDelete, onEdit }: Props) {
+export function ExpenseGroup({ category, expenses, total, onTogglePaid, onDelete, onEdit, onDuplicate }: Props) {
   return (
     <div>
       <div className="px-3 py-1.5 bg-neutral-100 dark:bg-neutral-800/60 flex items-center justify-between text-[11px] font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
@@ -26,6 +27,7 @@ export function ExpenseGroup({ category, expenses, total, onTogglePaid, onDelete
           onTogglePaid={onTogglePaid}
           onDelete={onDelete}
           onEdit={onEdit}
+          onDuplicate={onDuplicate}
         />
       ))}
     </div>

@@ -3,6 +3,8 @@ import {
   confirmedTotal,
   projectedTotal,
   remaining,
+  paidTotal,
+  unpaidTotal,
   fmtARS,
   fmtPct,
 } from '../utils/money.ts';
@@ -21,6 +23,8 @@ export function MonthHeader({ month, expenses, onEditMonth, dark, onToggleDark, 
   const projected = projectedTotal(month.id, expenses);
   const rest = remaining(month, expenses);
   const restPct = month.income > 0 ? rest / month.income : 0;
+  const paid = paidTotal(month.id, expenses);
+  const unpaid = unpaidTotal(month.id, expenses);
   const hasEstimated = expenses.some(
     (e) => e.monthId === month.id && e.amountArs == null && e.estimatedArs != null
   );
@@ -82,6 +86,30 @@ export function MonthHeader({ month, expenses, onEditMonth, dark, onToggleDark, 
           <div className="text-[11px] text-emerald-700 uppercase tracking-wide font-medium dark:text-emerald-400">Resto</div>
           <div className="text-sm font-bold text-emerald-800 dark:text-emerald-300">{fmtARS(rest, 0)}</div>
         </div>
+      </div>
+
+      {/* Desglose pagado vs pendiente */}
+      <div className="mt-2 space-y-1">
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-emerald-700 dark:text-emerald-400">✅ Pagado</span>
+          <span className="font-semibold text-neutral-700 dark:text-neutral-300">{fmtARS(paid, 0)}</span>
+        </div>
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-amber-600 dark:text-amber-400">⏳ Pendiente</span>
+          <span className="font-semibold text-neutral-700 dark:text-neutral-300">{fmtARS(unpaid, 0)}</span>
+        </div>
+        {projected > 0 && (
+          <div className="flex h-1.5 bg-neutral-200 rounded-full overflow-hidden dark:bg-neutral-800">
+            <div
+              className="h-full bg-emerald-500 transition-all"
+              style={{ width: `${Math.min((paid / projected) * 100, 100)}%` }}
+            />
+            <div
+              className="h-full bg-amber-400 transition-all"
+              style={{ width: `${Math.min((unpaid / projected) * 100, 100)}%` }}
+            />
+          </div>
+        )}
       </div>
     </header>
   );

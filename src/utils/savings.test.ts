@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { seedDemo } from '../seed.ts';
-import { monthRange, monthlySavings, projectSavings, lastClosedSavings, type MonthProjection } from './savings.ts';
+import { monthRange, monthlySavings, monthlySavingsHistory, projectSavings, lastClosedSavings, type MonthProjection } from './savings.ts';
 import type { Month, SavingsGoal } from '../types.ts';
 
 const { month, expenses } = seedDemo;
@@ -27,6 +27,22 @@ describe('monthRange', () => {
 describe('monthlySavings', () => {
   it('ahorro = ingreso − gasto proyectado del mes', () => {
     expect(monthlySavings(month, expenses)).toBeCloseTo(3055000, 2);
+  });
+});
+
+describe('monthlySavingsHistory', () => {
+  it('devuelve el ahorro de cada mes en orden cronológico', () => {
+    const july: Month = { id: '2026-07', label: 'Julio 2026', income: 4000000, status: 'abierto' };
+    const august: Month = { id: '2026-08', label: 'Agosto 2026', income: 4200000, status: 'abierto' };
+    const history = monthlySavingsHistory([august, july], expenses);
+
+    expect(history.map((h) => h.monthId)).toEqual(['2026-07', '2026-08']);
+    expect(history[0].savings).toBeCloseTo(3055000, 2); // julio: 4.000.000 - 945.000
+    expect(history[1].savings).toBeCloseTo(4200000, 2); // agosto sin gastos
+  });
+
+  it('devuelve vacío si no hay meses', () => {
+    expect(monthlySavingsHistory([], expenses)).toEqual([]);
   });
 });
 

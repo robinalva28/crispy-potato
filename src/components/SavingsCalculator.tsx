@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import type { Expense, Month, SavingsGoal } from '../types.ts';
-import { projectSavings } from '../utils/savings.ts';
+import { projectSavings, monthlySavingsHistory } from '../utils/savings.ts';
 import { fmtARS } from '../utils/money.ts';
+import { SavingsChart } from './SavingsChart.tsx';
 
 interface Props {
   goals: SavingsGoal[];
@@ -42,8 +43,12 @@ export function SavingsCalculator({ goals, months, expenses, onAdd, onEdit, onDe
     );
   }
 
+  const history = monthlySavingsHistory(months, expenses);
+
   return (
     <div className="space-y-3 px-4 py-4">
+      <SavingsChart history={history} />
+
       {goals.map((goal) => {
         const proj = projectSavings(goal, months, expenses);
         return (

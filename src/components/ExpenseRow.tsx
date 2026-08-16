@@ -6,9 +6,10 @@ interface Props {
   onTogglePaid: (id: number) => void;
   onDelete: (id: number) => void;
   onEdit: (expense: Expense) => void;
+  onDuplicate: (id: number) => void;
 }
 
-export function ExpenseRow({ expense, onTogglePaid, onDelete, onEdit }: Props) {
+export function ExpenseRow({ expense, onTogglePaid, onDelete, onEdit, onDuplicate }: Props) {
   const isPending = !expense.paid;
   const isEstimated = expense.amountArs == null;
   const hasUsd = expense.amountUsd > 0;
@@ -75,17 +76,31 @@ export function ExpenseRow({ expense, onTogglePaid, onDelete, onEdit }: Props) {
         </div>
       </div>
 
-      <button
-        type="button"
-        aria-label="Borrar gasto"
-        onClick={(e) => {
-          e.stopPropagation();
-          onDelete(expense.id!);
-        }}
-        className="text-neutral-300 hover:text-red-500 text-sm shrink-0 dark:text-neutral-600 dark:hover:text-red-400"
-      >
-        ✕
-      </button>
+      <div className="flex items-center gap-1.5 shrink-0">
+        <button
+          type="button"
+          aria-label="Duplicar gasto"
+          title="Duplicar gasto"
+          onClick={(e) => {
+            e.stopPropagation();
+            onDuplicate(expense.id!);
+          }}
+          className="text-neutral-300 hover:text-emerald-500 text-sm dark:text-neutral-600 dark:hover:text-emerald-400"
+        >
+          ⧉
+        </button>
+        <button
+          type="button"
+          aria-label="Borrar gasto"
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(expense.id!);
+          }}
+          className="text-neutral-300 hover:text-red-500 text-sm dark:text-neutral-600 dark:hover:text-red-400"
+        >
+          ✕
+        </button>
+      </div>
     </div>
   );
 }

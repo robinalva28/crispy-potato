@@ -8,7 +8,7 @@ Este archivo le da contexto instantáneo a una sesión nueva de IA que trabaje s
 npm install        # solo la primera vez
 npm run dev        # servidor de desarrollo en http://localhost:5173
 npm run build      # build de producción (Cloudflare Pages usa esto)
-npm test           # tests Vitest (21 tests)
+npm test           # tests Vitest (34 tests)
 ```
 
 ## 2. Reglas de trabajo (resumen del CONTEXTO V2)
@@ -71,11 +71,12 @@ Completado:
 - Cierre/reapertura de mes.
 - Agrupar por categoría + gráfico de barras bajo demanda.
 - Guía interactiva (GuideModal) primera vez + botón "❓ Guía".
-- Tests Vitest (21) verdes.
+- Tests Vitest (34) verdes.
 - GitHub + Cloudflare Pages auto-deploy configurados (URL: `https://presupuesto.commitlog.net`).
 - Feedback háptico y sonoro con WebAudio + Vibration API (sin librerías).
 - Botón "Crear Mes" con efecto glass animado.
-- Sección de Ahorro con segmentos y proyección mensual.
+- Sección de Ahorro con segmentos, proyección mensual y gráfico de evolución.
+- Búsqueda de gastos, duplicado de filas, backup completo y presupuestos por categoría con semáforo.
 
 Pendiente/iterable:
 - PIN (lógica en `useLock.ts`/`LockScreen.tsx`, sin integrar en App — reactivar cuando el usuario quiera).
