@@ -52,20 +52,57 @@ export function normalizeDrafts(raw: unknown[]): ExpenseDraft[] {
   return drafts;
 }
 
-/** Extrae los gastos de una foto de apuntes usando el Worker de Cloudflare. */
-export async function extractExpensesFromImage(base64: string): Promise<ExpenseDraft[]> {
-  const res = await fetch(WORKER_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ image: base64 }),
-  });
+/** Extrae el texto de la respuesta de Workers AI (varios formatos posibles). */
+function extractResponseText(data: unknown): string {
+  const rec = data as Record<string, unknown>;
+  if (!rec) return '';
 
-  if (!res.ok) {
-    throw new Error(`Fallo al leer la foto (${res.status})`);
+  // Formato 1: { result: { response: "..." } }
+  const result = rec.result as Record<string, unknown> | undefined;
+  if (result && typeof result.response === 'string') return result.response;
+
+  // Formato 2: { result: [{ response: "..." }] } (array de responses)
+  if (Array.isArray(result)) {
+    for (const item of result) {
+      const r = item as Record<string, unknown>;
+      if (r && typeof r.response === 'string') return r.response;
+    }
   }
 
-  const data = (await res.json()) as { result?: { response?: string } };
-  const text = data?.result?.response ?? '';
+  // Formato 3: { response: "..." } directo
+  if (typeof rec.response === 'string') return rec.response;
+
+  // Formato 4: { result: "..." } string directo
+  if (typeof rec.result === 'string') return rec.result;
+
+  // Formato 5: { result: { output?: { text: "..." } } } (formato más nuevo)
+  const output = result?.output as Record<string, unknown> | undefined;
+  if (output && typeof output.text === 'string') return output.text;
+
+  return JSON.stringify(data); // fallback: devolver todo por si ayuda a debuggear
+}
+
+/** Extrae los gastos de una foto de apuntes usando el Worker de Cloudflare. */
+export async function extractExpensesFromImage(base64: string): Promise<ExpenseDraft[]> {
+  let res: Response;
+  try {
+    res = await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image: base64 }),
+    });
+  } catch (err) {
+    throw new Error(`No se pudo conectar al Worker (${err instanceof Error ? err.message : 'red'})`);
+  }
+
+  if (!res.ok) {
+    // Lee el detalle del error del Worker para mostrarlo
+    const detail = await res.text().catch(() => '');
+    throw new Error(`Fallo al leer la foto (${res.status}): ${detail.slice(0, 300)}`);
+  }
+
+  const data = (await res.json()) as unknown;
+  const text = extractResponseText(data);
   const jsonMatch = text.match(/\[[\s\S]*\]/);
   if (!jsonMatch) return [];
 
