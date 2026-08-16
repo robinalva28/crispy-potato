@@ -245,16 +245,53 @@ export function PhotoExpenseModal({ month, onSave, onClose }: Props) {
   );
 }
 
-/** Convierte un File/Blob a base64 comprimido (resize a máx 1024px + JPEG 80%). */
-function fileToBase64(file: File): Promise<string> {
+/**
+ * Convierte un File/Blob a base64 comprimido (resize 1280px + JPEG 92%).
+ * Usa createImageBitmap con imageOrientation: 'from-image' para respetar
+ * la orientación EXIF de la cámara (sin esto, la foto del celular se dibuja
+ * rotada/volteada en el canvas y LLaVA no puede leer el texto).
+ */
+async function fileToBase64(file: File): Promise<string> {
+  // Si createImageBitmap está disponible (Chrome/Edge/Android/iOS 15+),
+  // lo usamos para respetar EXIF automáticamente. Fallback al método clásico.
+  if (typeof createImageBitmap !== 'undefined') {
+    try {
+      const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
+      const MAX = 1280;
+      let { width, height } = bitmap;
+      if (width > MAX || height > MAX) {
+        if (width > height) {
+          height = Math.round((height * MAX) / width);
+          width = MAX;
+        } else {
+          width = Math.round((width * MAX) / height);
+          height = MAX;
+        }
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('No se pudo procesar la imagen');
+      ctx.drawImage(bitmap, 0, 0, width, height);
+      bitmap.close();
+
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+      return dataUrl.includes(',') ? dataUrl.split(',')[1] : dataUrl;
+    } catch {
+      // si falló el bitmap, seguimos al fallback de abajo
+    }
+  }
+
+  // Fallback clásico (Safari viejo / soporte limitado)
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => {
       const img = new Image();
       img.onload = () => {
         try {
-          // Redimensionar a máx 1024px (la foto del celular es enorme y causa timeout)
-          const MAX = 1024;
+          const MAX = 1280;
           let { width, height } = img;
           if (width > MAX || height > MAX) {
             if (width > height) {
@@ -276,8 +313,7 @@ function fileToBase64(file: File): Promise<string> {
           }
           ctx.drawImage(img, 0, 0, width, height);
 
-          // JPEG calidad 0.8 — muchísimo más liviano que la foto original
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
           const base64 = dataUrl.includes(',') ? dataUrl.split(',')[1] : dataUrl;
           resolve(base64);
         } catch {
