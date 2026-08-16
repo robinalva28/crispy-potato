@@ -1,12 +1,20 @@
 /**
- * Feedback háptico y sonoro (WebAudio + navigator.vibrate).
- * Sin librerías externas: sonidos sintetizados con osciladores WebAudio
- * y patrones de vibración dinámicos vía Vibration API.
+ * Feedback háptico y sonoro moderno (WebAudio + navigator.vibrate).
+ * Sin librerías externas: sonidos sintetizados con WebAudio
+ * y patrones de vibración vía Vibration API.
  *
- * Reglas:
- * - Respetar `prefers-reduced-motion`: si el usuario lo activó, no sonar ni vibrar.
- * - En desktop `navigator.vibrate` no existe: solo suena, no vibra.
- * - Todos los patrones son cortos y dinámicos, nada abrumador.
+ * Estética de sonido:
+ * - Nada de arpegios "Tetris": tonos únicos, cortos y con cuerpo.
+ * - Cada sonido usa envelope de pitch (frecuencia que barre) +
+ *   filtro lowpass + decay exponencial → "pops/blips" modernos
+ *   estilo iOS/Android actual.
+ *
+ * Vibración:
+ * - Duraciones mínimas de 25ms (los pulsos < 20ms son imperceptibles
+ *   en la mayoría de los dispositivos y Android los descarta).
+ * - Patrones claros y dinámicos, distintos por caso.
+ *
+ * Accesibilidad: respeta `prefers-reduced-motion`.
  */
 
 export type FeedbackType =
@@ -20,80 +28,74 @@ export type FeedbackType =
   | 'error'; // validación fallida
 
 interface ToneStep {
-  freq: number;
-  start: number; // offset en ms desde el inicio
-  duration: number; // ms
   type?: OscillatorType;
+  freq: number; // frecuencia inicial
+  freqEnd?: number; // si existe, barre la frecuencia hasta acá (pitch envelope)
+  duration: number; // ms
   gain?: number; // 0..1
+  filter?: number; // frecuencia del lowpass (Hz)
+  start?: number; // offset en ms desde el inicio
 }
 
 /** Secuencias de tonos para cada tipo de feedback. */
 const TONES: Record<FeedbackType, ToneStep[]> = {
-  // Arpegio ascendente suave y corto (crear mes, agregar gasto)
+  // "Pop" limpio ascendente (crear mes, agregar gasto)
   success: [
-    { freq: 523.25, start: 0, duration: 60, type: 'triangle', gain: 0.12 },
-    { freq: 659.25, start: 50, duration: 60, type: 'triangle', gain: 0.12 },
-    { freq: 783.99, start: 100, duration: 90, type: 'triangle', gain: 0.13 },
+    { freq: 480, freqEnd: 980, duration: 140, type: 'sine', gain: 0.22, filter: 1400 },
   ],
-  // Pulso afirmativo muy suave (guardar edición)
+  // Doble "tic" muy suave (guardar edición)
   edit: [
-    { freq: 587.33, start: 0, duration: 70, type: 'triangle', gain: 0.1 },
-    { freq: 739.99, start: 40, duration: 60, type: 'triangle', gain: 0.1 },
+    { freq: 620, freqEnd: 930, duration: 80, type: 'sine', gain: 0.16, filter: 2200 },
+    { freq: 780, freqEnd: 1040, duration: 70, type: 'sine', gain: 0.13, filter: 2200, start: 45 },
   ],
-  // Pulso afirmativo corto (marcar pagado / pendiente)
+  // "Blip" corto afirmativo (marcar pagado / pendiente) — estilo iOS
   toggle: [
-    { freq: 880, start: 0, duration: 40, type: 'sine', gain: 0.12 },
-    { freq: 1046.5, start: 25, duration: 50, type: 'sine', gain: 0.1 },
+    { freq: 880, freqEnd: 1320, duration: 60, type: 'sine', gain: 0.2, filter: 3000 },
   ],
-  // Descenso grave y firme (borrar)
+  // "Swoosh" grave descendente (borrar)
   delete: [
-    { freq: 440, start: 0, duration: 60, type: 'triangle', gain: 0.14 },
-    { freq: 220, start: 45, duration: 80, type: 'triangle', gain: 0.12 },
+    { freq: 320, freqEnd: 140, duration: 160, type: 'triangle', gain: 0.2, filter: 900 },
   ],
-  // Ascendente suave que "revive" (deshacer borrado)
+  // Ascenso suave que "revive" (deshacer borrado)
   undo: [
-    { freq: 220, start: 0, duration: 60, type: 'triangle', gain: 0.12 },
-    { freq: 349.23, start: 40, duration: 70, type: 'triangle', gain: 0.12 },
-    { freq: 440, start: 90, duration: 70, type: 'triangle', gain: 0.11 },
+    { freq: 140, freqEnd: 330, duration: 150, type: 'triangle', gain: 0.18, filter: 1000 },
   ],
-  // Nota grave con decay (cerrar mes = "candado")
+  // "Thud" grave de candado (cerrar mes)
   closeMonth: [
-    { freq: 330, start: 0, duration: 70, type: 'sine', gain: 0.14 },
-    { freq: 165, start: 55, duration: 110, type: 'sine', gain: 0.11 },
+    { freq: 220, freqEnd: 120, duration: 260, type: 'sine', gain: 0.26, filter: 500 },
   ],
-  // Ascenso ligero y abierto (reabrir mes)
+  // "Click" de apertura (reabrir mes)
   reopenMonth: [
-    { freq: 440, start: 0, duration: 60, type: 'sine', gain: 0.11 },
-    { freq: 660, start: 40, duration: 80, type: 'sine', gain: 0.1 },
+    { freq: 440, freqEnd: 720, duration: 90, type: 'triangle', gain: 0.16, filter: 1800 },
   ],
-  // Doble pulso seco y grave (validación fallida)
+  // Dos "thuds" suaves, sin square estridente (error)
   error: [
-    { freq: 220, start: 0, duration: 50, type: 'square', gain: 0.07 },
-    { freq: 220, start: 70, duration: 50, type: 'square', gain: 0.07 },
+    { freq: 200, freqEnd: 160, duration: 70, type: 'sine', gain: 0.18, filter: 600 },
+    { freq: 200, freqEnd: 160, duration: 70, type: 'sine', gain: 0.18, filter: 600, start: 95 },
   ],
 };
 
 /**
  * Patrones de vibración dinámicos (Vibration API: [duración, pausa, ...]).
- * Diseñados para ser cortos, con ritmo distinto por caso y nada abrumadores.
+ * Duraciones ≥ 25ms para que se SIENTAN en el dispositivo.
  */
 const VIBRATIONS: Record<FeedbackType, number[]> = {
-  // Triple pulso ascendente en intensidad (10 → 10 → 25)
-  success: [10, 40, 10, 40, 25],
-  // Doble pulso muy suave
-  edit: [8, 30, 10],
-  // Micro-pulso afirmativo, casi imperceptible
-  toggle: [15, 40, 8],
-  // Pulso firme que se corta (sensación de "eliminado")
-  delete: [35, 50, 15],
-  // Pulso suave "revive"
-  undo: [10, 35, 20, 35, 10],
+  // Escalera clara ascendente: 30 → 45 → 60
+  success: [30, 45, 45, 45, 60],
+  // Doble pulso perceptible
+  edit: [30, 35, 45],
+  // Doble pulso rápido y claro
+  toggle: [35, 30, 30],
+  // Pulso firme largo que se corta
+  delete: [70, 45, 40],
+  // Ritmo "revive": suave-largo-suave
+  undo: [25, 45, 50, 45, 30],
   // Firme y grave (cerrar candado)
-  closeMonth: [45, 30, 10],
+  closeMonth: [90, 40, 30],
   // Ligero y abierto
-  reopenMonth: [10, 30, 20, 30, 10],
-  // Doble pulso igual, seco
-  error: [30, 50, 30],
+  reopenMonth: [30, 40, 55, 40, 25],
+  // Doble seco, nada suave
+  error: [60, 60, 60],
 };
 
 let audioCtx: AudioContext | null = null;
@@ -113,30 +115,46 @@ function prefersReducedMotion(): boolean {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
-/** Reproduce una secuencia de tonos con WebAudio. */
+/** Reproduce un tono con pitch envelope, lowpass y decay exponencial. */
+function playTone(ctx: AudioContext, step: ToneStep, startAt: number): void {
+  const osc = ctx.createOscillator();
+  const filter = ctx.createBiquadFilter();
+  const gain = ctx.createGain();
+  const duration = step.duration / 1000;
+  const vol = step.gain ?? 0.15;
+  const freqEnd = step.freqEnd ?? step.freq;
+
+  osc.type = step.type ?? 'sine';
+  // Pitch envelope: barre la frecuencia para dar el "pop" moderno
+  osc.frequency.setValueAtTime(step.freq, startAt);
+  osc.frequency.exponentialRampToValueAtTime(Math.max(1, freqEnd), startAt + duration);
+
+  // Filtro lowpass: redondea el sonido (elimina la dureza "arcade")
+  filter.type = 'lowpass';
+  filter.frequency.setValueAtTime(step.filter ?? 2000, startAt);
+  filter.frequency.exponentialRampToValueAtTime(Math.max(100, (step.filter ?? 2000) * 0.4), startAt + duration);
+  filter.Q.setValueAtTime(0.8, startAt);
+
+  // Envolvente con ataque rápido y decay EXPONENCIAL (decaimiento natural)
+  gain.gain.setValueAtTime(0, startAt);
+  gain.gain.linearRampToValueAtTime(vol, startAt + 0.006);
+  gain.gain.exponentialRampToValueAtTime(0.0001, startAt + duration);
+
+  osc.connect(filter);
+  filter.connect(gain);
+  gain.connect(ctx.destination);
+  osc.start(startAt);
+  osc.stop(startAt + duration + 0.05);
+}
+
+/** Reproduce una secuencia de tonos. */
 function playTones(steps: ToneStep[]): void {
   const ctx = getAudioContext();
   if (!ctx) return;
   const now = ctx.currentTime;
   for (const step of steps) {
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    const startAt = now + step.start / 1000;
-    const duration = step.duration / 1000;
-    const vol = step.gain ?? 0.1;
-
-    osc.type = step.type ?? 'sine';
-    osc.frequency.setValueAtTime(step.freq, startAt);
-    // Fade suave para evitar clicks
-    gain.gain.setValueAtTime(0, startAt);
-    gain.gain.linearRampToValueAtTime(vol, startAt + 0.008);
-    gain.gain.setValueAtTime(vol, startAt + Math.max(0, duration - 0.02));
-    gain.gain.linearRampToValueAtTime(0, startAt + duration);
-
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start(startAt);
-    osc.stop(startAt + duration + 0.05);
+    const startAt = now + (step.start ?? 0) / 1000;
+    playTone(ctx, step, startAt);
   }
 }
 

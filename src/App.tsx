@@ -15,6 +15,7 @@ import { SavingsCalculator } from './components/SavingsCalculator.tsx';
 import { SavingsGoalForm } from './components/SavingsGoalForm.tsx';
 import { parseLocalNumber } from './utils/format.ts';
 import { categoryTotals, CATEGORY_ORDER } from './utils/money.ts';
+import { feedback as playFeedback } from './utils/feedback.ts';
 import {
   useFeedback,
   soundEnabledFromStorage,
@@ -49,6 +50,8 @@ export default function App() {
     } catch {
       // localStorage no disponible: ignorar
     }
+    // Preview: al activar se escucha y se siente un sample de éxito
+    if (next) playFeedback('success');
   }
   const [view, setView] = useState<View>('budget');
   const [groupByCategory, setGroupByCategory] = useState(false);
