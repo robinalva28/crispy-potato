@@ -40,28 +40,30 @@ export default {
       const imageArray = Array.from(bytes);
 
       const PROMPT = `Leé esta imagen de una lista de gastos de Argentina escrita a mano.
-Devolvé EXCLUSIVAMENTE un ARRAY JSON válido. NADA de markdown, NADA de bullets, NADA de texto extra.
+Devolvé EXCLUSIVAMENTE un ARRAY JSON válido. NADA de texto, NADA de markdown, NADA de explicaciones.
 
-Formato EXACTO de cada elemento (sin categorías, sin notas):
+Formato EXACTO de cada elemento:
 {"name":"", "amountArs":0, "amountUsd":0}
 
-Ejemplo de respuesta válida:
+Ejemplo de respuesta válida (montos ENTEROS sin separador de miles, decimales con PUNTO):
 [{"name":"Alquiler","amountArs":830000,"amountUsd":0},{"name":"Luz","amountArs":111328.96,"amountUsd":0},{"name":"Deuda Vanesa","amountArs":279208,"amountUsd":0}]
 
 REGLAS:
 1. NO inventes gastos. Leé SOLO lo que está escrito en la hoja.
 2. NO uses categorías. Ignorá títulos como "vivienda", "servicios", etc: son etiquetas, no gastos.
-3. Los montos argentinos usan PUNTO como separador de miles y COMA como decimal: "$36.999,40" es amountArs=36999.40 (UN solo número, NO separes los dígitos).
-4. Copiá cada número EXACTO con todos sus dígitos y centavos (450000 no es 45000).
-5. Si un monto dice "usd" o "u$d" → amountUsd. Si no, es amountArs (pesos).
-6. Si un texto no es un gasto (título, nota, fecha), ignoralo.
-7. Si no hay gastos legibles, devolvé [].
-8. CORREGÍ nombres deformados por la escritura o letra: devolvé la palabra REAL en español. Ejemplos: "dude" → "deuda", "gaz" → "gas", "nafite" → "nafta", "pblico" → "público", "cupo" → "cubo", "tel +" → "teléfono", "super" → "supermercado". Si el nombre es ilegible pero se infiere el significado, usá la palabra correcta en español. NUNCA devuelvas palabras en inglés (ej: "debt" → "deuda").`;
+3. MONTOS ARGENTINOS: "$488.935" → 488935 (el punto separa MILES). "$36.999,40" → 36999.4 (la COMA es decimal). NUNCA uses puntos en la salida del número, escribí SOLO dígitos y el punto decimal si hay centavos.
+4. Copiá cada número EXACTO con todos sus dígitos (450000 no es 45000, ni 45.000, ni 450.000).
+5. Usá amountUsd SOLO si el monto dice explícitamente "usd", "u$d" o "dólar". En ese caso NO pongas amountArs.
+6. Si un texto no es un gasto (título, nota, fecha, total), ignoralo.
+7. Si un nombre es ilegible pero se infiere, corregilo al español real: "gaz" → "gas", "dude" → "deuda", "nafite" → "nafta", "pblico" → "público", "tel +" → "teléfono", "super" → "supermercado". NUNCA uses palabras en inglés.
+8. Si un texto no es un gasto (nota, recordatorio, título, fecha), NO lo incluyas como gasto. Solo incluí lineas con montos.
+9. Si no hay gastos legibles, devolvé [].`;
 
-      const STRICT_PROMPT = `Devolvé SOLO el array JSON de gastos de la imagen, sin texto alrededor.
+      const STRICT_PROMPT = `Devolvé SOLO el array JSON de gastos de la imagen, sin texto alrededor, sin preámbulos.
 Formato: [{"name":"", "amountArs":0, "amountUsd":0}]
-Los montos con coma decimal van en amountArs como número único: "$36.999,40" → 36999.4. Nada de separar dígitos.
-Los nombres deben ser palabras reales en español, corregidas si la letra las deforma ("gaz" → "gas", "dude" → "deuda").
+Montos: "$488.935" → 488935, "$36.999,40" → 36999.4. Sin puntos de miles en el número.
+Si un monto dice "usd" → solo amountUsd. Si no, solo amountArs.
+Nombres corregidos al español real ("gaz" → "gas", "dude" → "deuda").
 Si no hay gastos, devolvé [].`;
 
       const MODEL = '@cf/meta/llama-3.2-11b-vision-instruct';
