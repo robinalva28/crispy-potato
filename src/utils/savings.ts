@@ -5,6 +5,10 @@ import { projectedTotal } from './money.ts';
  * Calculadora de ahorro: selectores puros.
  * Un segmento de ahorro ("Auto") proyecta cuánto queda por mes (ingreso − gastos)
  * dentro de un rango, sumando ingresos extra previstos (bonos, aguinaldos...).
+ *
+ * Regla importante: los meses del rango que YA tienen data usan su propio ahorro.
+ * Los meses FUTUROS sin data cargada usan como referencia el ahorro del ÚLTIMO MES CERRADO
+ * (el "resto" real más consistente), para que la proyección sea estable.
  */
 
 /** Genera la lista de ids "YYYY-MM" entre start y end (cruza años: "2026-08" → "2027-02"). */
@@ -35,11 +39,25 @@ export function monthlySavings(month: Month, expenses: Expense[]): number {
   return month.income - projectedTotal(month.id, expenses);
 }
 
+/**
+ * Ahorro del ÚLTIMO MES CERRADO (el más reciente por id).
+ * Es la "línea base" que se usa para estimar meses futuros sin data.
+ * Devuelve null si no hay ningún mes cerrado.
+ */
+export function lastClosedSavings(months: Month[], expenses: Expense[]): number | null {
+  const closed = months
+    .filter((m) => m.status === 'cerrado')
+    .sort((a, b) => b.id.localeCompare(a.id));
+  if (closed.length === 0) return null;
+  return monthlySavings(closed[0], expenses);
+}
+
 export interface MonthProjection {
   monthId: string;
-  savings: number; // ahorro del mes (ingreso − gastos)
+  savings: number; // ahorro del mes (ingreso − gastos, o referencia si es futuro sin data)
   extras: ExtraIncome[]; // ingresos extra que caen en ese mes
   total: number; // savings + Σ extras
+  estimated: boolean; // true si usó la referencia del último mes cerrado
 }
 
 export interface SavingsProjection {
@@ -49,8 +67,9 @@ export interface SavingsProjection {
 
 /**
  * Proyecta el ahorro de un segmento en el rango [startMonth, endMonth].
- * Usa los meses existentes (por id) y su ingreso; los meses sin cargar se ignoran
- * y cuentan ahorro 0 (no hay data).
+ * - Los meses que existen usan su propio ingreso − gastos.
+ * - Los meses del rango que NO tienen data cargada usan el ahorro del último mes cerrado
+ *   como referencia consistente (estimado). Si no hay ningún mes cerrado, cuentan 0.
  */
 export function projectSavings(
   goal: Pick<SavingsGoal, 'startMonth' | 'endMonth' | 'extraIncomes'>,
@@ -59,6 +78,8 @@ export function projectSavings(
 ): SavingsProjection {
   const ids = monthRange(goal.startMonth, goal.endMonth);
   const monthsById = new Map(months.map((m) => [m.id, m]));
+  const baseSavings = lastClosedSavings(months, expenses);
+
   const extrasByMonth = new Map<string, ExtraIncome[]>();
   for (const extra of goal.extraIncomes) {
     const list = extrasByMonth.get(extra.month) ?? [];
@@ -68,10 +89,19 @@ export function projectSavings(
 
   const projections: MonthProjection[] = ids.map((monthId) => {
     const month = monthsById.get(monthId);
-    const savings = month ? monthlySavings(month, expenses) : 0;
+    let savings: number;
+    let estimated = false;
+    if (month) {
+      savings = monthlySavings(month, expenses);
+    } else if (baseSavings != null) {
+      savings = baseSavings; // mes futuro sin data → usa el resto del último mes cerrado
+      estimated = true;
+    } else {
+      savings = 0;
+    }
     const extras = extrasByMonth.get(monthId) ?? [];
     const extrasTotal = extras.reduce((s, e) => s + e.amount, 0);
-    return { monthId, savings, extras, total: savings + extrasTotal };
+    return { monthId, savings, extras, total: savings + extrasTotal, estimated };
   });
 
   const total = projections.reduce((s, p) => s + p.total, 0);

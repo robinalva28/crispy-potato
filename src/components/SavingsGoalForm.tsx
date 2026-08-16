@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { ExtraIncome, Month, Expense, SavingsGoal } from '../types.ts';
-import { monthRange } from '../utils/savings.ts';
+import { projectSavings } from '../utils/savings.ts';
 import { fmtARS } from '../utils/money.ts';
 
 interface Props {
@@ -59,22 +59,8 @@ export function SavingsGoalForm({ initial, months, expenses, onSave, onCancel }:
 
   function totalPreview(): number {
     const preview: SavingsGoal = { name, startMonth, endMonth, extraIncomes: extras };
-    // Usamos la lógica simple: para cada mes del rango, ingreso − gastos + extras del mes
-    const ids = monthRange(startMonth, endMonth);
-    const monthsById = new Map(months.map((m) => [m.id, m]));
-    let total = 0;
-    for (const id of ids) {
-      const month = monthsById.get(id);
-      if (!month) continue; // meses sin data → sin ahorro calculable
-      const projected = expenses
-        .filter((e) => e.monthId === id)
-        .reduce((s, e) => s + (e.amountArs ?? e.estimatedArs ?? 0) + e.amountUsd * e.usdRate, 0);
-      total += month.income - projected;
-    }
-    for (const extra of extras) {
-      if (ids.includes(extra.month)) total += extra.amount;
-    }
-    return total;
+    // Misma lógica que la tarjeta: usa el último mes cerrado como referencia para meses sin data
+    return projectSavings(preview, months, expenses).total;
   }
 
   function handleSubmit(e: React.FormEvent) {

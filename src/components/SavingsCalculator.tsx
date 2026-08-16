@@ -75,6 +75,9 @@ export function SavingsCalculator({ goals, months, expenses, onAdd, onEdit, onDe
                   <div key={p.monthId} className="flex items-center justify-between text-xs">
                     <span className="text-neutral-600 dark:text-neutral-400">{monthLabel(p.monthId)}</span>
                     <span className="flex items-center gap-3">
+                      {p.estimated && (
+                        <span className="text-[10px] text-neutral-400 dark:text-neutral-500 italic">≈ estimado</span>
+                      )}
                       {p.extras.length > 0 && (
                         <span className="text-amber-600 dark:text-amber-400 font-medium">
                           +{p.extras.map((e) => e.label).join(', ')}

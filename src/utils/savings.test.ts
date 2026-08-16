@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { seedDemo } from '../seed.ts';
-import { monthRange, monthlySavings, projectSavings, type MonthProjection } from './savings.ts';
-import type { SavingsGoal } from '../types.ts';
+import { monthRange, monthlySavings, projectSavings, lastClosedSavings, type MonthProjection } from './savings.ts';
+import type { Month, SavingsGoal } from '../types.ts';
 
 const { month, expenses } = seedDemo;
 const months = [month];
@@ -26,20 +26,29 @@ describe('monthRange', () => {
 
 describe('monthlySavings', () => {
   it('ahorro = ingreso − gasto proyectado del mes', () => {
-    // Seed demo: ingreso 4.000.000, proyectado 945.000
     expect(monthlySavings(month, expenses)).toBeCloseTo(3055000, 2);
   });
 });
 
-describe('projectSavings', () => {
-  const goal: SavingsGoal = {
-    name: 'Auto',
-    startMonth: '2026-07',
-    endMonth: '2026-07',
-    extraIncomes: [{ id: 'bono1', label: 'Bono', amount: 500000, month: '2026-07' }],
-  };
+describe('lastClosedSavings', () => {
+  it('usa el resto del último mes cerrado como referencia', () => {
+    const closed: Month = { ...month, status: 'cerrado' };
+    expect(lastClosedSavings([closed], expenses)).toBeCloseTo(3055000, 2);
+  });
 
+  it('devuelve null si no hay meses cerrados', () => {
+    expect(lastClosedSavings(months, expenses)).toBeNull();
+  });
+});
+
+describe('projectSavings', () => {
   it('suma ahorro del mes + ingresos extra', () => {
+    const goal: SavingsGoal = {
+      name: 'Auto',
+      startMonth: '2026-07',
+      endMonth: '2026-07',
+      extraIncomes: [{ id: 'bono1', label: 'Bono', amount: 500000, month: '2026-07' }],
+    };
     const proj = projectSavings(goal, months, expenses);
     expect(proj.total).toBeCloseTo(3555000, 2); // 3.055.000 + 500.000
 
@@ -49,13 +58,29 @@ describe('projectSavings', () => {
     expect(first.total).toBeCloseTo(3555000, 2);
   });
 
-  it('meses sin data cargada cuentan ahorro 0', () => {
-    const wideGoal: SavingsGoal = {
+  it('meses futuros sin data usan el resto del último mes cerrado como referencia', () => {
+    const closedAugust: Month = { id: '2026-08', label: 'Agosto 2026', income: 4200000, status: 'cerrado' };
+    const goal: SavingsGoal = {
+      name: 'Auto',
+      startMonth: '2026-09',
+      endMonth: '2026-09',
+      extraIncomes: [],
+    };
+    // El mes 2026-09 no existe → usa el resto del último mes cerrado (Agosto)
+    const proj = projectSavings(goal, [closedAugust], []);
+    expect(proj.total).toBeCloseTo(4200000, 2);
+    expect(proj.months[0].estimated).toBe(true);
+  });
+
+  it('sin meses cerrados, meses sin data cuentan 0', () => {
+    const goal: SavingsGoal = {
       name: 'Fondo',
       startMonth: '2026-08',
       endMonth: '2026-08',
       extraIncomes: [],
     };
-    expect(projectSavings(wideGoal, months, expenses).total).toBe(0);
+    const proj = projectSavings(goal, months, expenses);
+    expect(proj.total).toBe(0);
+    expect(proj.months[0].estimated).toBe(false);
   });
 });
