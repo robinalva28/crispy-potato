@@ -109,6 +109,32 @@ export function mentionsUsd(text: string): boolean {
 }
 
 /**
+ * Infiere la categoría por el nombre del gasto (mapa AR).
+ * Se usa como fallback cuando el modelo no devuelve categoría (LLaVA sin el campo).
+ */
+export function inferCategory(name: string): Category {
+  const n = normalizeText(name);
+  const rules: [RegExp, Category][] = [
+    [/^(alquiler|expensas|mantenimient|departamento|depto|casa|inmueble)/, 'vivienda'],
+    [/^(luz|electricidad|energia|edelap)/, 'servicios'],
+    [/^(agua|aysa)/, 'servicios'],
+    [/^(gas|naturgy|metrogas)/, 'servicios'],
+    [/^(internet|wifi|telef|movil|celular|comunicacion)/, 'servicios'],
+    [/^(nafta|carga|combustible|expensa auto|peaje)/, 'otros'],
+    [/^(seguro|seguros|siniestro)/, 'servicios'],
+    [/^(super|supermercado|mercado|almacen|chino)/, 'otros'],
+    [/^(tarjeta|visa|master|amex|cuota|credito)/, 'tarjetas'],
+    [/^impuesto|iva|municipal|abis|ingresos brutos/, 'impuestos'],
+    [/^(medic|doctor|clinica|farmacia|fisio|dent)/, 'salud'],
+    [/^(cine|restaurante|delivery|evento|show|viaje|vacac)/, 'eventos'],
+  ];
+  for (const [re, cat] of rules) {
+    if (re.test(n)) return cat;
+  }
+  return 'otros';
+}
+
+/**
  * Aplica heurísticas post-procesamiento para corregir limitaciones del modelo:
  * 1. Si tiene ARS y USD a la vez, la moneda dominante es ARS salvo que el nombre/notas diga "usd".
  * 2. Si amountArs === amountUsd, es un invento del modelo → se queda solo ARS.
@@ -123,10 +149,11 @@ export function normalizeDrafts(raw: unknown[], known?: Record<string, string>):
     const name = typeof rec.name === 'string' ? rec.name.trim() : '';
     if (!name) continue;
 
+    // Si el modelo devolvió categoría válida la usamos; si no, la inferimos por el nombre.
     const categoryRaw = typeof rec.category === 'string' ? rec.category.toLowerCase() : '';
     const category = VALID_CATEGORIES.includes(categoryRaw as Category)
       ? (categoryRaw as Category)
-      : 'otros';
+      : inferCategory(name);
     // Aprendizaje por correcciones: si el nombre leído se parece a uno ya corregido,
     // usamos el nombre/categoría exactos que el usuario confirmó antes.
     const match = matchKnownName(name, knownMap);

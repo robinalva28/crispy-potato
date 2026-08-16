@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { normalizeDrafts, mentionsUsd, normalizeText, matchKnownName } from './photoExtract.ts';
+import { normalizeDrafts, mentionsUsd, normalizeText, matchKnownName, inferCategory } from './photoExtract.ts';
 
 describe('mentionsUsd', () => {
   it('detecta usd, u$d, dólar y dls', () => {
@@ -35,6 +35,34 @@ describe('normalizeText / matchKnownName', () => {
 
   it('matchKnownName devuelve null si no hay coincidencia', () => {
     expect(matchKnownName('supermercado', { Alquiler: 'vivienda' })).toBeNull();
+  });
+});
+
+describe('inferCategory', () => {
+  it('infiere vivienda para alquiler/alquileres', () => {
+    expect(inferCategory('Alquiler')).toBe('vivienda');
+    expect(inferCategory('Alquileres')).toBe('vivienda');
+    expect(inferCategory('Expensas')).toBe('vivienda');
+  });
+
+  it('infiere otros para super/nafta', () => {
+    expect(inferCategory('Super')).toBe('otros');
+    expect(inferCategory('Supermercado')).toBe('otros');
+    expect(inferCategory('Nafta')).toBe('otros');
+  });
+
+  it('infiere servicios para luz/internet', () => {
+    expect(inferCategory('Luz')).toBe('servicios');
+    expect(inferCategory('Internet')).toBe('servicios');
+  });
+
+  it('infiere tarjetas y salud', () => {
+    expect(inferCategory('Tarjeta Visa')).toBe('tarjetas');
+    expect(inferCategory('Farmacia')).toBe('salud');
+  });
+
+  it('devuelve otros si no matchea nada', () => {
+    expect(inferCategory('Varios')).toBe('otros');
   });
 });
 
