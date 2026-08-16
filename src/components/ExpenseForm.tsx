@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Category, Expense } from '../types.ts';
 import { parseLocalNumber, formatInputNumber } from '../utils/format.ts';
+import { MoneyInput } from './MoneyInput.tsx';
 
 const CATEGORIES: Category[] = [
   'vivienda', 'servicios', 'tarjetas', 'eventos', 'salud', 'impuestos', 'otros',
@@ -140,51 +141,26 @@ export function ExpenseForm({ initial, onSave, onCancel, onGetLastUsdRate }: Pro
           <label className="block text-[11px] text-neutral-500 font-medium mb-1 dark:text-neutral-400">
             Monto ARS ($)
           </label>
-          <input
-            inputMode="decimal"
-            className={inputCls}
-            value={form.amountArs}
-            onChange={(e) => set('amountArs', e.target.value)}
-            placeholder="$ 688.000"
-          />
+          <MoneyInput symbol="$" value={form.amountArs} onChange={(v) => set('amountArs', v)} placeholder="688.000" />
         </div>
         <div>
           <label className="block text-[11px] text-neutral-500 font-medium mb-1 dark:text-neutral-400">
             Estimado ARS ($) {!form.amountArs && <span className="text-amber-600 dark:text-amber-400">(por confirmar)</span>}
           </label>
-          <input
-            inputMode="decimal"
-            className={inputCls}
-            value={form.estimatedArs}
-            onChange={(e) => set('estimatedArs', e.target.value)}
-            placeholder="$ 80.000"
-          />
+          <MoneyInput symbol="$" value={form.estimatedArs} onChange={(v) => set('estimatedArs', v)} placeholder="80.000" />
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-2">
         <div>
           <label className="block text-[11px] text-neutral-500 font-medium mb-1 dark:text-neutral-400">Monto USD (u$d)</label>
-          <input
-            inputMode="decimal"
-            className={inputCls}
-            value={form.amountUsd}
-            onChange={(e) => handleAmountUsdChange(e.target.value)}
-            placeholder="u$d 10,90"
-          />
+          <MoneyInput symbol="u$d" value={form.amountUsd} onChange={handleAmountUsdChange} placeholder="10,90" />
         </div>
         <div>
           <label className="block text-[11px] text-neutral-500 font-medium mb-1 dark:text-neutral-400">
             Cotización USD ($){hasUsd && <span className="text-amber-600 dark:text-amber-400"> (requerido)</span>}
           </label>
-          <input
-            inputMode="decimal"
-            className={inputCls}
-            value={form.usdRate}
-            onChange={(e) => set('usdRate', e.target.value)}
-            placeholder="$ 1.200"
-            required={hasUsd}
-          />
+          <MoneyInput symbol="$" value={form.usdRate} onChange={(v) => set('usdRate', v)} placeholder="1.200" required={hasUsd} />
         </div>
       </div>
 

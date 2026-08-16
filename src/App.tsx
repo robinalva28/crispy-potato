@@ -16,6 +16,7 @@ import { canUsePhoto } from './utils/monthUtils.ts';
 import { GuideModal } from './components/GuideModal.tsx';
 import { SavingsCalculator } from './components/SavingsCalculator.tsx';
 import { SavingsGoalForm } from './components/SavingsGoalForm.tsx';
+import { MoneyInput } from './components/MoneyInput.tsx';
 import { parseLocalNumber, formatInputNumber } from './utils/format.ts';
 import {
   categoryTotals,
@@ -715,13 +716,12 @@ export default function App() {
               <label className="block text-[11px] text-neutral-500 font-medium mb-1 dark:text-neutral-400">
                 Monto real (ARS)
               </label>
-              <input
+              <MoneyInput
+                symbol="$"
                 autoFocus
-                inputMode="decimal"
                 value={confirmAmountValue}
-                onChange={(e) => setConfirmAmountValue(e.target.value)}
+                onChange={(v) => setConfirmAmountValue(v)}
                 placeholder="0"
-                className="w-full px-2 py-1.5 text-sm border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-100"
               />
             </div>
             <div className="flex gap-2 pt-1">
@@ -815,12 +815,11 @@ export default function App() {
                 <label className="block text-[11px] text-neutral-500 font-medium mb-1 dark:text-neutral-400">
                   {CATEGORY_LABELS[cat]}
                 </label>
-                <input
-                  inputMode="decimal"
+                <MoneyInput
+                  symbol="$"
                   value={budgetInputs[cat] ?? ''}
-                  onChange={(e) => setBudgetInputs({ ...budgetInputs, [cat]: e.target.value })}
+                  onChange={(v) => setBudgetInputs({ ...budgetInputs, [cat]: v })}
                   placeholder="Sin límite"
-                  className="w-full px-2 py-1.5 text-sm border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-100"
                 />
               </div>
             ))}
@@ -872,11 +871,11 @@ export default function App() {
               <label className="block text-[11px] text-neutral-500 font-medium mb-1 dark:text-neutral-400">
                 Ingreso (ARS)
               </label>
-              <input
-                inputMode="decimal"
+              <MoneyInput
+                symbol="$"
                 value={editingMonth.income}
-                onChange={(e) => setEditingMonth({ ...editingMonth, income: e.target.value })}
-                className="w-full px-2 py-1.5 text-sm border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-100"
+                onChange={(v) => setEditingMonth({ ...editingMonth, income: v })}
+                placeholder="0"
               />
             </div>
             <div className="flex gap-2 pt-1">

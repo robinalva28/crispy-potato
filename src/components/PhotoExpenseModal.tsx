@@ -4,6 +4,7 @@ import { extractExpensesFromImage, saveCorrections, type ExpenseDraft } from '..
 import { CATEGORY_LABELS, fmtARS } from '../utils/money.ts';
 import { parseLocalNumber, formatInputNumber } from '../utils/format.ts';
 import { canUsePhoto } from '../utils/monthUtils.ts';
+import { MoneyInput } from './MoneyInput.tsx';
 
 interface Props {
   month: Month;
@@ -193,30 +194,26 @@ export function PhotoExpenseModal({ month, onSave, onClose }: Props) {
                       <label className="block text-[10px] uppercase tracking-wide text-neutral-500 font-medium mb-0.5 dark:text-neutral-400">
                         Monto en pesos ($)
                       </label>
-                      <input
-                        className={inputCls}
-                        inputMode="decimal"
+                      <MoneyInput
+                        symbol="$"
                         value={d.amountArs != null ? formatInputNumber(d.amountArs) : ''}
-                        onChange={(e) =>
+                        onChange={(v) =>
                           updateDraft(i, {
-                            amountArs: e.target.value === '' ? null : parseLocalNumber(e.target.value),
+                            amountArs: v === '' ? null : parseLocalNumber(v),
                           })
                         }
-                        placeholder="$ 450.000"
+                        placeholder="450.000"
                       />
                     </div>
                     <div>
                       <label className="block text-[10px] uppercase tracking-wide text-neutral-500 font-medium mb-0.5 dark:text-neutral-400">
                         Monto en USD (u$d)
                       </label>
-                      <input
-                        className={inputCls}
-                        inputMode="decimal"
+                      <MoneyInput
+                        symbol="u$d"
                         value={d.amountUsd > 0 ? formatInputNumber(d.amountUsd) : ''}
-                        onChange={(e) =>
-                          updateDraft(i, { amountUsd: parseLocalNumber(e.target.value) || 0 })
-                        }
-                        placeholder="u$d 10,90"
+                        onChange={(v) => updateDraft(i, { amountUsd: parseLocalNumber(v) || 0 })}
+                        placeholder="10,90"
                       />
                     </div>
                   </div>
@@ -227,18 +224,11 @@ export function PhotoExpenseModal({ month, onSave, onClose }: Props) {
                       <label className="block text-[10px] uppercase tracking-wide text-amber-600 font-semibold mb-0.5 dark:text-amber-400">
                         Cotización USD ($ por 1 USD) *
                       </label>
-                      <input
-                        className={`${inputCls} ${
-                          d.usdRate > 0
-                            ? ''
-                            : 'border-amber-400 dark:border-amber-500 focus:ring-amber-400'
-                        }`}
-                        inputMode="decimal"
+                      <MoneyInput
+                        symbol="$"
                         value={d.usdRate > 0 ? formatInputNumber(d.usdRate) : ''}
-                        onChange={(e) =>
-                          updateDraft(i, { usdRate: parseLocalNumber(e.target.value) || 0 })
-                        }
-                        placeholder="$ 1.500 (cotización actual)"
+                        onChange={(v) => updateDraft(i, { usdRate: parseLocalNumber(v) || 0 })}
+                        placeholder="1.500"
                         required={d.amountUsd > 0}
                       />
                       {d.usdRate <= 0 && (
