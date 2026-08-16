@@ -38,6 +38,7 @@ export default function App() {
   const [editingMonth, setEditingMonth] = useState<EditingMonthState | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<Expense | null>(null);
   const [showGuide, setShowGuide] = useState(false);
+  const [showSavingsGuide, setShowSavingsGuide] = useState(false);
   const [editingGoal, setEditingGoal] = useState<SavingsGoal | null>(null);
   const [addingGoal, setAddingGoal] = useState(false);
   const expenseFormRef = useRef<HTMLDivElement | null>(null);
@@ -51,6 +52,14 @@ export default function App() {
       localStorage.setItem('pe-guided', '1');
     }
   }, []);
+
+  // Guía de ahorro: aparece la primera vez que se entra a la pestaña 💰
+  useEffect(() => {
+    if (view === 'savings' && localStorage.getItem('pe-guided-savings') !== '1') {
+      setShowSavingsGuide(true);
+      localStorage.setItem('pe-guided-savings', '1');
+    }
+  }, [view]);
 
   // Al abrir el formulario de gasto (agregar/editar), scrollea hasta él
   useEffect(() => {
@@ -381,12 +390,32 @@ export default function App() {
             onDelete={savings.deleteGoal}
             onRemoveExtra={savings.removeExtraIncome}
           />
+
+          {/* Botón discreto de guía de ahorro, siempre visible abajo */}
+          <div className="px-4 pb-4">
+            <button
+              type="button"
+              onClick={() => setShowSavingsGuide(true)}
+              aria-label="Guía de ahorro"
+              title="Guía de ahorro"
+              className="w-full px-3 py-1.5 text-xs font-medium text-neutral-600 border border-neutral-300 rounded-md hover:bg-neutral-100 transition dark:text-neutral-400 dark:border-neutral-700 dark:hover:bg-neutral-800"
+            >
+              ❓ Guía de ahorro
+            </button>
+          </div>
         </>
       )}
 
       <GuideModal
         open={showGuide}
         onClose={() => setShowGuide(false)}
+        type="budget"
+      />
+
+      <GuideModal
+        open={showSavingsGuide}
+        onClose={() => setShowSavingsGuide(false)}
+        type="savings"
       />
 
       {confirmDelete && (

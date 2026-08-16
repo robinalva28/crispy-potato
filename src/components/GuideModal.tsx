@@ -1,11 +1,14 @@
 import { useState } from 'react';
 
+type GuideType = 'budget' | 'savings';
+
 interface Props {
   open: boolean;
   onClose: () => void;
+  type?: GuideType;
 }
 
-const STEPS = [
+const BUDGET_STEPS = [
   {
     icon: '🗓️',
     title: 'Planificá tu mes',
@@ -38,12 +41,41 @@ const STEPS = [
   },
 ];
 
-export function GuideModal({ open, onClose }: Props) {
+const SAVINGS_STEPS = [
+  {
+    icon: '🎯',
+    title: 'Segmentos de ahorro',
+    text: 'Creá un segmento con nombre, por ejemplo "Auto", "Vacaciones" o "Fondo emergencia". Cada segmento proyecta cuánto podés ahorrar en un rango de meses.',
+  },
+  {
+    icon: '🗓️',
+    title: 'Elegí el rango',
+    text: 'Seleccioná "Desde" y "Hasta" (puede cruzar de año, ej: Agosto 2026 → Febrero 2027). Cada mes del rango suma su ahorro proyectado.',
+  },
+  {
+    icon: '📊',
+    title: '¿Cómo se calcula?',
+    text: 'Ahorro del mes = Ingreso del mes − Gastos proyectados. Los meses FUTUROS sin cargar usan el resto del ÚLTIMO MES CERRADO como referencia consistente (marcados con "≈ estimado").',
+  },
+  {
+    icon: '💰',
+    title: 'Ingresos extra',
+    text: 'Agregá bonos, aguinaldos o ventas previstas con su mes. Se suman al ahorro del mes en que caen. Ej: "Bono fin de año" $1.500.000 en Noviembre.',
+  },
+  {
+    icon: '🧮',
+    title: 'Preview y seguimiento',
+    text: 'El formulario muestra el ahorro proyectado total en vivo. En la tarjeta del segmento ves el desglose mes a mes y el total. Podés editar o eliminar los segmentos cuando quieras.',
+  },
+];
+
+export function GuideModal({ open, onClose, type = 'budget' }: Props) {
   const [step, setStep] = useState(0);
+  const steps = type === 'savings' ? SAVINGS_STEPS : BUDGET_STEPS;
 
   if (!open) return null;
 
-  const current = STEPS[step];
+  const current = steps[step];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
@@ -53,7 +85,7 @@ export function GuideModal({ open, onClose }: Props) {
           <div className="text-3xl mb-1">{current.icon}</div>
           <h2 className="text-lg font-bold">{current.title}</h2>
           <p className="text-[11px] text-emerald-100 mt-1 opacity-80">
-            Paso {step + 1} de {STEPS.length}
+            Paso {step + 1} de {steps.length}
           </p>
         </div>
 
@@ -77,7 +109,7 @@ export function GuideModal({ open, onClose }: Props) {
 
           {/* Dots */}
           <div className="flex items-center gap-1.5">
-            {STEPS.map((_, i) => (
+            {steps.map((_, i) => (
               <button
                 key={i}
                 type="button"
@@ -90,10 +122,10 @@ export function GuideModal({ open, onClose }: Props) {
             ))}
           </div>
 
-          {step < STEPS.length - 1 ? (
+          {step < steps.length - 1 ? (
             <button
               type="button"
-              onClick={() => setStep((s) => Math.min(STEPS.length - 1, s + 1))}
+              onClick={() => setStep((s) => Math.min(steps.length - 1, s + 1))}
               className="px-3 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-md hover:bg-emerald-700 transition"
             >
               Siguiente →
@@ -104,7 +136,7 @@ export function GuideModal({ open, onClose }: Props) {
               onClick={onClose}
               className="px-3 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-md hover:bg-emerald-700 transition"
             >
-              ¡Empezar!
+              ¡Listo!
             </button>
           )}
         </div>
