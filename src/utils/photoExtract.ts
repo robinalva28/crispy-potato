@@ -108,6 +108,55 @@ export function mentionsUsd(text: string): boolean {
   return /(usd|u\$d|d[oó]lar(es)?|d[oó]lares|dls)/i.test(text);
 }
 
+/** Parsea el rango de números de un texto y devuelve los números encontrados. */
+function extractNumbers(text: string): number[] {
+  return (text.match(/\d+(?:[.,]\d+)?/g) ?? []).map((n) => Number(n.replace(',', '.')));
+}
+
+/**
+ * Parsea la respuesta en prosa de Moondream a ExpenseDraft[].
+ * Acepta formatos:
+ *   - "Alquiler: 450000"
+ *   - "Alquiler $450000"
+ *   - "Seguro 12 usd" / "Seguro 12 USD" / "u$d 12"
+ *   - "Nafta 25000"
+ * Y también líneas con "-" o "•" al inicio.
+ */
+export function parseProseDrafts(text: string): ExpenseDraft[] {
+  const drafts: ExpenseDraft[] = [];
+  const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  for (const line of lines) {
+    // Ignorar líneas que no son gastos (títulos, encabezados, etc.)
+    const clean = line.replace(/^[-•*]\s*/, '');
+    if (!clean) continue;
+    // Detectar si la línea contiene un monto (número) para considerarla gasto
+    const numbers = extractNumbers(clean);
+    if (numbers.length === 0) continue;
+
+    // Nombre = el texto antes del primer número, limpiando separadores
+    let namePart = clean.split(/\d/)[0] ?? '';
+    namePart = namePart
+      .replace(/[:$\s]+$/g, '')
+      .replace(/^[-•*]\s*/, '')
+      .trim();
+    if (!namePart) continue;
+
+    // Si dice "usd" → amountUsd, sino → amountArs (regla argentina)
+    const hayUsd = mentionsUsd(clean);
+    const firstNumber = numbers[0];
+
+    drafts.push({
+      name: namePart,
+      category: 'otros',
+      amountArs: hayUsd ? null : firstNumber,
+      amountUsd: hayUsd ? firstNumber : 0,
+      usdRate: 0,
+      notes: '',
+    });
+  }
+  return drafts;
+}
+
 /**
  * Aplica heurísticas post-procesamiento para corregir limitaciones del modelo:
  * 1. Si tiene ARS y USD a la vez, la moneda dominante es ARS salvo que el nombre/notas diga "usd".
@@ -237,12 +286,15 @@ export async function extractExpensesFromImage(base64: string): Promise<ExpenseD
   const data = (await res.json()) as unknown;
   const text = extractResponseText(data);
   const jsonMatch = text.match(/\[[\s\S]*\]/);
-  if (!jsonMatch) return [];
 
-  try {
-    const parsed = JSON.parse(jsonMatch[0]);
-    return Array.isArray(parsed) ? normalizeDrafts(parsed) : [];
-  } catch {
-    return [];
+  // Si hay JSON, lo normalizamos; si no, intentamos parsear la prosa
+  if (jsonMatch) {
+    try {
+      const parsed = JSON.parse(jsonMatch[0]);
+      if (Array.isArray(parsed)) return normalizeDrafts(parsed);
+    } catch {
+      // falla el JSON parse → caemos al parseo de prosa
+    }
   }
+  return parseProseDrafts(text);
 }

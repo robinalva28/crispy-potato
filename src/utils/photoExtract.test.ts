@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { normalizeDrafts, mentionsUsd, normalizeText, matchKnownName } from './photoExtract.ts';
+import { normalizeDrafts, mentionsUsd, normalizeText, matchKnownName, parseProseDrafts } from './photoExtract.ts';
 
 describe('mentionsUsd', () => {
   it('detecta usd, u$d, dólar y dls', () => {
@@ -35,6 +35,39 @@ describe('normalizeText / matchKnownName', () => {
 
   it('matchKnownName devuelve null si no hay coincidencia', () => {
     expect(matchKnownName('supermercado', { Alquiler: 'vivienda' })).toBeNull();
+  });
+});
+
+describe('parseProseDrafts', () => {
+  it('parsea "Alquiler: 450000" como ARS', () => {
+    const drafts = parseProseDrafts('Alquiler: 450000');
+    expect(drafts[0].name).toBe('Alquiler');
+    expect(drafts[0].amountArs).toBe(450000);
+    expect(drafts[0].amountUsd).toBe(0);
+  });
+
+  it('parsea "Seguro 12 usd" como USD', () => {
+    const drafts = parseProseDrafts('Seguro 12 usd');
+    expect(drafts[0].name).toBe('Seguro');
+    expect(drafts[0].amountArs).toBeNull();
+    expect(drafts[0].amountUsd).toBe(12);
+  });
+
+  it('parsea varias líneas con viñetas', () => {
+    const drafts = parseProseDrafts('- Alquiler: 450000\n- Nafta 25000');
+    expect(drafts).toHaveLength(2);
+    expect(drafts[0].name).toBe('Alquiler');
+    expect(drafts[1].name).toBe('Nafta');
+  });
+
+  it('ignora líneas sin números (títulos)', () => {
+    const drafts = parseProseDrafts('Gastos de julio\nAlquiler: 450000');
+    expect(drafts).toHaveLength(1);
+    expect(drafts[0].name).toBe('Alquiler');
+  });
+
+  it('devuelve [] si no hay líneas con montos', () => {
+    expect(parseProseDrafts('No hay gastos\nSin números aquí')).toHaveLength(0);
   });
 });
 
