@@ -1,0 +1,20 @@
+# Dependencias
+node_modules/
+
+# Build
+dist/
+build/
+
+# Netlify / editor
+.netlify/
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Sistema
+.DS_Store
+Thumbs.db
+CONTEXTO.md
+DECISIONS.md

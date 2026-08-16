@@ -1,0 +1,13 @@
+# Configuración Netlify para deploys automáticos desde GitHub
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# Redirect SPA: todas las rutas al index.html
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
