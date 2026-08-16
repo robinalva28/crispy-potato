@@ -294,7 +294,7 @@ export function PhotoExpenseModal({ month, onSave, onClose }: Props) {
  * la orientación EXIF de la cámara (sin esto, la foto del celular se dibuja
  * rotada/volteada en el canvas y LLaVA no puede leer el texto).
  */
-async function fileToBase64(file: File): Promise<string> {
+export async function fileToBase64(file: File): Promise<string> {
   // Si createImageBitmap está disponible (Chrome/Edge/Android/iOS 15+),
   // lo usamos para respetar EXIF automáticamente. Fallback al método clásico.
   if (typeof createImageBitmap !== 'undefined') {

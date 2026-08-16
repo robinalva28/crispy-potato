@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import type { Category, Expense } from '../types.ts';
 import { parseLocalNumber, formatInputNumber } from '../utils/format.ts';
 import { MoneyInput } from './MoneyInput.tsx';
+import { extractInvoice } from '../utils/invoiceExtract.ts';
 
 const CATEGORIES: Category[] = [
   'vivienda', 'servicios', 'tarjetas', 'eventos', 'salud', 'impuestos', 'otros',
@@ -55,7 +56,34 @@ interface Props {
 
 export function ExpenseForm({ initial, onSave, onCancel, onGetLastUsdRate }: Props) {
   const [form, setForm] = useState<FormState>(() => toForm(initial));
+  const [scanning, setScanning] = useState(false);
+  const [scanError, setScanError] = useState('');
+  const fileRef = useRef<HTMLInputElement | null>(null);
   const hasUsd = form.amountUsd !== '';
+
+  /** Escanea una factura y autocompleta los campos con los datos detectados. */
+  async function handleScan(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setScanning(true);
+    setScanError('');
+    try {
+      const inv = await extractInvoice(file);
+      setForm((f) => ({
+        ...f,
+        name: inv.name || f.name,
+        amountArs: inv.amountArs != null ? formatInputNumber(inv.amountArs) : f.amountArs,
+        amountUsd: inv.amountUsd > 0 ? formatInputNumber(inv.amountUsd) : f.amountUsd,
+        dueDate: inv.dueDate || f.dueDate,
+        notes: inv.notes ? (f.notes ? `${f.notes} — ${inv.notes}` : inv.notes) : f.notes,
+      }));
+    } catch (err) {
+      setScanError(err instanceof Error ? err.message : 'No se pudo leer la factura');
+    } finally {
+      setScanning(false);
+      if (fileRef.current) fileRef.current.value = '';
+    }
+  }
 
   function set<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -182,8 +210,31 @@ export function ExpenseForm({ initial, onSave, onCancel, onGetLastUsdRate }: Pro
             className="w-4 h-4 accent-emerald-500"
           />
           Pagado ✓
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            onChange={handleScan}
+            className="hidden"
+          />
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            disabled={scanning}
+            title="Escanear factura"
+            aria-label="Escanear factura"
+            className="w-8 h-8 rounded-md text-lg bg-violet-100 hover:bg-violet-200 text-violet-700 dark:bg-violet-900/40 dark:hover:bg-violet-900/60 dark:text-violet-300 transition disabled:opacity-40"
+          >
+            {scanning ? '⏳' : '📷'}
+          </button>
         </label>
       </div>
+      {scanError && (
+        <p className="text-[11px] text-red-600 dark:text-red-400">
+          ⚠️ {scanError}
+        </p>
+      )}
 
       <div>
         <label className="block text-[11px] text-neutral-500 font-medium mb-1 dark:text-neutral-400">Notas</label>
