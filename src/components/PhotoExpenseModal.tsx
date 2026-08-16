@@ -41,8 +41,8 @@ export function PhotoExpenseModal({ month, onSave, onClose }: Props) {
       }
       setDrafts(result);
       setPhase('review');
-    } catch {
-      setError('Error al procesar la foto. Verificá que el Worker esté configurado y probá de nuevo.');
+    } catch (err) {
+      setError(`Error al procesar la foto: ${err instanceof Error ? err.message : String(err)}`);
       setPhase('capture');
     } finally {
       if (fileRef.current) fileRef.current.value = '';
