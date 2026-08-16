@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Month } from '../types.ts';
 import {
   currentMonthId,
@@ -20,10 +20,25 @@ export function MonthSelector({ months, activeMonthId, onSelect, onCreate }: Pro
   const [newIncome, setNewIncome] = useState('');
   const [scrolled, setScrolled] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const scrollRef = useRef<HTMLDivElement | null>(null);
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     setScrolled(e.currentTarget.scrollLeft > 8);
   };
+
+  // Al montar o al cambiar el mes activo, scrollea hasta que el chip activo quede visible
+  useEffect(() => {
+    const container = scrollRef.current;
+    if (!container || !activeMonthId) return;
+    const activeChip = container.querySelector<HTMLButtonElement>(
+      `[data-month-id="${activeMonthId}"]`
+    );
+    if (!activeChip) return;
+    container.scrollTo({
+      left: activeChip.offsetLeft - container.clientWidth / 2 + activeChip.clientWidth / 2,
+      behavior: 'smooth',
+    });
+  }, [activeMonthId]);
 
   function openModal() {
     setErrorMsg('');
@@ -59,6 +74,7 @@ export function MonthSelector({ months, activeMonthId, onSelect, onCreate }: Pro
   return (
     <div className="border-b border-neutral-200 bg-neutral-50 dark:border-neutral-800 dark:bg-neutral-900/60">
       <div
+        ref={scrollRef}
         onScroll={handleScroll}
         className="px-2 py-2 flex items-center gap-2 overflow-x-auto"
       >
@@ -84,6 +100,7 @@ export function MonthSelector({ months, activeMonthId, onSelect, onCreate }: Pro
           <button
             key={m.id}
             type="button"
+            data-month-id={m.id}
             onClick={() => onSelect(m.id)}
             className={`shrink-0 px-3 py-1.5 text-xs font-medium rounded-md transition ${
               m.id === activeMonthId

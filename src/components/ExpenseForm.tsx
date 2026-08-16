@@ -73,10 +73,17 @@ export function ExpenseForm({ initial, onSave, onCancel, onGetLastUsdRate }: Pro
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const amountArs = form.amountArs === '' ? null : parseLocalNumber(form.amountArs);
     const estimatedArs = form.estimatedArs === '' ? null : parseLocalNumber(form.estimatedArs);
     const amountUsd = form.amountUsd === '' ? 0 : (parseLocalNumber(form.amountUsd) ?? 0);
     const usdRate = form.usdRate === '' ? 0 : (parseLocalNumber(form.usdRate) ?? 0);
+    const hasConfirmedUsd = amountUsd > 0 && usdRate > 0;
+
+    // Un gasto SOLO en USD con cotización cargada es un gasto CONFIRMADO:
+    // amountArs = 0 (no "por confirmar", que se marca con null).
+    const amountArs = form.amountArs === ''
+      ? (hasConfirmedUsd ? 0 : null)
+      : parseLocalNumber(form.amountArs);
+
     if (amountArs == null && estimatedArs == null && amountUsd === 0) return; // nada cargado
 
     onSave({
