@@ -771,7 +771,7 @@ export default function App() {
       )}
 
       {confirmDeleteMonth && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 p-4">
           <div className="w-full max-w-sm bg-white rounded-xl shadow-xl p-4 space-y-3 dark:bg-neutral-900 dark:border dark:border-neutral-800">
             <div className="font-bold text-red-600 dark:text-red-400">¿Eliminar mes?</div>
             <p className="text-sm text-neutral-600 dark:text-neutral-400">
