@@ -1,21 +1,19 @@
 /**
  * Worker de Cloudflare — Extracción de gastos con modelos de visión (cascada).
  *
- * Cascada de modelos (usa el primero que funcione):
- *  1. @cf/qwen/qwen2.5-vl-7b-instruct      — OCR excelente (Apache 2.0, sin licencia)
- *  2. @cf/microsoft/phi-3-vision-128k-instruct — MIT, sin licencia
- *  3. @cf/moonshotai/kimi-vl-a3b-instruct   — Apache 2.0, sin licencia
- *  4. @cf/meta/llama-3.2-11b-vision-instruct — requiere "agree" (auto-acepta y reintenta)
- *  5. @cf/llava-hf/llava-1.5-7b-hf          — último recurso (siempre disponible)
+ * Cascada de modelos (usa el primero que funcione).
+ * Formato: { image: base64 } → JSON { resultado, description, modelo }.
  *
- * El worker prueba cada modelo en orden hasta que uno devuelve JSON.
- * Devuelve { resultado, description, modelo } donde "modelo" indica cuál se usó.
+ * Orden:
+ *  1. @cf/google/gemma-4-26b-a4b-it     — multimodal (Gemma 3 ya lo era), formato messages
+ *  2. @cf/meta/llama-3.2-11b-vision-instruct — requiere "agree" (auto-acepta y reintenta)
+ *  3. @cf/llava-hf/llava-1.5-7b-hf      — último recurso (siempre disponible)
  *
  * Historial:
  *  - LLaVA 1.5-7B: malo para OCR (deformaba nombres, inventaba montos).
  *  - Gemini 2.0/2.5 Flash: Google los desactivó para usuarios nuevos.
- *  - Llama 3.2 11B: exige aceptar licencia (error 5016) y el "agree" vía
- *    env.AI.run no siempre activa la licencia desde el binding.
+ *  - Llama 3.2 11B: exige aceptar licencia (error 5016); el agree vía binding no siempre activa.
+ *  - Qwen2.5-VL / Phi-3 / Kimi-VL: no disponibles en el plan de la cuenta (fallan al instanciar).
  *
  * Pegar este código en Cloudflare → Workers & Pages → polished-bar-b342 → Edit → Deploy.
  */
@@ -60,65 +58,95 @@ REGLAS:
 5. Si un texto no es un gasto (título, nota, fecha), ignoralo.
 6. Si no hay gastos legibles, devolvé [].`;
 
-      // Modelos en orden de preferencia. Los primeros no requieren licencia.
-      const VISION_MODELS = [
-        '@cf/qwen/qwen2.5-vl-7b-instruct',
-        '@cf/microsoft/phi-3-vision-128k-instruct',
-        '@cf/moonshotai/kimi-vl-a3b-instruct',
-        '@cf/meta/llama-3.2-11b-vision-instruct',
-        '@cf/llava-hf/llava-1.5-7b-hf',
-      ];
-
       const errors = [];
-      for (const model of VISION_MODELS) {
+
+      // 1) Gemma 4 26B — multimodal. Formato messages con image_url en base64.
+      const GEMMA_MODEL = '@cf/google/gemma-4-26b-a4b-it';
+      try {
+        const resp = await env.AI.run(GEMMA_MODEL, {
+          messages: [
+            {
+              role: 'user',
+              content: [
+                { type: 'image_url', image_url: `data:image/jpeg;base64,${image}` },
+                { type: 'text', text: prompt },
+              ],
+            },
+          ],
+          max_tokens: 1024,
+        });
+        const text =
+          typeof resp === 'string' ? resp : resp?.response ?? resp?.result?.response ?? '';
+        if (text && text.trim().length > 0) {
+          return new Response(
+            JSON.stringify({ resultado: 'vision', description: text, modelo: GEMMA_MODEL }),
+            { headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } }
+          );
+        }
+        errors.push(`${GEMMA_MODEL}: respuesta vacía`);
+      } catch (err) {
+        errors.push(`${GEMMA_MODEL}: ${String(err?.message ?? err).slice(0, 120)}`);
+      }
+
+      // 2) Llama 3.2 11B Vision — con auto-agree de licencia (error 5016).
+      const LLAMA_MODEL = '@cf/meta/llama-3.2-11b-vision-instruct';
+      try {
+        let resp;
         try {
-          let resp;
-          try {
-            resp = await env.AI.run(model, {
+          resp = await env.AI.run(LLAMA_MODEL, {
+            image: imageArray,
+            prompt,
+            max_tokens: 1024,
+          });
+        } catch (err) {
+          const msg = String(err?.message ?? err);
+          if (msg.includes('5016') || msg.includes('agree')) {
+            await env.AI.run(LLAMA_MODEL, { prompt: 'agree' });
+            resp = await env.AI.run(LLAMA_MODEL, {
               image: imageArray,
               prompt,
               max_tokens: 1024,
             });
-          } catch (err) {
-            const msg = String(err?.message ?? err);
-            // Licencia de Llama: enviamos el "agree" oficial y reintentamos una vez.
-            if (msg.includes('5016') || msg.includes('agree')) {
-              await env.AI.run(model, { prompt: 'agree' });
-              resp = await env.AI.run(model, {
-                image: imageArray,
-                prompt,
-                max_tokens: 1024,
-              });
-            } else {
-              throw err;
-            }
+          } else {
+            throw err;
           }
-
-          // Normaliza la respuesta al contrato { resultado, description }.
-          const text =
-            typeof resp === 'string'
-              ? resp
-              : resp?.response ?? resp?.result?.response ?? JSON.stringify(resp);
-
-          return new Response(
-            JSON.stringify({ resultado: 'vision', description: text, modelo: model }),
-            {
-              headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
-            }
-          );
-        } catch (err) {
-          const msg = String(err?.message ?? err);
-          errors.push(`${model}: ${msg.slice(0, 120)}`);
-          // Si es error de modelo inexistente (404/10000), probamos el siguiente.
-          // Si es otro error grave, seguimos igual — queremos quedarnos con el mejor disponible.
         }
+        const text =
+          typeof resp === 'string' ? resp : resp?.response ?? resp?.result?.response ?? '';
+        if (text && text.trim().length > 0) {
+          return new Response(
+            JSON.stringify({ resultado: 'vision', description: text, modelo: LLAMA_MODEL }),
+            { headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } }
+          );
+        }
+        errors.push(`${LLAMA_MODEL}: respuesta vacía`);
+      } catch (err) {
+        errors.push(`${LLAMA_MODEL}: ${String(err?.message ?? err).slice(0, 120)}`);
+      }
+
+      // 3) LLaVA 1.5 — último recurso, siempre disponible.
+      const LLAVA_MODEL = '@cf/llava-hf/llava-1.5-7b-hf';
+      try {
+        const resp = await env.AI.run(LLAVA_MODEL, {
+          image: imageArray,
+          prompt,
+          max_tokens: 1024,
+        });
+        const text =
+          typeof resp === 'string' ? resp : resp?.response ?? resp?.result?.response ?? '';
+        if (text && text.trim().length > 0) {
+          return new Response(
+            JSON.stringify({ resultado: 'vision', description: text, modelo: LLAVA_MODEL }),
+            { headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } }
+          );
+        }
+        errors.push(`${LLAVA_MODEL}: respuesta vacía`);
+      } catch (err) {
+        errors.push(`${LLAVA_MODEL}: ${String(err?.message ?? err).slice(0, 120)}`);
       }
 
       return new Response(
-        JSON.stringify({
-          error: 'Ningún modelo de visión disponible',
-          detalles: errors,
-        }),
+        JSON.stringify({ error: 'Ningún modelo de visión disponible', detalles: errors }),
         {
           status: 500,
           headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
