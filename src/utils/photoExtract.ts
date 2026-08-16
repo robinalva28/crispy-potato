@@ -10,9 +10,8 @@ export interface ExpenseDraft {
   notes: string;
 }
 
-/** URL del Worker de Cloudflare que llama a Workers AI (lo creás en el dashboard). */
-// TODO: reemplazar por la URL real del Worker una vez creado.
-const WORKER_URL = 'https://photo-extract.TU-SUBDOMINIO.workers.dev';
+/** URL del Worker de Cloudflare que llama a Workers AI (Creado en el dashboard). */
+const WORKER_URL = 'https://polished-bar-b342.robinnet28.workers.dev';
 
 const VALID_CATEGORIES: Category[] = [
   'vivienda', 'servicios', 'tarjetas', 'eventos', 'salud', 'impuestos', 'otros',
