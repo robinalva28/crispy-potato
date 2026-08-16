@@ -97,8 +97,23 @@ const VALID_CATEGORIES: Category[] = [
 function toNumber(v: unknown): number {
   if (typeof v === 'number' && !isNaN(v)) return v;
   if (typeof v === 'string' && v.trim() !== '') {
-    const n = Number(v.replace(/[^\d.,-]/g, '').replace(',', '.'));
-    if (!isNaN(n)) return n;
+    const clean = v.replace(/[^\d.,-]/g, '');
+    if (!clean) return 0;
+
+    // Formato argentino con coma decimal: "1.234,56" → 1234.56
+    if (clean.includes(',')) {
+      const n = Number(clean.replace(/\./g, '').replace(',', '.'));
+      return isNaN(n) ? 0 : n;
+    }
+
+    // Punto como separador de miles: "488.935" → 488935, "1.234.567" → 1234567
+    if (/^\d{1,3}(\.\d{3})+$/.test(clean)) {
+      const n = Number(clean.replace(/\./g, ''));
+      return isNaN(n) ? 0 : n;
+    }
+
+    const n = Number(clean);
+    return isNaN(n) ? 0 : n;
   }
   return 0;
 }
