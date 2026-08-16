@@ -10,9 +10,9 @@ export const SOUND_KEY = 'pe-sound-enabled';
 
 export function soundEnabledFromStorage(): boolean {
   try {
-    return localStorage.getItem(SOUND_KEY) !== '0';
+    return localStorage.getItem(SOUND_KEY) === '1';
   } catch {
-    return true;
+    return false;
   }
 }
 
