@@ -18,3 +18,15 @@ build/
 Thumbs.db
 CONTEXTO.md
 DECISIONS.md
+
+# Imágenes de prueba (pueden contener datos personales — NO versionar)
+*.jpeg
+*.jpg
+*.png
+*.webp
+*.heic
+*.gif
+!public/**
+!src/**/*.png
+!scripts/**/*.png
+!public/icon.svg
