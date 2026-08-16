@@ -92,16 +92,19 @@ export default function App() {
   }, [editing]);
 
   // --- Export / Import ---
+  /** Exporta TODO: meses, gastos y segmentos de ahorro (backup completo). */
   async function exportJSON() {
-    if (!activeMonth) return;
-    const expenses = await db.expenses.where('monthId').equals(activeMonth.id).toArray();
-    const months = await db.months.toArray();
-    const jsonContent = JSON.stringify({ months, expenses }, null, 2);
+    const [months, expenses, savingsRows] = await Promise.all([
+      db.months.toArray(),
+      db.expenses.toArray(),
+      db.savings.toArray(),
+    ]);
+    const jsonContent = JSON.stringify({ months, expenses, savings: savingsRows }, null, 2);
     const blob = new Blob([jsonContent], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `presupuesto-${activeMonth.id}.json`;
+    a.download = `presupuesto-backup-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -112,12 +115,14 @@ export default function App() {
     const text = await file.text();
     try {
       const data = JSON.parse(text);
-      await db.transaction('rw', db.months, db.expenses, async () => {
+      await db.transaction('rw', db.months, db.expenses, db.savings, async () => {
         if (Array.isArray(data.months)) await db.months.bulkPut(data.months);
         if (Array.isArray(data.expenses)) await db.expenses.bulkPut(data.expenses);
+        if (Array.isArray(data.savings)) await db.savings.bulkPut(data.savings);
       });
       // Refrescar estado sin recargar la página
       await budget.refresh();
+      await savings.refresh();
     } catch (err) {
       alert('JSON inválido');
     }
