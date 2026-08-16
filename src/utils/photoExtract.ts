@@ -279,19 +279,18 @@ export async function extractExpensesFromImage(base64: string): Promise<ExpenseD
     }
   }
 
-  // Formato 2: objetos JSON individuales en líneas separadas:
-  // { "name": "...", "amountArs": ..., "amountUsd": ... }
-  // (Llama 3.2 a veces devuelve uno por línea sin corchetes)
-  const lines = text.split('\n');
+  // Formato 2: objetos JSON individuales, con o sin saltos de línea:
+  // { "name": ... } \n { "name": ... }  → uno por línea
+  // { ... },{ ... },{ ... }             → pegados en una sola línea
+  // (Llama 3.2 a veces no usa corchetes de array)
+  const objects = text.match(/\{[\s\S]*?\}/g) ?? [];
   const parsedObjects: unknown[] = [];
-  for (const line of lines) {
-    const trimmed = line.trim();
-    if (!trimmed.startsWith('{') || !trimmed.endsWith('}')) continue;
+  for (const obj of objects) {
     try {
-      const p = JSON.parse(trimmed);
+      const p = JSON.parse(obj);
       if (p && typeof p === 'object') parsedObjects.push(p);
     } catch {
-      // ignorar línea no parseable
+      // ignorar fragmento no parseable
     }
   }
   if (parsedObjects.length > 0) return normalizeDrafts(parsedObjects);
