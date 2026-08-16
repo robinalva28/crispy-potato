@@ -13,6 +13,7 @@ import { ExpenseForm } from './components/ExpenseForm.tsx';
 import { GuideModal } from './components/GuideModal.tsx';
 import { SavingsCalculator } from './components/SavingsCalculator.tsx';
 import { SavingsGoalForm } from './components/SavingsGoalForm.tsx';
+import { parseLocalNumber } from './utils/format.ts';
 import { categoryTotals, CATEGORY_ORDER } from './utils/money.ts';
 
 interface EditingState {
@@ -37,6 +38,8 @@ export default function App() {
   const [editing, setEditing] = useState<EditingState | null>(null);
   const [editingMonth, setEditingMonth] = useState<EditingMonthState | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<Expense | null>(null);
+  const [confirmAmount, setConfirmAmount] = useState<Expense | null>(null);
+  const [confirmAmountValue, setConfirmAmountValue] = useState('');
   const [showGuide, setShowGuide] = useState(false);
   const [showSavingsGuide, setShowSavingsGuide] = useState(false);
   const [editingGoal, setEditingGoal] = useState<SavingsGoal | null>(null);
@@ -134,6 +137,37 @@ export default function App() {
     const id = confirmDelete.id!;
     setConfirmDelete(null);
     await budget.deleteExpense(id);
+  }
+
+  /**
+   * Toggle de pagado: si el gasto tiene amountArs null (por confirmar),
+   * abre un modal para confirmar el monto real antes de marcar pagado.
+   * Si ya tiene monto real, hace el toggle normal.
+   */
+  function handleTogglePaid(id: number) {
+    const expense = budget.monthExpenses.find((e) => e.id === id);
+    if (!expense) return;
+    if (expense.amountArs == null) {
+      setConfirmAmount(expense);
+      setConfirmAmountValue(
+        expense.estimatedArs != null ? String(expense.estimatedArs) : ''
+      );
+      return;
+    }
+    budget.togglePaid(id);
+  }
+
+  /** Confirma el monto real del gasto "por confirmar" y lo marca como pagado. */
+  async function confirmEstimatedAmount(e: React.FormEvent) {
+    e.preventDefault();
+    if (!confirmAmount) return;
+    const parsed = parseLocalNumber(confirmAmountValue);
+    if (parsed == null || parsed < 0) return;
+    await budget.updateExpense(confirmAmount.id!, {
+      amountArs: parsed,
+      paid: true,
+    });
+    setConfirmAmount(null);
   }
 
   // --- CRUD segmentos de ahorro ---
@@ -242,7 +276,7 @@ export default function App() {
                     <ExpenseRow
                       key={expense.id}
                       expense={expense}
-                      onTogglePaid={activeMonth.status === 'abierto' ? budget.togglePaid : () => {}}
+                      onTogglePaid={activeMonth.status === 'abierto' ? handleTogglePaid : () => {}}
                       onDelete={activeMonth.status === 'abierto' ? requestDelete : () => {}}
                       onEdit={(exp) => {
                         if (activeMonth.status === 'abierto') setEditing({ expense: exp, adding: false });
@@ -266,7 +300,7 @@ export default function App() {
                             category={cat}
                             expenses={catExpenses}
                             total={totals.get(cat) ?? 0}
-                            onTogglePaid={activeMonth.status === 'abierto' ? budget.togglePaid : () => {}}
+                            onTogglePaid={activeMonth.status === 'abierto' ? handleTogglePaid : () => {}}
                             onDelete={activeMonth.status === 'abierto' ? requestDelete : () => {}}
                             onEdit={(exp) => {
                               if (activeMonth.status === 'abierto') setEditing({ expense: exp, adding: false });
@@ -417,6 +451,49 @@ export default function App() {
         onClose={() => setShowSavingsGuide(false)}
         type="savings"
       />
+
+      {confirmAmount && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <form
+            onSubmit={confirmEstimatedAmount}
+            className="w-full max-w-sm bg-white rounded-xl shadow-xl p-4 space-y-3 dark:bg-neutral-900 dark:border dark:border-neutral-800"
+          >
+            <div className="font-bold text-neutral-900 dark:text-neutral-100">Confirmar gasto</div>
+            <p className="text-sm text-neutral-600 dark:text-neutral-400">
+              <span className="font-semibold">{confirmAmount.name}</span> estaba "por confirmar".
+              Confirmá el monto real para marcarlo como pagado.
+            </p>
+            <div>
+              <label className="block text-[11px] text-neutral-500 font-medium mb-1 dark:text-neutral-400">
+                Monto real (ARS)
+              </label>
+              <input
+                autoFocus
+                inputMode="decimal"
+                value={confirmAmountValue}
+                onChange={(e) => setConfirmAmountValue(e.target.value)}
+                placeholder="0"
+                className="w-full px-2 py-1.5 text-sm border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-100"
+              />
+            </div>
+            <div className="flex gap-2 pt-1">
+              <button
+                type="submit"
+                className="flex-1 px-3 py-2 text-sm font-semibold bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition"
+              >
+                Confirmar y marcar pagado
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmAmount(null)}
+                className="px-3 py-2 text-sm font-medium text-neutral-600 border border-neutral-300 rounded-md hover:bg-neutral-100 transition dark:text-neutral-400 dark:border-neutral-700 dark:hover:bg-neutral-800"
+              >
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
       {confirmDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
