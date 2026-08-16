@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { normalizeDrafts, mentionsUsd } from './photoExtract.ts';
+import { normalizeDrafts, mentionsUsd, normalizeText, matchKnownName } from './photoExtract.ts';
 
 describe('mentionsUsd', () => {
   it('detecta usd, u$d, dólar y dls', () => {
@@ -12,6 +12,29 @@ describe('mentionsUsd', () => {
   it('no detecta si no menciona USD', () => {
     expect(mentionsUsd('alquiler')).toBe(false);
     expect(mentionsUsd('supermercado')).toBe(false);
+  });
+});
+
+describe('normalizeText / matchKnownName', () => {
+  it('normaliza acentos y mayúsculas', () => {
+    expect(normalizeText('  ALQUilEr ÁFrica ')).toBe('alquiler africa');
+  });
+
+  it('matchKnownName coincide exacto', () => {
+    const known = { 'Alquiler': 'vivienda', 'Nafta': 'otros' };
+    expect(matchKnownName('alquiler', known)).toEqual({ name: 'Alquiler', category: 'vivienda' });
+  });
+
+  it('matchKnownName coincide con errores (naffe → Nafta, distancia 2)', () => {
+    const known = { 'Nafta': 'otros' };
+    // "naffe" (6) vs "nafta" (5): distancia 2 — debe matchear con tolerancia 3
+    const m = matchKnownName('naffe', known);
+    expect(m).not.toBeNull();
+    if (m) expect(m.name).toBe('Nafta');
+  });
+
+  it('matchKnownName devuelve null si no hay coincidencia', () => {
+    expect(matchKnownName('supermercado', { Alquiler: 'vivienda' })).toBeNull();
   });
 });
 

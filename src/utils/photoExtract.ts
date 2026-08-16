@@ -13,6 +13,83 @@ export interface ExpenseDraft {
 /** URL del Worker de Cloudflare que llama a Workers AI (Creado en el dashboard). */
 const WORKER_URL = 'https://polished-bar-b342.robinnet28.workers.dev';
 
+/** Nombres de gastos corregidos por el usuario (localStorage) → categoría. */
+const KNOWN_EXPENSES_KEY = 'pe-known-expenses';
+
+/** Normaliza un texto (minúsculas + sin tildes) para coincidencias. */
+export function normalizeText(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim();
+}
+
+function levenshtein(a: string, b: string): number {
+  const m = a.length;
+  const n = b.length;
+  if (m === 0) return n;
+  if (n === 0) return m;
+  const dp: number[] = Array.from({ length: n + 1 }, (_, i) => i);
+  for (let i = 1; i <= m; i++) {
+    let prev = dp[0];
+    dp[0] = i;
+    for (let j = 1; j <= n; j++) {
+      const tmp = dp[j];
+      dp[j] = Math.min(
+        dp[j] + 1, // borrar
+        dp[j - 1] + 1, // insertar
+        prev + (a[i - 1] === b[j - 1] ? 0 : 1) // sustituir / igual
+      );
+      prev = tmp;
+    }
+  }
+  return dp[n];
+}
+
+/** Lee las correcciones guardadas (nombre → categoría). */
+export function getKnownExpenses(): Record<string, string> {
+  try {
+    if (typeof localStorage === 'undefined') return {};
+    return JSON.parse(localStorage.getItem(KNOWN_EXPENSES_KEY) ?? '{}') as Record<string, string>;
+  } catch {
+    return {};
+  }
+}
+
+/** Guarda las correcciones del usuario para aprendizaje futuro. */
+export function saveCorrections(drafts: ExpenseDraft[]): void {
+  try {
+    if (typeof localStorage === 'undefined') return;
+    const known = getKnownExpenses();
+    for (const d of drafts) {
+      const n = normalizeText(d.name);
+      if (n) known[n] = String(d.category);
+    }
+    localStorage.setItem(KNOWN_EXPENSES_KEY, JSON.stringify(known));
+  } catch {
+    // ignore
+  }
+}
+
+/** Busca una corrección conocida parecida al nombre que leyó el modelo. */
+export function matchKnownName(
+  name: string,
+  known: Record<string, string>
+): { name: string; category: string } | null {
+  const n = normalizeText(name);
+  if (!n) return null;
+  for (const [key, cat] of Object.entries(known)) {
+    const kn = normalizeText(key);
+    if (kn === n) return { name: key, category: cat };
+    // Tolerancia 3: LLaVA deforma nombres ("Alquiler" → "maulier"), queremos corregirlos
+    if (Math.abs(kn.length - n.length) <= 2 && levenshtein(kn, n) <= 3) {
+      return { name: key, category: cat };
+    }
+  }
+  return null;
+}
+
 const VALID_CATEGORIES: Category[] = [
   'vivienda', 'servicios', 'tarjetas', 'eventos', 'salud', 'impuestos', 'otros',
 ];
@@ -37,8 +114,9 @@ export function mentionsUsd(text: string): boolean {
  * 2. Si amountArs === amountUsd, es un invento del modelo → se queda solo ARS.
  * 3. Montos >= 50.000.000 se marcan como sospechosos (puede ser mezcla de filas).
  */
-export function normalizeDrafts(raw: unknown[]): ExpenseDraft[] {
+export function normalizeDrafts(raw: unknown[], known?: Record<string, string>): ExpenseDraft[] {
   const drafts: ExpenseDraft[] = [];
+  const knownMap = known ?? getKnownExpenses();
   for (const item of raw) {
     if (!item || typeof item !== 'object') continue;
     const rec = item as Record<string, unknown>;
@@ -49,6 +127,11 @@ export function normalizeDrafts(raw: unknown[]): ExpenseDraft[] {
     const category = VALID_CATEGORIES.includes(categoryRaw as Category)
       ? (categoryRaw as Category)
       : 'otros';
+    // Aprendizaje por correcciones: si el nombre leído se parece a uno ya corregido,
+    // usamos el nombre/categoría exactos que el usuario confirmó antes.
+    const match = matchKnownName(name, knownMap);
+    const finalName = match?.name ?? name;
+    const finalCategory = match?.category ?? category;
 
     let amountArs = toNumber(rec.amountArs) > 0 ? toNumber(rec.amountArs) : null;
     let amountUsd = toNumber(rec.amountUsd);
@@ -75,8 +158,8 @@ export function normalizeDrafts(raw: unknown[]): ExpenseDraft[] {
     // La cotización NO la adivina el modelo (inventa valores raros, ej: 3.33).
     // En Argentina se carga al validar. Forzamos usdRate = 0 siempre.
     drafts.push({
-      name,
-      category,
+      name: finalName,
+      category: finalCategory,
       amountArs,
       amountUsd,
       usdRate: 0,

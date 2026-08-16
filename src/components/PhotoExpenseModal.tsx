@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Month } from '../types.ts';
-import { extractExpensesFromImage, type ExpenseDraft } from '../utils/photoExtract.ts';
+import { extractExpensesFromImage, saveCorrections, type ExpenseDraft } from '../utils/photoExtract.ts';
 import { CATEGORY_LABELS, fmtARS } from '../utils/money.ts';
 import { canUsePhoto } from '../utils/monthUtils.ts';
 
@@ -67,6 +67,8 @@ export function PhotoExpenseModal({ month, onSave, onClose }: Props) {
   async function handleSave() {
     setSaving(true);
     try {
+      // Aprendizaje: guarda los nombres/categorías corregidos para próximas fotos
+      saveCorrections(drafts);
       await onSave(drafts, month.id);
       onClose();
     } catch {
@@ -322,6 +324,8 @@ async function fileToBase64(file: File): Promise<string> {
       if (!ctx) throw new Error('No se pudo procesar la imagen');
       ctx.drawImage(bitmap, 0, 0, width, height);
       bitmap.close();
+      // Nivel 2: aumentar contraste y reducir brillo para resaltar la tinta (mejor OCR)
+      enhanceContrast(ctx, width, height);
 
       const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
       return dataUrl.includes(',') ? dataUrl.split(',')[1] : dataUrl;
@@ -358,6 +362,7 @@ async function fileToBase64(file: File): Promise<string> {
             return;
           }
           ctx.drawImage(img, 0, 0, width, height);
+          enhanceContrast(ctx, width, height);
 
           const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
           const base64 = dataUrl.includes(',') ? dataUrl.split(',')[1] : dataUrl;
@@ -372,4 +377,21 @@ async function fileToBase64(file: File): Promise<string> {
     reader.onerror = () => reject(new Error('No se pudo leer el archivo'));
     reader.readAsDataURL(file);
   });
+}
+
+/**
+ * Nivel 2: aumenta contraste y reduce brillo para resaltar la tinta (mejor OCR).
+ * Usa filtro de imagen del canvas (contrast + brightness) sin librerías.
+ */
+function enhanceContrast(ctx: CanvasRenderingContext2D, width: number, height: number): void {
+  const imageData = ctx.getImageData(0, 0, width, height);
+  const data = imageData.data;
+  for (let i = 0; i < data.length; i += 4) {
+    // Contraste 1.35 y brillo -12: oscurece tinta y aclara papel
+    const v = (pixel: number) => Math.min(255, Math.max(0, (pixel - 128) * 1.35 + 128 - 12));
+    data[i] = v(data[i]);
+    data[i + 1] = v(data[i + 1]);
+    data[i + 2] = v(data[i + 2]);
+  }
+  ctx.putImageData(imageData, 0, 0);
 }
