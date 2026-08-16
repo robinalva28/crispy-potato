@@ -265,13 +265,36 @@ export async function extractExpensesFromImage(base64: string): Promise<ExpenseD
 
   const data = (await res.json()) as unknown;
   const text = extractResponseText(data);
-  const jsonMatch = text.match(/\[[\s\S]*\]/);
-  if (!jsonMatch) return [];
+  if (!text) return [];
 
-  try {
-    const parsed = JSON.parse(jsonMatch[0]);
-    return Array.isArray(parsed) ? normalizeDrafts(parsed) : [];
-  } catch {
-    return [];
+  // Formato 1: array JSON clásico: [{...}, {...}]
+  // (algunos modelos agregan markdown ```json ... ``` antes/después)
+  const arrayMatch = text.match(/\[[\s\S]*\]/);
+  if (arrayMatch) {
+    try {
+      const parsed = JSON.parse(arrayMatch[0]);
+      if (Array.isArray(parsed)) return normalizeDrafts(parsed);
+    } catch {
+      // si falla el array, seguimos al formato 2
+    }
   }
+
+  // Formato 2: objetos JSON individuales en líneas separadas:
+  // { "name": "...", "amountArs": ..., "amountUsd": ... }
+  // (Llama 3.2 a veces devuelve uno por línea sin corchetes)
+  const lines = text.split('\n');
+  const parsedObjects: unknown[] = [];
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed.startsWith('{') || !trimmed.endsWith('}')) continue;
+    try {
+      const p = JSON.parse(trimmed);
+      if (p && typeof p === 'object') parsedObjects.push(p);
+    } catch {
+      // ignorar línea no parseable
+    }
+  }
+  if (parsedObjects.length > 0) return normalizeDrafts(parsedObjects);
+
+  return [];
 }
