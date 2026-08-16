@@ -245,14 +245,47 @@ export function PhotoExpenseModal({ month, onSave, onClose }: Props) {
   );
 }
 
-/** Convierte un File/Blob a base64 (data URL sin el prefijo). */
+/** Convierte un File/Blob a base64 comprimido (resize a máx 1024px + JPEG 80%). */
 function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => {
-      const result = reader.result as string;
-      const base64 = result.includes(',') ? result.split(',')[1] : result;
-      resolve(base64);
+      const img = new Image();
+      img.onload = () => {
+        try {
+          // Redimensionar a máx 1024px (la foto del celular es enorme y causa timeout)
+          const MAX = 1024;
+          let { width, height } = img;
+          if (width > MAX || height > MAX) {
+            if (width > height) {
+              height = Math.round((height * MAX) / width);
+              width = MAX;
+            } else {
+              width = Math.round((width * MAX) / height);
+              height = MAX;
+            }
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            reject(new Error('No se pudo procesar la imagen'));
+            return;
+          }
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // JPEG calidad 0.8 — muchísimo más liviano que la foto original
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+          const base64 = dataUrl.includes(',') ? dataUrl.split(',')[1] : dataUrl;
+          resolve(base64);
+        } catch {
+          reject(new Error('No se pudo procesar la imagen'));
+        }
+      };
+      img.onerror = () => reject(new Error('No se pudo leer la imagen'));
+      img.src = reader.result as string;
     };
     reader.onerror = () => reject(new Error('No se pudo leer el archivo'));
     reader.readAsDataURL(file);
