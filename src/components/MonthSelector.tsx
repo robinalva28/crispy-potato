@@ -19,23 +19,41 @@ export function MonthSelector({ months, activeMonthId, onSelect, onCreate }: Pro
   const [newLabel, setNewLabel] = useState('');
   const [newIncome, setNewIncome] = useState('');
   const [scrolled, setScrolled] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     setScrolled(e.currentTarget.scrollLeft > 8);
   };
 
+  function openModal() {
+    setErrorMsg('');
+    setShowModal(true);
+  }
+
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
     const income = Number(newIncome);
     if (!newId || isNaN(income) || income <= 0) return;
-    await onCreate({
-      id: newId,
-      label: newLabel || monthLabelFromId(newId),
-      income,
-    });
-    setShowModal(false);
-    setNewLabel('');
-    setNewIncome('');
+
+    // Validación: el ID del mes ya existe
+    if (months.some((m) => m.id === newId)) {
+      setErrorMsg(`El mes ${newId} ya existe. Elegí otro ID.`);
+      return;
+    }
+
+    try {
+      await onCreate({
+        id: newId,
+        label: newLabel || monthLabelFromId(newId),
+        income,
+      });
+      setShowModal(false);
+      setNewLabel('');
+      setNewIncome('');
+      setErrorMsg('');
+    } catch {
+      setErrorMsg('No se pudo crear el mes. Probá con otro ID.');
+    }
   }
 
   return (
@@ -54,7 +72,7 @@ export function MonthSelector({ months, activeMonthId, onSelect, onCreate }: Pro
         >
           <button
             type="button"
-            onClick={() => setShowModal(true)}
+            onClick={openModal}
             className={`px-3 py-1.5 text-xs font-semibold bg-emerald-600 text-white rounded-md hover:bg-emerald-700 shadow-sm transition-all duration-300 ease-out whitespace-nowrap origin-left ${
               scrolled ? 'scale-[0.95] opacity-95' : 'scale-100 opacity-100'
             }`}
@@ -89,6 +107,12 @@ export function MonthSelector({ months, activeMonthId, onSelect, onCreate }: Pro
             <p className="text-xs text-neutral-500 dark:text-neutral-400">
               Se clonarán los gastos del mes anterior (los arrancan sin pagar).
             </p>
+
+            {errorMsg && (
+              <div className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2 dark:text-red-400 dark:bg-red-950/20 dark:border-red-900">
+                ⚠️ {errorMsg}
+              </div>
+            )}
 
             <div>
               <label className="block text-[11px] text-neutral-500 font-medium mb-1 dark:text-neutral-400">
