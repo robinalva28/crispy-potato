@@ -206,6 +206,12 @@ function extractResponseText(data: unknown): string {
   // donde description contiene el JSON de gastos detectados.
   if (rec.resultado === 'llava' && typeof rec.description === 'string') return rec.description;
 
+  // Formato 9: nuestro Worker con Moondream devuelve { resultado: "moondream", answer: "..." }
+  // o { result: { answer: "..." } } — la tarea "query" usa el campo answer.
+  if (rec.resultado === 'moondream' && typeof rec.answer === 'string') return rec.answer;
+  if (result && typeof result.answer === 'string') return result.answer;
+  if (typeof rec.answer === 'string') return rec.answer;
+
   return JSON.stringify(data); // fallback: devolver todo por si ayuda a debuggear
 }
 
