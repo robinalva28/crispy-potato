@@ -26,7 +26,17 @@ function toNumber(v: unknown): number {
   return 0;
 }
 
-/** Valida y normaliza los gastos crudos que devuelve el modelo. */
+/** ¿El texto menciona alguna palabra de dólares? */
+export function mentionsUsd(text: string): boolean {
+  return /(usd|u\$d|d[oó]lar(es)?|d[oó]lares|dls)/i.test(text);
+}
+
+/**
+ * Aplica heurísticas post-procesamiento para corregir limitaciones del modelo:
+ * 1. Si tiene ARS y USD a la vez, la moneda dominante es ARS salvo que el nombre/notas diga "usd".
+ * 2. Si amountArs === amountUsd, es un invento del modelo → se queda solo ARS.
+ * 3. Montos >= 50.000.000 se marcan como sospechosos (puede ser mezcla de filas).
+ */
 export function normalizeDrafts(raw: unknown[]): ExpenseDraft[] {
   const drafts: ExpenseDraft[] = [];
   for (const item of raw) {
@@ -40,15 +50,37 @@ export function normalizeDrafts(raw: unknown[]): ExpenseDraft[] {
       ? (categoryRaw as Category)
       : 'otros';
 
+    let amountArs = toNumber(rec.amountArs) > 0 ? toNumber(rec.amountArs) : null;
+    let amountUsd = toNumber(rec.amountUsd);
+    const notes = typeof rec.notes === 'string' ? rec.notes.trim() : '';
+    const hayLiteralUsd = mentionsUsd(`${name} ${notes}`);
+
+    // Si el modelo puso USD pero el apunte no dice "usd/u$d/dólar", es invento → descartar USD
+    if (!hayLiteralUsd) {
+      amountUsd = 0;
+    }
+    // Si amountArs === amountUsd (duplicado exacto), es invento → descartar el USD
+    else if (amountArs != null && amountArs === amountUsd) {
+      amountUsd = 0;
+    }
+    // Si no hay ARS pero sí USD con literal, mantener (ej: "Seguro 12 usd")
+    // (amountArs queda null si el modelo no devolvió pesos)
+
+    // Sanity check de magnitud: marca montos absurdos (mezcla filas) poniendo amountArs=0 si supera umbral
+    // No se borra data, solo se "aplana" el invento absurdo.
+    if (amountArs != null && amountArs >= 50_000_000) {
+      amountArs = null;
+    }
+
     // La cotización NO la adivina el modelo (inventa valores raros, ej: 3.33).
     // En Argentina se carga al validar. Forzamos usdRate = 0 siempre.
     drafts.push({
       name,
       category,
-      amountArs: toNumber(rec.amountArs) > 0 ? toNumber(rec.amountArs) : null,
-      amountUsd: toNumber(rec.amountUsd),
+      amountArs,
+      amountUsd,
       usdRate: 0,
-      notes: typeof rec.notes === 'string' ? rec.notes.trim() : '',
+      notes,
     });
   }
   return drafts;
