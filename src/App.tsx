@@ -9,6 +9,7 @@ import { ExpenseRow } from './components/ExpenseRow.tsx';
 import { ExpenseGroup } from './components/ExpenseGroup.tsx';
 import { CategoryBars } from './components/CategoryBars.tsx';
 import { ExpenseForm } from './components/ExpenseForm.tsx';
+import { GuideModal } from './components/GuideModal.tsx';
 import { categoryTotals, CATEGORY_ORDER } from './utils/money.ts';
 
 interface EditingState {
@@ -29,9 +30,18 @@ export default function App() {
   const [editing, setEditing] = useState<EditingState | null>(null);
   const [editingMonth, setEditingMonth] = useState<EditingMonthState | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<Expense | null>(null);
+  const [showGuide, setShowGuide] = useState(false);
   const expenseFormRef = useRef<HTMLDivElement | null>(null);
 
   const { activeMonth } = budget;
+
+  // Guía de uso: aparece automáticamente la primera vez que se abre la app
+  useEffect(() => {
+    if (localStorage.getItem('pe-guided') !== '1') {
+      setShowGuide(true);
+      localStorage.setItem('pe-guided', '1');
+    }
+  }, []);
 
   // Al abrir el formulario de gasto (agregar/editar), scrollea hasta él
   useEffect(() => {
@@ -281,6 +291,15 @@ export default function App() {
         <div className="mt-3 flex items-center justify-center gap-2">
           <button
             type="button"
+            onClick={() => setShowGuide(true)}
+            aria-label="Guía de uso"
+            title="Guía de uso"
+            className="px-3 py-1.5 text-xs font-medium text-neutral-600 border border-neutral-300 rounded-md hover:bg-neutral-100 transition dark:text-neutral-400 dark:border-neutral-700 dark:hover:bg-neutral-800"
+          >
+            ❓ Guía
+          </button>
+          <button
+            type="button"
             onClick={exportJSON}
             className="px-3 py-1.5 text-xs font-medium text-neutral-600 border border-neutral-300 rounded-md hover:bg-neutral-100 transition dark:text-neutral-400 dark:border-neutral-700 dark:hover:bg-neutral-800"
           >
@@ -292,6 +311,11 @@ export default function App() {
           </label>
         </div>
       </footer>
+
+      <GuideModal
+        open={showGuide}
+        onClose={() => setShowGuide(false)}
+      />
 
       {confirmDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
