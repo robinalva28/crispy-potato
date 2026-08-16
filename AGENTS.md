@@ -7,8 +7,8 @@ Este archivo le da contexto instantáneo a una sesión nueva de IA que trabaje s
 ```bash
 npm install        # solo la primera vez
 npm run dev        # servidor de desarrollo en http://localhost:5173
-npm run build      # build de producción (Netlify usa esto)
-npm test           # tests Vitest (12 tests)
+npm run build      # build de producción (Cloudflare Pages usa esto)
+npm test           # tests Vitest (21 tests)
 ```
 
 ## 2. Reglas de trabajo (resumen del CONTEXTO V2)
@@ -24,7 +24,9 @@ npm test           # tests Vitest (12 tests)
 ## 3. Stack y estructura
 
 - **Stack**: Vite 8 + React 19 + TypeScript + Tailwind v4 + Dexie (IndexedDB) + vite-plugin-pwa.
-- **Deploy**: Netlify con auto-deploy desde GitHub (`netlify.toml`). Cada `git push` a main re-deploya.
+- **Deploy**: Cloudflare Pages con auto-deploy desde GitHub. URL: `https://presupuesto.commitlog.net` (subdominio de `commitlog.net`).
+- Build: `npm run build` (output `dist/`). SPA fallback activado en el dashboard de Cloudflare (Settings → Advanced settings → Single-page application).
+- ⚠️ **No poner `_redirects` ni `wrangler.jsonc` en el repo**: `_redirects` genera loop infinito (error 100324) y `wrangler.jsonc` hace que Pages use `wrangler deploy` (modo Worker) y falla. El SPA se configura solo desde el dashboard.
 - Repo público: `https://github.com/robinalva28/crispy-potato` (la rama es `main`).
 
 ```
@@ -69,8 +71,11 @@ Completado:
 - Cierre/reapertura de mes.
 - Agrupar por categoría + gráfico de barras bajo demanda.
 - Guía interactiva (GuideModal) primera vez + botón "❓ Guía".
-- Tests Vitest (12) verdes.
-- GitHub + Netlify auto-deploy configurados.
+- Tests Vitest (21) verdes.
+- GitHub + Cloudflare Pages auto-deploy configurados (URL: `https://presupuesto.commitlog.net`).
+- Feedback háptico y sonoro con WebAudio + Vibration API (sin librerías).
+- Botón "Crear Mes" con efecto glass animado.
+- Sección de Ahorro con segmentos y proyección mensual.
 
 Pendiente/iterable:
 - PIN (lógica en `useLock.ts`/`LockScreen.tsx`, sin integrar en App — reactivar cuando el usuario quiera).
@@ -83,5 +88,5 @@ Pendiente/iterable:
 npm run dev     # desarrollo
 npm test        # tests
 npm run build   # build (tsc + vite + PWA)
-git push        # dispara el deploy automático en Netlify
+git push        # dispara el deploy automático en Cloudflare Pages
 ```
