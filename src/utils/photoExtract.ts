@@ -79,6 +79,12 @@ function extractResponseText(data: unknown): string {
   const output = result?.output as Record<string, unknown> | undefined;
   if (output && typeof output.text === 'string') return output.text;
 
+  // Formato 6: Moondream con messages suele devolver { result: { string_response: "..." } }
+  if (result && typeof result.string_response === 'string') return result.string_response;
+
+  // Formato 7: { result: { response: "..." } } anidado en string_response directo
+  if (result && typeof result.output_text === 'string') return result.output_text;
+
   return JSON.stringify(data); // fallback: devolver todo por si ayuda a debuggear
 }
 
