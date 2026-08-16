@@ -77,6 +77,8 @@ export function PhotoExpenseModal({ month, onSave, onClose }: Props) {
   }
 
   const total = drafts.reduce((sum, d) => sum + (d.amountArs ?? 0) + (d.amountUsd * d.usdRate), 0);
+  // Un gasto con USD pero sin cotización no puede guardarse (la cotización se pide al validar).
+  const hasMissingRate = drafts.some((d) => d.amountUsd > 0 && d.usdRate <= 0);
 
   const inputCls =
     'w-full px-2 py-1 text-sm border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-100';
@@ -214,19 +216,29 @@ export function PhotoExpenseModal({ month, onSave, onClose }: Props) {
                     </div>
                   </div>
 
-                  {/* Cotización (solo si hay USD) */}
+                  {/* Cotización USD (obligatoria si hay USD — el modelo NO la adivina) */}
                   {d.amountUsd > 0 && (
                     <div>
-                      <label className="block text-[10px] uppercase tracking-wide text-neutral-500 font-medium mb-0.5 dark:text-neutral-400">
-                        Cotización USD ($ = 1 USD)
+                      <label className="block text-[10px] uppercase tracking-wide text-amber-600 font-semibold mb-0.5 dark:text-amber-400">
+                        Cotización USD ($ por 1 USD) *
                       </label>
                       <input
-                        className={inputCls}
+                        className={`${inputCls} ${
+                          d.usdRate > 0
+                            ? ''
+                            : 'border-amber-400 dark:border-amber-500 focus:ring-amber-400'
+                        }`}
                         inputMode="decimal"
                         value={d.usdRate > 0 ? String(d.usdRate) : ''}
                         onChange={(e) => updateDraft(i, { usdRate: Number(e.target.value) || 0 })}
-                        placeholder="Ej: 1500"
+                        placeholder="Ej: 1500 (cotización actual)"
+                        required={d.amountUsd > 0}
                       />
+                      {d.usdRate <= 0 && (
+                        <p className="text-[10px] text-amber-600 dark:text-amber-400 mt-0.5">
+                          Ingresá la cotización para calcular el total en pesos
+                        </p>
+                      )}
                     </div>
                   )}
                 </div>
@@ -247,10 +259,16 @@ export function PhotoExpenseModal({ month, onSave, onClose }: Props) {
             </div>
 
             <div className="flex gap-2 pt-1">
+              {hasMissingRate && (
+                <p className="text-[11px] text-amber-600 dark:text-amber-400 col-span-2">
+                  Cargá la cotización de cada gasto en USD para poder guardar.
+                </p>
+              )}
               <button
                 type="button"
                 onClick={handleSave}
-                disabled={saving}
+                disabled={saving || hasMissingRate}
+                title={hasMissingRate ? 'Cargá las cotizaciones de USD faltantes' : undefined}
                 className="flex-1 px-3 py-2 text-sm font-semibold bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition disabled:opacity-40"
               >
                 {saving ? 'Guardando…' : 'Guardar gastos'}

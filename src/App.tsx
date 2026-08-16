@@ -78,6 +78,7 @@ export default function App() {
   const [editingBudgets, setEditingBudgets] = useState(false);
   const [budgetInputs, setBudgetInputs] = useState<Partial<Record<Category, string>>>({});
   const [showPhotoModal, setShowPhotoModal] = useState(false);
+  const [confirmDeleteMonth, setConfirmDeleteMonth] = useState<Month | null>(null);
   const expenseFormRef = useRef<HTMLDivElement | null>(null);
 
   const { activeMonth } = budget;
@@ -182,6 +183,16 @@ export default function App() {
     const id = confirmDelete.id!;
     setConfirmDelete(null);
     await budget.deleteExpense(id);
+    fdb.delete();
+  }
+
+  /** Elimina un mes y todos sus gastos (con confirmación previa). */
+  async function confirmMonthDelete() {
+    if (!confirmDeleteMonth) return;
+    const id = confirmDeleteMonth.id;
+    setConfirmDeleteMonth(null);
+    setEditingMonth(null);
+    await budget.deleteMonth(id);
     fdb.delete();
   }
 
@@ -759,6 +770,34 @@ export default function App() {
         </div>
       )}
 
+      {confirmDeleteMonth && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-sm bg-white rounded-xl shadow-xl p-4 space-y-3 dark:bg-neutral-900 dark:border dark:border-neutral-800">
+            <div className="font-bold text-red-600 dark:text-red-400">¿Eliminar mes?</div>
+            <p className="text-sm text-neutral-600 dark:text-neutral-400">
+              Se borrará <span className="font-semibold">{confirmDeleteMonth.label}</span> y TODOS
+              sus gastos. Esta acción no se puede deshacer.
+            </p>
+            <div className="flex gap-2 pt-1">
+              <button
+                type="button"
+                onClick={confirmMonthDelete}
+                className="flex-1 px-3 py-2 text-sm font-semibold bg-red-600 text-white rounded-md hover:bg-red-700 transition"
+              >
+                Sí, borrar mes
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmDeleteMonth(null)}
+                className="px-3 py-2 text-sm font-medium text-neutral-600 border border-neutral-300 rounded-md hover:bg-neutral-100 transition dark:text-neutral-400 dark:border-neutral-700 dark:hover:bg-neutral-800"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {editingBudgets && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <form
@@ -810,7 +849,16 @@ export default function App() {
             onSubmit={saveMonth}
             className="w-full max-w-sm bg-white rounded-xl shadow-xl p-4 space-y-3 dark:bg-neutral-900 dark:border dark:border-neutral-800"
           >
-            <div className="font-bold text-neutral-900 dark:text-neutral-100">Editar mes</div>
+            <div className="flex justify-between items-center">
+              <div className="font-bold text-neutral-900 dark:text-neutral-100">Editar mes</div>
+              <button
+                type="button"
+                onClick={() => setConfirmDeleteMonth(editingMonth.month)}
+                className="px-2 py-1 text-[11px] font-medium text-red-600 border border-red-300 rounded-md hover:bg-red-50 transition dark:text-red-400 dark:border-red-900 dark:hover:bg-red-950/20"
+              >
+                🗑 Eliminar mes
+              </button>
+            </div>
             <div>
               <label className="block text-[11px] text-neutral-500 font-medium mb-1">Etiqueta</label>
               <input

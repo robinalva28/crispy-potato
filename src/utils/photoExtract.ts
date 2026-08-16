@@ -40,12 +40,14 @@ export function normalizeDrafts(raw: unknown[]): ExpenseDraft[] {
       ? (categoryRaw as Category)
       : 'otros';
 
+    // La cotización NO la adivina el modelo (inventa valores raros, ej: 3.33).
+    // En Argentina se carga al validar. Forzamos usdRate = 0 siempre.
     drafts.push({
       name,
       category,
       amountArs: toNumber(rec.amountArs) > 0 ? toNumber(rec.amountArs) : null,
       amountUsd: toNumber(rec.amountUsd),
-      usdRate: toNumber(rec.usdRate),
+      usdRate: 0,
       notes: typeof rec.notes === 'string' ? rec.notes.trim() : '',
     });
   }

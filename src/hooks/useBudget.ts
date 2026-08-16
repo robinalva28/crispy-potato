@@ -190,6 +190,15 @@ export function useBudget() {
     await refresh();
   }, [refresh]);
 
+  /** Elimina un mes y TODOS sus gastos (no se puede deshacer). */
+  const deleteMonth = useCallback(async (id: string) => {
+    await db.transaction('rw', db.months, db.expenses, async () => {
+      await db.months.delete(id);
+      await db.expenses.where('monthId').equals(id).delete();
+    });
+    await refresh();
+  }, [refresh]);
+
   return {
     months,
     expenses,
@@ -210,6 +219,7 @@ export function useBudget() {
     getLastUsdRate,
     closeMonth,
     reopenMonth,
+    deleteMonth,
   };
 }
 
