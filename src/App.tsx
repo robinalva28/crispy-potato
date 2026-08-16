@@ -15,6 +15,11 @@ import { SavingsCalculator } from './components/SavingsCalculator.tsx';
 import { SavingsGoalForm } from './components/SavingsGoalForm.tsx';
 import { parseLocalNumber } from './utils/format.ts';
 import { categoryTotals, CATEGORY_ORDER } from './utils/money.ts';
+import {
+  useFeedback,
+  soundEnabledFromStorage,
+  SOUND_KEY,
+} from './hooks/useFeedback.ts';
 
 interface EditingState {
   expense: Expense | null;
@@ -33,6 +38,18 @@ export default function App() {
   const budget = useBudget();
   const savings = useSavings();
   const { dark, toggle } = useDarkMode();
+  const [soundEnabled, setSoundEnabled] = useState(() => soundEnabledFromStorage());
+  const fdb = useFeedback(soundEnabled);
+
+  function toggleSound() {
+    const next = !soundEnabled;
+    setSoundEnabled(next);
+    try {
+      localStorage.setItem(SOUND_KEY, next ? '1' : '0');
+    } catch {
+      // localStorage no disponible: ignorar
+    }
+  }
   const [view, setView] = useState<View>('budget');
   const [groupByCategory, setGroupByCategory] = useState(false);
   const [editing, setEditing] = useState<EditingState | null>(null);
@@ -114,14 +131,17 @@ export default function App() {
       income,
     });
     setEditingMonth(null);
+    fdb.edit();
   }
 
   // --- CRUD gastos ---
   async function saveExpense(data: Omit<Expense, 'id' | 'monthId'>) {
     if (editing?.expense) {
       await budget.updateExpense(editing.expense.id!, data);
+      fdb.edit();
     } else {
       await budget.addExpense(data);
+      fdb.success();
     }
     setEditing(null);
   }
@@ -137,6 +157,7 @@ export default function App() {
     const id = confirmDelete.id!;
     setConfirmDelete(null);
     await budget.deleteExpense(id);
+    fdb.delete();
   }
 
   /**
@@ -155,6 +176,7 @@ export default function App() {
       return;
     }
     budget.togglePaid(id);
+    fdb.toggle();
   }
 
   /** Confirma el monto real del gasto "por confirmar" y lo marca como pagado. */
@@ -168,14 +190,17 @@ export default function App() {
       paid: true,
     });
     setConfirmAmount(null);
+    fdb.success();
   }
 
   // --- CRUD segmentos de ahorro ---
   async function saveGoal(data: Omit<SavingsGoal, 'id'>) {
     if (editingGoal?.id) {
       await savings.updateGoal(editingGoal.id, data);
+      fdb.edit();
     } else {
       await savings.addGoal(data);
+      fdb.success();
     }
     setEditingGoal(null);
     setAddingGoal(false);
@@ -223,7 +248,10 @@ export default function App() {
             months={budget.months}
             activeMonthId={budget.activeMonthId}
             onSelect={budget.setActiveMonthId}
-            onCreate={budget.createMonth}
+            onCreate={async (input) => {
+              await budget.createMonth(input);
+              fdb.success();
+            }}
           />
 
           {activeMonth && (
@@ -320,7 +348,10 @@ export default function App() {
               <span className="text-sm">Gasto eliminado</span>
               <button
                 type="button"
-                onClick={budget.restoreLastDeleted}
+                onClick={() => {
+                  void budget.restoreLastDeleted();
+                  fdb.undo();
+                }}
                 className="text-sm font-semibold text-emerald-400 hover:text-emerald-300 dark:text-emerald-600 dark:hover:text-emerald-500"
               >
                 Deshacer
@@ -351,7 +382,10 @@ export default function App() {
               {activeMonth.status === 'cerrado' && (
                 <button
                   type="button"
-                  onClick={() => budget.reopenMonth(activeMonth.id)}
+                  onClick={() => {
+                    void budget.reopenMonth(activeMonth.id);
+                    fdb.reopenMonth();
+                  }}
                   className="w-full px-3 py-2 text-sm font-medium text-amber-600 border border-amber-300 rounded-md hover:bg-amber-50 transition dark:text-amber-400 dark:border-amber-900 dark:hover:bg-amber-950/20"
                 >
                   🔓 Reabrir mes
@@ -360,7 +394,10 @@ export default function App() {
               {activeMonth.status === 'abierto' && (
                 <button
                   type="button"
-                  onClick={() => budget.closeMonth(activeMonth.id)}
+                  onClick={() => {
+                    void budget.closeMonth(activeMonth.id);
+                    fdb.closeMonth();
+                  }}
                   className="w-full mt-2 px-3 py-2 text-sm font-medium text-neutral-500 border border-neutral-300 rounded-md hover:bg-neutral-100 transition dark:text-neutral-400 dark:border-neutral-700 dark:hover:bg-neutral-800"
                 >
                   🔒 Cerrar mes
@@ -376,6 +413,19 @@ export default function App() {
                   className="px-3 py-1.5 text-xs font-medium text-neutral-600 border border-neutral-300 rounded-md hover:bg-neutral-100 transition dark:text-neutral-400 dark:border-neutral-700 dark:hover:bg-neutral-800"
                 >
                   ❓ Guía
+                </button>
+                <button
+                  type="button"
+                  onClick={toggleSound}
+                  aria-label={soundEnabled ? 'Silenciar sonidos' : 'Activar sonidos'}
+                  title={soundEnabled ? 'Silenciar sonidos' : 'Activar sonidos'}
+                  className={`px-3 py-1.5 text-xs font-medium border rounded-md transition ${
+                    soundEnabled
+                      ? 'text-neutral-600 border-neutral-300 hover:bg-neutral-100 dark:text-neutral-400 dark:border-neutral-700 dark:hover:bg-neutral-800'
+                      : 'text-neutral-300 border-neutral-200 hover:bg-neutral-100 dark:text-neutral-600 dark:border-neutral-800 dark:hover:bg-neutral-800'
+                  }`}
+                >
+                  {soundEnabled ? '🔊 Sonidos' : '🔇 Sonidos'}
                 </button>
                 <button
                   type="button"
@@ -421,7 +471,10 @@ export default function App() {
               setAddingGoal(false);
               setEditingGoal(goal);
             }}
-            onDelete={savings.deleteGoal}
+            onDelete={(id) => {
+              void savings.deleteGoal(id);
+              fdb.delete();
+            }}
             onRemoveExtra={savings.removeExtraIncome}
           />
 

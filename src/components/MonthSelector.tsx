@@ -44,15 +44,24 @@ export function MonthSelector({ months, activeMonthId, onSelect, onCreate }: Pro
         onScroll={handleScroll}
         className="px-2 py-2 flex items-center gap-2 overflow-x-auto"
       >
-        <button
-          type="button"
-          onClick={() => setShowModal(true)}
-          className={`sticky left-2 z-10 shrink-0 px-3 text-xs font-semibold bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-all duration-200 shadow-sm ${
-            scrolled ? 'py-1 text-[10px]' : 'py-1.5'
+        {/* Botón sticky con efecto glass: blur suave sobre los meses al scrollear */}
+        <div
+          className={`sticky left-2 z-10 shrink-0 -my-1 py-1 pl-1 pr-2 rounded-xl transition-all duration-300 ease-out ${
+            scrolled
+              ? 'bg-neutral-50/70 backdrop-blur-md shadow-sm dark:bg-neutral-900/70'
+              : 'bg-transparent'
           }`}
         >
-          + Crear Mes
-        </button>
+          <button
+            type="button"
+            onClick={() => setShowModal(true)}
+            className={`px-3 py-1.5 text-xs font-semibold bg-emerald-600 text-white rounded-md hover:bg-emerald-700 shadow-sm transition-all duration-300 ease-out whitespace-nowrap origin-left ${
+              scrolled ? 'scale-[0.95] opacity-95' : 'scale-100 opacity-100'
+            }`}
+          >
+            + Crear Mes
+          </button>
+        </div>
         {months.map((m) => (
           <button
             key={m.id}
