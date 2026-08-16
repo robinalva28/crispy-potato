@@ -46,18 +46,20 @@ Formato EXACTO de cada elemento (sin categorías, sin notas):
 {"name":"", "amountArs":0, "amountUsd":0}
 
 Ejemplo de respuesta válida:
-[{"name":"Alquiler","amountArs":830000,"amountUsd":0},{"name":"Luz","amountArs":111328,"amountUsd":0}]
+[{"name":"Alquiler","amountArs":830000,"amountUsd":0},{"name":"Luz","amountArs":111328.96,"amountUsd":0}]
 
 REGLAS:
 1. NO inventes gastos. Leé SOLO lo que está escrito en la hoja.
 2. NO uses categorías. Ignorá títulos como "vivienda", "servicios", etc: son etiquetas, no gastos.
-3. Copiá cada número EXACTO con todos sus dígitos (450000 no es 45000).
-4. Si un monto dice "usd" o "u$d" → amountUsd. Si no, es amountArs (pesos).
-5. Si un texto no es un gasto (título, nota, fecha), ignoralo.
-6. Si no hay gastos legibles, devolvé [].`;
+3. Los montos argentinos usan PUNTO como separador de miles y COMA como decimal: "$36.999,40" es amountArs=36999.40 (UN solo número, NO separes los dígitos).
+4. Copiá cada número EXACTO con todos sus dígitos y centavos (450000 no es 45000).
+5. Si un monto dice "usd" o "u$d" → amountUsd. Si no, es amountArs (pesos).
+6. Si un texto no es un gasto (título, nota, fecha), ignoralo.
+7. Si no hay gastos legibles, devolvé [].`;
 
       const STRICT_PROMPT = `Devolvé SOLO el array JSON de gastos de la imagen, sin texto alrededor.
 Formato: [{"name":"", "amountArs":0, "amountUsd":0}]
+Los montos con coma decimal van en amountArs como número único: "$36.999,40" → 36999.4. Nada de separar dígitos.
 Si no hay gastos, devolvé [].`;
 
       const MODEL = '@cf/meta/llama-3.2-11b-vision-instruct';
