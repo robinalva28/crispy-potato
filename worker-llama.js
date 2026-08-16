@@ -46,7 +46,7 @@ Formato EXACTO de cada elemento (sin categorías, sin notas):
 {"name":"", "amountArs":0, "amountUsd":0}
 
 Ejemplo de respuesta válida:
-[{"name":"Alquiler","amountArs":830000,"amountUsd":0},{"name":"Luz","amountArs":111328.96,"amountUsd":0}]
+[{"name":"Alquiler","amountArs":830000,"amountUsd":0},{"name":"Luz","amountArs":111328.96,"amountUsd":0},{"name":"Deuda Vanesa","amountArs":279208,"amountUsd":0}]
 
 REGLAS:
 1. NO inventes gastos. Leé SOLO lo que está escrito en la hoja.
@@ -55,11 +55,13 @@ REGLAS:
 4. Copiá cada número EXACTO con todos sus dígitos y centavos (450000 no es 45000).
 5. Si un monto dice "usd" o "u$d" → amountUsd. Si no, es amountArs (pesos).
 6. Si un texto no es un gasto (título, nota, fecha), ignoralo.
-7. Si no hay gastos legibles, devolvé [].`;
+7. Si no hay gastos legibles, devolvé [].
+8. CORREGÍ nombres deformados por la escritura o letra: devolvé la palabra REAL en español. Ejemplos: "dude" → "deuda", "gaz" → "gas", "nafite" → "nafta", "pblico" → "público", "cupo" → "cubo", "tel +" → "teléfono", "super" → "supermercado". Si el nombre es ilegible pero se infiere el significado, usá la palabra correcta en español. NUNCA devuelvas palabras en inglés (ej: "debt" → "deuda").`;
 
       const STRICT_PROMPT = `Devolvé SOLO el array JSON de gastos de la imagen, sin texto alrededor.
 Formato: [{"name":"", "amountArs":0, "amountUsd":0}]
 Los montos con coma decimal van en amountArs como número único: "$36.999,40" → 36999.4. Nada de separar dígitos.
+Los nombres deben ser palabras reales en español, corregidas si la letra las deforma ("gaz" → "gas", "dude" → "deuda").
 Si no hay gastos, devolvé [].`;
 
       const MODEL = '@cf/meta/llama-3.2-11b-vision-instruct';
