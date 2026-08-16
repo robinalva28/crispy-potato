@@ -30,3 +30,20 @@ export interface Expense {
   paid: boolean;
   notes: string;
 }
+
+/** Ingreso extraordinario previsto (ej: bono, aguinaldo, venta). */
+export interface ExtraIncome {
+  id: string; // id único generado (crypto.randomUUID)
+  label: string; // "Bono fin de año"
+  amount: number;
+  month: string; // "2026-11"
+}
+
+/** Segmento de ahorro con nombre y rango de meses (ej: "Auto" de Ago 2026 a Dic 2026). */
+export interface SavingsGoal {
+  id?: number;
+  name: string;
+  startMonth: string; // "2026-08"
+  endMonth: string; // "2026-12"
+  extraIncomes: ExtraIncome[];
+}

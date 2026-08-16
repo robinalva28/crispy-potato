@@ -1,0 +1,178 @@
+import { useState } from 'react';
+import type { Expense, Month, SavingsGoal } from '../types.ts';
+import { projectSavings } from '../utils/savings.ts';
+import { fmtARS } from '../utils/money.ts';
+
+interface Props {
+  goals: SavingsGoal[];
+  months: Month[];
+  expenses: Expense[];
+  onAdd: () => void;
+  onEdit: (goal: SavingsGoal) => void;
+  onDelete: (id: number) => void;
+  onRemoveExtra: (goalId: number, extraId: string) => void;
+}
+
+function monthLabel(id: string): string {
+  const [y, m] = id.split('-').map(Number);
+  const names = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+  return `${names[m - 1]} ${String(y).slice(2)}`;
+}
+
+export function SavingsCalculator({ goals, months, expenses, onAdd, onEdit, onDelete, onRemoveExtra }: Props) {
+  const [confirmDelete, setConfirmDelete] = useState<SavingsGoal | null>(null);
+
+  if (goals.length === 0) {
+    return (
+      <div className="px-4 py-10 text-center">
+        <div className="text-4xl mb-2">💰</div>
+        <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-4">
+          Todavía no tenés segmentos de ahorro proyectados.
+          <br />
+          Creá uno para proyectar, por ejemplo, cuánto podés juntar para tu auto.
+        </p>
+        <button
+          type="button"
+          onClick={onAdd}
+          className="px-4 py-2 text-sm font-semibold bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition"
+        >
+          + Nuevo segmento
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3 px-4 py-4">
+      {goals.map((goal) => {
+        const proj = projectSavings(goal, months, expenses);
+        return (
+          <div key={goal.id} className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl p-3">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <div className="w-9 h-9 rounded-lg bg-emerald-100 dark:bg-emerald-950/40 flex items-center justify-center text-lg">
+                  🎯
+                </div>
+                <div>
+                  <div className="font-bold text-neutral-900 dark:text-neutral-100">{goal.name}</div>
+                  <div className="text-[11px] text-neutral-500 dark:text-neutral-400">
+                    {monthLabel(goal.startMonth)} → {monthLabel(goal.endMonth)}
+                  </div>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-lg font-bold text-emerald-700 dark:text-emerald-400">
+                  {fmtARS(proj.total, 0)}
+                </div>
+                <div className="text-[10px] text-neutral-500 uppercase">proyectado</div>
+              </div>
+            </div>
+
+            {/* Desglose mensual */}
+            {proj.months.length > 0 && (
+              <div className="mt-3 space-y-1">
+                {proj.months.map((p) => (
+                  <div key={p.monthId} className="flex items-center justify-between text-xs">
+                    <span className="text-neutral-600 dark:text-neutral-400">{monthLabel(p.monthId)}</span>
+                    <span className="flex items-center gap-3">
+                      {p.extras.length > 0 && (
+                        <span className="text-amber-600 dark:text-amber-400 font-medium">
+                          +{p.extras.map((e) => e.label).join(', ')}
+                        </span>
+                      )}
+                      <span className={`font-semibold ${p.total < 0 ? 'text-red-500' : 'text-emerald-700 dark:text-emerald-400'}`}>
+                        {fmtARS(p.total, 0)}
+                      </span>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Ingresos extra */}
+            {goal.extraIncomes.length > 0 && (
+              <div className="mt-2 pt-2 border-t border-neutral-100 dark:border-neutral-800 space-y-1">
+                <div className="text-[10px] font-semibold uppercase text-neutral-500 dark:text-neutral-400">Ingresos extra</div>
+                {goal.extraIncomes.map((extra) => (
+                  <div key={extra.id} className="flex items-center justify-between text-xs">
+                    <span className="text-neutral-700 dark:text-neutral-300">
+                      {extra.label} · {monthLabel(extra.month)}
+                    </span>
+                    <span className="flex items-center gap-2">
+                      <span className="text-amber-700 dark:text-amber-400 font-semibold">{fmtARS(extra.amount, 0)}</span>
+                      <button
+                        type="button"
+                        aria-label="Quitar"
+                        onClick={() => goal.id && onRemoveExtra(goal.id, extra.id)}
+                        className="text-neutral-300 hover:text-red-500 dark:text-neutral-600 dark:hover:text-red-400"
+                      >
+                        ✕
+                      </button>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Acciones */}
+            <div className="mt-3 flex gap-2">
+              <button
+                type="button"
+                onClick={() => onEdit(goal)}
+                className="flex-1 px-2 py-1.5 text-xs font-medium text-neutral-600 border border-neutral-300 rounded-md hover:bg-neutral-100 transition dark:text-neutral-400 dark:border-neutral-700 dark:hover:bg-neutral-800"
+              >
+                ✎ Editar
+              </button>
+              <button
+                type="button"
+                onClick={() => goal.id && setConfirmDelete(goal)}
+                className="flex-1 px-2 py-1.5 text-xs font-medium text-red-600 border border-red-300 rounded-md hover:bg-red-50 transition dark:text-red-400 dark:border-red-900 dark:hover:bg-red-950/20"
+              >
+                🗑 Eliminar
+              </button>
+            </div>
+          </div>
+        );
+      })}
+
+      <button
+        type="button"
+        onClick={onAdd}
+        className="w-full px-3 py-2 text-sm font-semibold bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition"
+      >
+        + Nuevo segmento
+      </button>
+
+      {/* Confirmación borrado */}
+      {confirmDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-sm bg-white dark:bg-neutral-900 dark:border dark:border-neutral-800 rounded-xl shadow-xl p-4 space-y-3">
+            <div className="font-bold text-neutral-900 dark:text-neutral-100">¿Eliminar segmento?</div>
+            <p className="text-sm text-neutral-600 dark:text-neutral-400">
+              Se borrará el segmento <span className="font-semibold">{confirmDelete.name}</span> y sus ingresos extra.
+            </p>
+            <div className="flex gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => {
+                  if (confirmDelete.id) onDelete(confirmDelete.id);
+                  setConfirmDelete(null);
+                }}
+                className="flex-1 px-3 py-2 text-sm font-semibold bg-red-600 text-white rounded-md hover:bg-red-700 transition"
+              >
+                Sí, borrar
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmDelete(null)}
+                className="px-3 py-2 text-sm font-medium text-neutral-600 border border-neutral-300 rounded-md hover:bg-neutral-100 transition dark:text-neutral-400 dark:border-neutral-700 dark:hover:bg-neutral-800"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

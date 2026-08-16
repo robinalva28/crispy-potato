@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { db } from './db.ts';
-import type { Expense, Month } from './types.ts';
+import type { Expense, Month, SavingsGoal } from './types.ts';
 import { useBudget, monthLabelFromId } from './hooks/useBudget.ts';
+import { useSavings } from './hooks/useSavings.ts';
 import { useDarkMode } from './hooks/useDarkMode.ts';
 import { MonthSelector } from './components/MonthSelector.tsx';
 import { MonthHeader } from './components/MonthHeader.tsx';
@@ -10,6 +11,8 @@ import { ExpenseGroup } from './components/ExpenseGroup.tsx';
 import { CategoryBars } from './components/CategoryBars.tsx';
 import { ExpenseForm } from './components/ExpenseForm.tsx';
 import { GuideModal } from './components/GuideModal.tsx';
+import { SavingsCalculator } from './components/SavingsCalculator.tsx';
+import { SavingsGoalForm } from './components/SavingsGoalForm.tsx';
 import { categoryTotals, CATEGORY_ORDER } from './utils/money.ts';
 
 interface EditingState {
@@ -23,14 +26,20 @@ interface EditingMonthState {
   income: string;
 }
 
+type View = 'budget' | 'savings';
+
 export default function App() {
   const budget = useBudget();
+  const savings = useSavings();
   const { dark, toggle } = useDarkMode();
+  const [view, setView] = useState<View>('budget');
   const [groupByCategory, setGroupByCategory] = useState(false);
   const [editing, setEditing] = useState<EditingState | null>(null);
   const [editingMonth, setEditingMonth] = useState<EditingMonthState | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<Expense | null>(null);
   const [showGuide, setShowGuide] = useState(false);
+  const [editingGoal, setEditingGoal] = useState<SavingsGoal | null>(null);
+  const [addingGoal, setAddingGoal] = useState(false);
   const expenseFormRef = useRef<HTMLDivElement | null>(null);
 
   const { activeMonth } = budget;
@@ -116,7 +125,17 @@ export default function App() {
     const id = confirmDelete.id!;
     setConfirmDelete(null);
     await budget.deleteExpense(id);
-    // El toast "Deshacer" de 3s sigue como segunda capa de seguridad
+  }
+
+  // --- CRUD segmentos de ahorro ---
+  async function saveGoal(data: Omit<SavingsGoal, 'id'>) {
+    if (editingGoal?.id) {
+      await savings.updateGoal(editingGoal.id, data);
+    } else {
+      await savings.addGoal(data);
+    }
+    setEditingGoal(null);
+    setAddingGoal(false);
   }
 
   if (budget.loading) {
@@ -127,190 +146,243 @@ export default function App() {
     );
   }
 
-  if (!activeMonth) {
-    return (
-      <main className="max-w-md mx-auto my-4 bg-white rounded-xl shadow-sm overflow-hidden dark:bg-neutral-900 dark:shadow-none dark:border dark:border-neutral-800">
-        <MonthSelector
-          months={budget.months}
-          activeMonthId={budget.activeMonthId}
-          onSelect={budget.setActiveMonthId}
-          onCreate={budget.createMonth}
-        />
-        <div className="p-8 text-center text-sm text-neutral-500 dark:text-neutral-400">
-          No hay meses. Creá el primero con "+ Crear Mes".
-        </div>
-      </main>
-    );
-  }
-
   return (
     <main className="max-w-md mx-auto my-4 bg-white rounded-xl shadow-sm overflow-hidden dark:bg-neutral-900 dark:shadow-none dark:border dark:border-neutral-800">
-      <MonthSelector
-        months={budget.months}
-        activeMonthId={budget.activeMonthId}
-        onSelect={budget.setActiveMonthId}
-        onCreate={budget.createMonth}
-      />
-
-      <MonthHeader
-        month={activeMonth}
-        expenses={budget.monthExpenses}
-        onEditMonth={() => {
-          if (activeMonth.status === 'abierto') {
-            setEditingMonth({
-              month: activeMonth,
-              label: activeMonth.label,
-              income: String(activeMonth.income),
-            });
-          }
-        }}
-        dark={dark}
-        onToggleDark={toggle}
-        isClosed={activeMonth.status === 'cerrado'}
-      />
-
-      <div ref={expenseFormRef}>
-        {activeMonth.status === 'abierto' && editing && editing.expense !== null && (
-          <ExpenseForm
-            initial={editing.expense}
-            onSave={saveExpense}
-            onCancel={() => setEditing(null)}
-            onGetLastUsdRate={budget.getLastUsdRate}
-          />
-        )}
-
-        {activeMonth.status === 'abierto' && editing?.adding && (
-          <ExpenseForm
-            initial={null}
-            onSave={saveExpense}
-            onCancel={() => setEditing(null)}
-            onGetLastUsdRate={budget.getLastUsdRate}
-          />
-        )}
+      {/* Tabs: Presupuesto | Ahorro */}
+      <div className="flex border-b border-neutral-200 dark:border-neutral-800">
+        <button
+          type="button"
+          onClick={() => setView('budget')}
+          className={`flex-1 px-4 py-2.5 text-sm font-semibold transition ${
+            view === 'budget'
+              ? 'bg-white text-emerald-700 border-b-2 border-emerald-500 dark:bg-neutral-900 dark:text-emerald-400'
+              : 'bg-neutral-50 text-neutral-500 hover:bg-neutral-100 dark:bg-neutral-900/60 dark:text-neutral-400 dark:hover:bg-neutral-800'
+          }`}
+        >
+          📋 Presupuesto
+        </button>
+        <button
+          type="button"
+          onClick={() => setView('savings')}
+          className={`flex-1 px-4 py-2.5 text-sm font-semibold transition ${
+            view === 'savings'
+              ? 'bg-white text-emerald-700 border-b-2 border-emerald-500 dark:bg-neutral-900 dark:text-emerald-400'
+              : 'bg-neutral-50 text-neutral-500 hover:bg-neutral-100 dark:bg-neutral-900/60 dark:text-neutral-400 dark:hover:bg-neutral-800'
+          }`}
+        >
+          💰 Ahorro
+        </button>
       </div>
 
-      <section className="divide-y divide-neutral-100 dark:divide-neutral-800">
-        {budget.monthExpenses.length === 0 && (
-          <div className="px-4 py-8 text-center text-sm text-neutral-500 dark:text-neutral-400">
-            Sin gastos todavía. Toque "+ Agregar Gasto".
-          </div>
-        )}
-        {!groupByCategory &&
-          budget.monthExpenses.map((expense) => (
-            <ExpenseRow
-              key={expense.id}
-              expense={expense}
-              onTogglePaid={activeMonth.status === 'abierto' ? budget.togglePaid : () => {}}
-              onDelete={activeMonth.status === 'abierto' ? requestDelete : () => {}}
-              onEdit={(exp) => {
-                if (activeMonth.status === 'abierto') setEditing({ expense: exp, adding: false });
-              }}
-            />
-          ))}
-        {groupByCategory && (
-          <>
-            {activeMonth.status === 'abierto' && (
-              <div className="border-b border-neutral-200 dark:border-neutral-800">
-                <CategoryBars totals={categoryTotals(activeMonth.id, budget.monthExpenses)} />
-              </div>
-            )}
-            {CATEGORY_ORDER.map((cat) => {
-              const catExpenses = budget.monthExpenses.filter((e) => e.category === cat);
-              if (catExpenses.length === 0) return null;
-              const totals = categoryTotals(activeMonth.id, budget.monthExpenses);
-              return (
-                <div key={cat} className="divide-y divide-neutral-100 dark:divide-neutral-800">
-                  <ExpenseGroup
-                    category={cat}
-                    expenses={catExpenses}
-                    total={totals.get(cat) ?? 0}
-                    onTogglePaid={activeMonth.status === 'abierto' ? budget.togglePaid : () => {}}
-                    onDelete={activeMonth.status === 'abierto' ? requestDelete : () => {}}
-                    onEdit={(exp) => {
-                      if (activeMonth.status === 'abierto') setEditing({ expense: exp, adding: false });
-                    }}
-                  />
-                </div>
-              );
-            })}
-          </>
-        )}
-      </section>
+      {view === 'budget' && (
+        <>
+          <MonthSelector
+            months={budget.months}
+            activeMonthId={budget.activeMonthId}
+            onSelect={budget.setActiveMonthId}
+            onCreate={budget.createMonth}
+          />
 
-      {budget.lastDeleted && (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-sm px-4 py-3 bg-neutral-900 text-white rounded-xl shadow-lg flex items-center justify-between gap-3 dark:bg-neutral-100 dark:text-neutral-900">
-          <span className="text-sm">Gasto eliminado</span>
-          <button
-            type="button"
-            onClick={budget.restoreLastDeleted}
-            className="text-sm font-semibold text-emerald-400 hover:text-emerald-300 dark:text-emerald-600 dark:hover:text-emerald-500"
-          >
-            Deshacer
-          </button>
-        </div>
+          {activeMonth && (
+            <>
+              <MonthHeader
+                month={activeMonth}
+                expenses={budget.monthExpenses}
+                onEditMonth={() => {
+                  if (activeMonth.status === 'abierto') {
+                    setEditingMonth({
+                      month: activeMonth,
+                      label: activeMonth.label,
+                      income: String(activeMonth.income),
+                    });
+                  }
+                }}
+                dark={dark}
+                onToggleDark={toggle}
+                isClosed={activeMonth.status === 'cerrado'}
+              />
+
+              <div ref={expenseFormRef}>
+                {activeMonth.status === 'abierto' && editing && editing.expense !== null && (
+                  <ExpenseForm
+                    initial={editing.expense}
+                    onSave={saveExpense}
+                    onCancel={() => setEditing(null)}
+                    onGetLastUsdRate={budget.getLastUsdRate}
+                  />
+                )}
+
+                {activeMonth.status === 'abierto' && editing?.adding && (
+                  <ExpenseForm
+                    initial={null}
+                    onSave={saveExpense}
+                    onCancel={() => setEditing(null)}
+                    onGetLastUsdRate={budget.getLastUsdRate}
+                  />
+                )}
+              </div>
+
+              <section className="divide-y divide-neutral-100 dark:divide-neutral-800">
+                {budget.monthExpenses.length === 0 && (
+                  <div className="px-4 py-8 text-center text-sm text-neutral-500 dark:text-neutral-400">
+                    Sin gastos todavía. Toque "+ Agregar Gasto".
+                  </div>
+                )}
+                {!groupByCategory &&
+                  budget.monthExpenses.map((expense) => (
+                    <ExpenseRow
+                      key={expense.id}
+                      expense={expense}
+                      onTogglePaid={activeMonth.status === 'abierto' ? budget.togglePaid : () => {}}
+                      onDelete={activeMonth.status === 'abierto' ? requestDelete : () => {}}
+                      onEdit={(exp) => {
+                        if (activeMonth.status === 'abierto') setEditing({ expense: exp, adding: false });
+                      }}
+                    />
+                  ))}
+                {groupByCategory && (
+                  <>
+                    {activeMonth.status === 'abierto' && (
+                      <div className="border-b border-neutral-200 dark:border-neutral-800">
+                        <CategoryBars totals={categoryTotals(activeMonth.id, budget.monthExpenses)} />
+                      </div>
+                    )}
+                    {CATEGORY_ORDER.map((cat) => {
+                      const catExpenses = budget.monthExpenses.filter((e) => e.category === cat);
+                      if (catExpenses.length === 0) return null;
+                      const totals = categoryTotals(activeMonth.id, budget.monthExpenses);
+                      return (
+                        <div key={cat} className="divide-y divide-neutral-100 dark:divide-neutral-800">
+                          <ExpenseGroup
+                            category={cat}
+                            expenses={catExpenses}
+                            total={totals.get(cat) ?? 0}
+                            onTogglePaid={activeMonth.status === 'abierto' ? budget.togglePaid : () => {}}
+                            onDelete={activeMonth.status === 'abierto' ? requestDelete : () => {}}
+                            onEdit={(exp) => {
+                              if (activeMonth.status === 'abierto') setEditing({ expense: exp, adding: false });
+                            }}
+                          />
+                        </div>
+                      );
+                    })}
+                  </>
+                )}
+              </section>
+            </>
+          )}
+
+          {budget.lastDeleted && (
+            <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-sm px-4 py-3 bg-neutral-900 text-white rounded-xl shadow-lg flex items-center justify-between gap-3 dark:bg-neutral-100 dark:text-neutral-900">
+              <span className="text-sm">Gasto eliminado</span>
+              <button
+                type="button"
+                onClick={budget.restoreLastDeleted}
+                className="text-sm font-semibold text-emerald-400 hover:text-emerald-300 dark:text-emerald-600 dark:hover:text-emerald-500"
+              >
+                Deshacer
+              </button>
+            </div>
+          )}
+
+          {activeMonth && (
+            <footer className="px-4 py-3 bg-neutral-50 border-t border-neutral-200 dark:bg-neutral-900/60 dark:border-neutral-800">
+              {activeMonth.status === 'abierto' && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setGroupByCategory(!groupByCategory)}
+                    className="w-full mb-2 px-3 py-2 text-sm font-medium text-neutral-600 border border-neutral-300 rounded-md hover:bg-neutral-100 transition dark:text-neutral-400 dark:border-neutral-700 dark:hover:bg-neutral-800"
+                  >
+                    {groupByCategory ? '☰ Ver lista completa' : '🗂 Agrupar por categoría'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditing({ expense: null, adding: true })}
+                    className="w-full px-3 py-2 text-sm font-semibold bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition"
+                  >
+                    + Agregar Gasto
+                  </button>
+                </>
+              )}
+              {activeMonth.status === 'cerrado' && (
+                <button
+                  type="button"
+                  onClick={() => budget.reopenMonth(activeMonth.id)}
+                  className="w-full px-3 py-2 text-sm font-medium text-amber-600 border border-amber-300 rounded-md hover:bg-amber-50 transition dark:text-amber-400 dark:border-amber-900 dark:hover:bg-amber-950/20"
+                >
+                  🔓 Reabrir mes
+                </button>
+              )}
+              {activeMonth.status === 'abierto' && (
+                <button
+                  type="button"
+                  onClick={() => budget.closeMonth(activeMonth.id)}
+                  className="w-full mt-2 px-3 py-2 text-sm font-medium text-neutral-500 border border-neutral-300 rounded-md hover:bg-neutral-100 transition dark:text-neutral-400 dark:border-neutral-700 dark:hover:bg-neutral-800"
+                >
+                  🔒 Cerrar mes
+                </button>
+              )}
+
+              <div className="mt-3 flex items-center justify-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowGuide(true)}
+                  aria-label="Guía de uso"
+                  title="Guía de uso"
+                  className="px-3 py-1.5 text-xs font-medium text-neutral-600 border border-neutral-300 rounded-md hover:bg-neutral-100 transition dark:text-neutral-400 dark:border-neutral-700 dark:hover:bg-neutral-800"
+                >
+                  ❓ Guía
+                </button>
+                <button
+                  type="button"
+                  onClick={exportJSON}
+                  className="px-3 py-1.5 text-xs font-medium text-neutral-600 border border-neutral-300 rounded-md hover:bg-neutral-100 transition dark:text-neutral-400 dark:border-neutral-700 dark:hover:bg-neutral-800"
+                >
+                  Exportar JSON
+                </button>
+                <label className="px-3 py-1.5 text-xs font-medium text-neutral-600 border border-neutral-300 rounded-md hover:bg-neutral-100 transition cursor-pointer dark:text-neutral-400 dark:border-neutral-700 dark:hover:bg-neutral-800">
+                  Importar JSON
+                  <input type="file" accept="application/json" className="hidden" onChange={importJSON} />
+                </label>
+              </div>
+            </footer>
+          )}
+        </>
       )}
 
-      <footer className="px-4 py-3 bg-neutral-50 border-t border-neutral-200 dark:bg-neutral-900/60 dark:border-neutral-800">
-        {activeMonth.status === 'abierto' && (
-          <>
-            <button
-              type="button"
-              onClick={() => setGroupByCategory(!groupByCategory)}
-              className="w-full mb-2 px-3 py-2 text-sm font-medium text-neutral-600 border border-neutral-300 rounded-md hover:bg-neutral-100 transition dark:text-neutral-400 dark:border-neutral-700 dark:hover:bg-neutral-800"
-            >
-              {groupByCategory ? '☰ Ver lista completa' : '🗂 Agrupar por categoría'}
-            </button>
-            <button
-              type="button"
-              onClick={() => setEditing({ expense: null, adding: true })}
-              className="w-full px-3 py-2 text-sm font-semibold bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition"
-            >
-              + Agregar Gasto
-            </button>
-          </>
-        )}
-        {activeMonth.status === 'cerrado' && (
-          <button
-            type="button"
-            onClick={() => budget.reopenMonth(activeMonth.id)}
-            className="w-full px-3 py-2 text-sm font-medium text-amber-600 border border-amber-300 rounded-md hover:bg-amber-50 transition dark:text-amber-400 dark:border-amber-900 dark:hover:bg-amber-950/20"
-          >
-            🔓 Reabrir mes
-          </button>
-        )}
-        {activeMonth.status === 'abierto' && (
-          <button
-            type="button"
-            onClick={() => budget.closeMonth(activeMonth.id)}
-            className="w-full mt-2 px-3 py-2 text-sm font-medium text-neutral-500 border border-neutral-300 rounded-md hover:bg-neutral-100 transition dark:text-neutral-400 dark:border-neutral-700 dark:hover:bg-neutral-800"
-          >
-            🔒 Cerrar mes
-          </button>
-        )}
+      {view === 'savings' && (
+        <>
+          {(addingGoal || editingGoal) && (
+            <SavingsGoalForm
+              initial={editingGoal}
+              months={budget.months}
+              expenses={budget.expenses}
+              onSave={saveGoal}
+              onCancel={() => {
+                setEditingGoal(null);
+                setAddingGoal(false);
+              }}
+            />
+          )}
 
-        <div className="mt-3 flex items-center justify-center gap-2">
-          <button
-            type="button"
-            onClick={() => setShowGuide(true)}
-            aria-label="Guía de uso"
-            title="Guía de uso"
-            className="px-3 py-1.5 text-xs font-medium text-neutral-600 border border-neutral-300 rounded-md hover:bg-neutral-100 transition dark:text-neutral-400 dark:border-neutral-700 dark:hover:bg-neutral-800"
-          >
-            ❓ Guía
-          </button>
-          <button
-            type="button"
-            onClick={exportJSON}
-            className="px-3 py-1.5 text-xs font-medium text-neutral-600 border border-neutral-300 rounded-md hover:bg-neutral-100 transition dark:text-neutral-400 dark:border-neutral-700 dark:hover:bg-neutral-800"
-          >
-            Exportar JSON
-          </button>
-          <label className="px-3 py-1.5 text-xs font-medium text-neutral-600 border border-neutral-300 rounded-md hover:bg-neutral-100 transition cursor-pointer dark:text-neutral-400 dark:border-neutral-700 dark:hover:bg-neutral-800">
-            Importar JSON
-            <input type="file" accept="application/json" className="hidden" onChange={importJSON} />
-          </label>
-        </div>
-      </footer>
+          <SavingsCalculator
+            goals={savings.goals}
+            months={budget.months}
+            expenses={budget.expenses}
+            onAdd={() => {
+              setEditingGoal(null);
+              setAddingGoal(true);
+            }}
+            onEdit={(goal) => {
+              setAddingGoal(false);
+              setEditingGoal(goal);
+            }}
+            onDelete={savings.deleteGoal}
+            onRemoveExtra={savings.removeExtraIncome}
+          />
+        </>
+      )}
 
       <GuideModal
         open={showGuide}
