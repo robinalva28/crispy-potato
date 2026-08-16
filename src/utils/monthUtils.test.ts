@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import type { Expense } from '../types.ts';
-import { buildClonedExpenses } from './monthUtils.ts';
+import { buildClonedExpenses, shiftDueDateToMonth } from './monthUtils.ts';
 
 const prev: Expense[] = [
   {
@@ -49,7 +49,16 @@ describe('buildClonedExpenses', () => {
     expect(visa.amountUsd).toBe(10.9);
     expect(visa.usdRate).toBe(1200);
     expect(visa.notes).toBe('con USD');
-    expect(visa.dueDate).toBe('2026-06-15');
+  });
+
+  it('desplaza la fecha de vencimiento al MISMO día en el mes nuevo', () => {
+    const visa = clones.find((c) => c.name === 'TC Visa Galicia')!;
+    expect(visa.dueDate).toBe('2026-08-15');
+  });
+
+  it('mantiene dueDate null si el original era null', () => {
+    const alquiler = clones.find((c) => c.name === 'Alquiler')!;
+    expect(alquiler.dueDate).toBeNull();
   });
 
   it('arranca sin pagar (paid: false) en todos los clonados', () => {
@@ -58,5 +67,26 @@ describe('buildClonedExpenses', () => {
 
   it('no copia el id original', () => {
     expect(clones.every((c) => c.id === undefined)).toBe(true);
+  });
+});
+
+describe('shiftDueDateToMonth', () => {
+  it('desplaza el mismo día al mes nuevo', () => {
+    expect(shiftDueDateToMonth('2026-06-15', '2026-08')).toBe('2026-08-15');
+  });
+
+  it('cruza de año correctamente', () => {
+    expect(shiftDueDateToMonth('2026-12-20', '2027-01')).toBe('2027-01-20');
+  });
+
+  it('clampea el día si no existe en el mes destino (31 → febrero)', () => {
+    // Febrero 2026 tiene 28 días
+    expect(shiftDueDateToMonth('2026-01-31', '2026-02')).toBe('2026-02-28');
+  });
+
+  it('devuelve null si la fecha original es null o inválida', () => {
+    expect(shiftDueDateToMonth(null, '2026-08')).toBeNull();
+    expect(shiftDueDateToMonth('fecha-invalida', '2026-08')).toBeNull();
+    expect(shiftDueDateToMonth('2026-06-15', 'invalido')).toBeNull();
   });
 });
