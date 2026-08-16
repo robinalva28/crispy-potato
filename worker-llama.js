@@ -46,14 +46,14 @@ Formato EXACTO de cada elemento:
 {"name":"", "amountArs":0, "amountUsd":0}
 
 Ejemplo de respuesta válida (montos ENTEROS sin separador de miles, decimales con PUNTO):
-[{"name":"Alquiler","amountArs":830000,"amountUsd":0},{"name":"Luz","amountArs":111328.96,"amountUsd":0},{"name":"Deuda Vanesa","amountArs":279208,"amountUsd":0}]
+[{"name":"Alquiler","amountArs":830000,"amountUsd":0},{"name":"Luz","amountArs":111328.96,"amountUsd":0},{"name":"Deuda Vanesa","amountArs":279208,"amountUsd":0},{"name":"Seguro","amountArs":0,"amountUsd":12}]
 
 REGLAS:
 1. NO inventes gastos. Leé SOLO lo que está escrito en la hoja.
 2. NO uses categorías. Ignorá títulos como "vivienda", "servicios", etc: son etiquetas, no gastos.
 3. MONTOS ARGENTINOS: "$488.935" → 488935 (el punto separa MILES). "$36.999,40" → 36999.4 (la COMA es decimal). NUNCA uses puntos en la salida del número, escribí SOLO dígitos y el punto decimal si hay centavos.
 4. Copiá cada número EXACTO con todos sus dígitos (450000 no es 45000, ni 45.000, ni 450.000).
-5. Usá amountUsd SOLO si el monto dice explícitamente "usd", "u$d" o "dólar". En ese caso NO pongas amountArs.
+5. MONEY: si el monto dice "usd", "u$d", "dólar" o "dólares" DESPUÉS del número → amountUsd SOLO y amountArs=0. Ejemplo: "Seguro 12 usd" → {"name":"Seguro","amountArs":0,"amountUsd":12}. NO agregues ceros: "12 usd" es 12, no 12000 ni 120. Si el monto NO menciona usd/dólar → amountArs y amountUsd=0.
 6. Si un texto no es un gasto (título, nota, fecha, total), ignoralo.
 7. Si un nombre es ilegible pero se infiere, corregilo al español real: "gaz" → "gas", "dude" → "deuda", "nafite" → "nafta", "pblico" → "público", "tel +" → "teléfono", "super" → "supermercado". NUNCA uses palabras en inglés.
 8. Si un texto no es un gasto (nota, recordatorio, título, fecha), NO lo incluyas como gasto. Solo incluí lineas con montos.
