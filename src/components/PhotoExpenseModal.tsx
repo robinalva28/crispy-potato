@@ -142,65 +142,93 @@ export function PhotoExpenseModal({ month, onSave, onClose }: Props) {
               mes.
             </p>
 
-            <div className="space-y-2 max-h-64 overflow-y-auto">
+            <div className="space-y-3 max-h-72 overflow-y-auto">
               {drafts.map((d, i) => (
                 <div
                   key={i}
-                  className="space-y-1 border border-neutral-200 dark:border-neutral-800 rounded-md p-2"
+                  className="space-y-2 border border-neutral-200 dark:border-neutral-800 rounded-lg p-3 bg-neutral-50 dark:bg-neutral-800/40"
                 >
-                  <div className="flex gap-2">
+                  {/* Fila superior: número + nombre + eliminar */}
+                  <div className="flex items-center gap-2">
+                    <span className="shrink-0 w-6 h-6 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-center text-xs font-bold text-emerald-700 dark:text-emerald-400 leading-6">
+                      {i + 1}
+                    </span>
                     <input
-                      className={inputCls}
+                      className={`${inputCls} flex-1 font-medium`}
                       value={d.name}
                       onChange={(e) => updateDraft(i, { name: e.target.value })}
-                      placeholder="Nombre"
+                      placeholder="Nombre del gasto"
                     />
-                    <select
-                      className={`${inputCls} shrink-0 w-28`}
-                      value={d.category}
-                      onChange={(e) => updateDraft(i, { category: e.target.value })}
-                    >
-                      {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
-                        <option key={key} value={key}>
-                          {label}
-                        </option>
-                      ))}
-                    </select>
                     <button
                       type="button"
                       onClick={() => removeDraft(i)}
-                      className="text-neutral-300 hover:text-red-500 shrink-0 dark:text-neutral-600 dark:hover:text-red-400"
+                      aria-label="Eliminar fila"
+                      className="shrink-0 w-8 h-8 rounded-md text-neutral-400 hover:text-red-500 hover:bg-red-50 dark:text-neutral-500 dark:hover:text-red-400 dark:hover:bg-red-950/20"
                     >
                       ✕
                     </button>
                   </div>
-                  <div className="flex gap-2">
-                    <input
-                      className={inputCls}
-                      inputMode="decimal"
-                      value={d.amountArs ?? ''}
-                      onChange={(e) =>
-                        updateDraft(i, {
-                          amountArs: e.target.value === '' ? null : Number(e.target.value),
-                        })
-                      }
-                      placeholder="Monto ARS"
-                    />
-                    <input
-                      className={inputCls}
-                      inputMode="decimal"
-                      value={d.amountUsd > 0 ? String(d.amountUsd) : ''}
-                      onChange={(e) => updateDraft(i, { amountUsd: Number(e.target.value) || 0 })}
-                      placeholder="USD"
-                    />
-                    <input
-                      className={inputCls}
-                      inputMode="decimal"
-                      value={d.usdRate > 0 ? String(d.usdRate) : ''}
-                      onChange={(e) => updateDraft(i, { usdRate: Number(e.target.value) || 0 })}
-                      placeholder="Cotización"
-                    />
+
+                  {/* Categoría */}
+                  <select
+                    className={`${inputCls}`}
+                    value={d.category}
+                    onChange={(e) => updateDraft(i, { category: e.target.value })}
+                  >
+                    {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
+                      <option key={key} value={key}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+
+                  {/* Montos con etiquetas claras */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-[10px] uppercase tracking-wide text-neutral-500 font-medium mb-0.5 dark:text-neutral-400">
+                        Monto en pesos ($)
+                      </label>
+                      <input
+                        className={inputCls}
+                        inputMode="decimal"
+                        value={d.amountArs ?? ''}
+                        onChange={(e) =>
+                          updateDraft(i, {
+                            amountArs: e.target.value === '' ? null : Number(e.target.value),
+                          })
+                        }
+                        placeholder="Ej: 450000"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] uppercase tracking-wide text-neutral-500 font-medium mb-0.5 dark:text-neutral-400">
+                        Monto en USD
+                      </label>
+                      <input
+                        className={inputCls}
+                        inputMode="decimal"
+                        value={d.amountUsd > 0 ? String(d.amountUsd) : ''}
+                        onChange={(e) => updateDraft(i, { amountUsd: Number(e.target.value) || 0 })}
+                        placeholder="Ej: 10,90"
+                      />
+                    </div>
                   </div>
+
+                  {/* Cotización (solo si hay USD) */}
+                  {d.amountUsd > 0 && (
+                    <div>
+                      <label className="block text-[10px] uppercase tracking-wide text-neutral-500 font-medium mb-0.5 dark:text-neutral-400">
+                        Cotización USD ($ = 1 USD)
+                      </label>
+                      <input
+                        className={inputCls}
+                        inputMode="decimal"
+                        value={d.usdRate > 0 ? String(d.usdRate) : ''}
+                        onChange={(e) => updateDraft(i, { usdRate: Number(e.target.value) || 0 })}
+                        placeholder="Ej: 1500"
+                      />
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
