@@ -229,10 +229,13 @@ function extractResponseText(data: unknown): string {
   // Formato 7: { result: { response: "..." } } anidado en string_response directo
   if (result && typeof result.output_text === 'string') return result.output_text;
 
-  // Formato 8: nuestro Worker devuelve { resultado: "llava" | "gemini" | "llama", description: "..." }
+  // Formato 8: nuestro Worker devuelve { resultado: "llava" | "gemini" | "llama" | "vision", description: "..." }
   // donde description contiene el JSON de gastos detectados.
   if (
-    (rec.resultado === 'llava' || rec.resultado === 'gemini' || rec.resultado === 'llama') &&
+    (rec.resultado === 'llava' ||
+      rec.resultado === 'gemini' ||
+      rec.resultado === 'llama' ||
+      rec.resultado === 'vision') &&
     typeof rec.description === 'string'
   ) {
     return rec.description;

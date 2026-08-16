@@ -1,12 +1,21 @@
 /**
- * Worker de Cloudflare — Extracción de gastos con Llama 3.2 11B Vision Instruct.
+ * Worker de Cloudflare — Extracción de gastos con modelos de visión (cascada).
+ *
+ * Cascada de modelos (usa el primero que funcione):
+ *  1. @cf/qwen/qwen2.5-vl-7b-instruct      — OCR excelente (Apache 2.0, sin licencia)
+ *  2. @cf/microsoft/phi-3-vision-128k-instruct — MIT, sin licencia
+ *  3. @cf/moonshotai/kimi-vl-a3b-instruct   — Apache 2.0, sin licencia
+ *  4. @cf/meta/llama-3.2-11b-vision-instruct — requiere "agree" (auto-acepta y reintenta)
+ *  5. @cf/llava-hf/llava-1.5-7b-hf          — último recurso (siempre disponible)
+ *
+ * El worker prueba cada modelo en orden hasta que uno devuelve JSON.
+ * Devuelve { resultado, description, modelo } donde "modelo" indica cuál se usó.
  *
  * Historial:
  *  - LLaVA 1.5-7B: malo para OCR (deformaba nombres, inventaba montos).
- *  - Gemini 2.0 Flash / 2.5 Flash: Google los desactivó para usuarios nuevos
- *    (404 "model is no longer available to new users").
- *  - Actual: @cf/meta/llama-3.2-11b-vision-instruct — el mejor VLM de visión
- *    de Workers AI (mismo binding env.AI, mismo free tier 10k neuronas/día).
+ *  - Gemini 2.0/2.5 Flash: Google los desactivó para usuarios nuevos.
+ *  - Llama 3.2 11B: exige aceptar licencia (error 5016) y el "agree" vía
+ *    env.AI.run no siempre activa la licencia desde el binding.
  *
  * Pegar este código en Cloudflare → Workers & Pages → polished-bar-b342 → Edit → Deploy.
  */
@@ -51,41 +60,70 @@ REGLAS:
 5. Si un texto no es un gasto (título, nota, fecha), ignoralo.
 6. Si no hay gastos legibles, devolvé [].`;
 
-      const MODEL = '@cf/meta/llama-3.2-11b-vision-instruct';
+      // Modelos en orden de preferencia. Los primeros no requieren licencia.
+      const VISION_MODELS = [
+        '@cf/qwen/qwen2.5-vl-7b-instruct',
+        '@cf/microsoft/phi-3-vision-128k-instruct',
+        '@cf/moonshotai/kimi-vl-a3b-instruct',
+        '@cf/meta/llama-3.2-11b-vision-instruct',
+        '@cf/llava-hf/llava-1.5-7b-hf',
+      ];
 
-      let resp;
-      try {
-        resp = await env.AI.run(MODEL, {
-          image: imageArray,
-          prompt,
-          max_tokens: 1024,
-        });
-      } catch (err) {
-        const msg = String(err?.message ?? err);
-        // Cloudflare exige aceptar la licencia de Llama 3.2 antes del primer uso
-        // (error 5016). Enviamos el "agree" oficial y reintentamos.
-        if (msg.includes('5016') || msg.includes('agree')) {
-          await env.AI.run(MODEL, { prompt: 'agree' });
-          resp = await env.AI.run(MODEL, {
-            image: imageArray,
-            prompt,
-            max_tokens: 1024,
-          });
-        } else {
-          throw err;
+      const errors = [];
+      for (const model of VISION_MODELS) {
+        try {
+          let resp;
+          try {
+            resp = await env.AI.run(model, {
+              image: imageArray,
+              prompt,
+              max_tokens: 1024,
+            });
+          } catch (err) {
+            const msg = String(err?.message ?? err);
+            // Licencia de Llama: enviamos el "agree" oficial y reintentamos una vez.
+            if (msg.includes('5016') || msg.includes('agree')) {
+              await env.AI.run(model, { prompt: 'agree' });
+              resp = await env.AI.run(model, {
+                image: imageArray,
+                prompt,
+                max_tokens: 1024,
+              });
+            } else {
+              throw err;
+            }
+          }
+
+          // Normaliza la respuesta al contrato { resultado, description }.
+          const text =
+            typeof resp === 'string'
+              ? resp
+              : resp?.response ?? resp?.result?.response ?? JSON.stringify(resp);
+
+          return new Response(
+            JSON.stringify({ resultado: 'vision', description: text, modelo: model }),
+            {
+              headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+            }
+          );
+        } catch (err) {
+          const msg = String(err?.message ?? err);
+          errors.push(`${model}: ${msg.slice(0, 120)}`);
+          // Si es error de modelo inexistente (404/10000), probamos el siguiente.
+          // Si es otro error grave, seguimos igual — queremos quedarnos con el mejor disponible.
         }
       }
 
-      // llama-3.2-vision devuelve { response: "..." } (o anidado en result.response).
-      // Normalizamos a string para mantener el contrato { resultado, description }.
-      const text =
-        typeof resp === 'string'
-          ? resp
-          : resp?.response ?? resp?.result?.response ?? JSON.stringify(resp);
-
-      return new Response(JSON.stringify({ resultado: 'llama', description: text }), {
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
-      });
+      return new Response(
+        JSON.stringify({
+          error: 'Ningún modelo de visión disponible',
+          detalles: errors,
+        }),
+        {
+          status: 500,
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        }
+      );
     } catch (err) {
       return new Response(JSON.stringify({ error: String(err) }), {
         status: 500,
