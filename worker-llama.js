@@ -51,11 +51,30 @@ REGLAS:
 5. Si un texto no es un gasto (título, nota, fecha), ignoralo.
 6. Si no hay gastos legibles, devolvé [].`;
 
-      const resp = await env.AI.run('@cf/meta/llama-3.2-11b-vision-instruct', {
-        image: imageArray,
-        prompt,
-        max_tokens: 1024,
-      });
+      const MODEL = '@cf/meta/llama-3.2-11b-vision-instruct';
+
+      let resp;
+      try {
+        resp = await env.AI.run(MODEL, {
+          image: imageArray,
+          prompt,
+          max_tokens: 1024,
+        });
+      } catch (err) {
+        const msg = String(err?.message ?? err);
+        // Cloudflare exige aceptar la licencia de Llama 3.2 antes del primer uso
+        // (error 5016). Enviamos el "agree" oficial y reintentamos.
+        if (msg.includes('5016') || msg.includes('agree')) {
+          await env.AI.run(MODEL, { prompt: 'agree' });
+          resp = await env.AI.run(MODEL, {
+            image: imageArray,
+            prompt,
+            max_tokens: 1024,
+          });
+        } else {
+          throw err;
+        }
+      }
 
       // llama-3.2-vision devuelve { response: "..." } (o anidado en result.response).
       // Normalizamos a string para mantener el contrato { resultado, description }.
