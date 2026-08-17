@@ -18,15 +18,10 @@ export function MonthSelector({ months, activeMonthId, onSelect, onCreate }: Pro
   const [newId, setNewId] = useState(() => currentMonthId());
   const [newLabel, setNewLabel] = useState('');
   const [newIncome, setNewIncome] = useState('');
-  const [scrolled, setScrolled] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    setScrolled(e.currentTarget.scrollLeft > 8);
-  };
-
-  // Al montar o al cambiar el mes activo, scrollea hasta que el chip activo quede visible
+  // Al cambiar el mes activo, scrollea horizontalmente hasta que el chip activo quede visible
   useEffect(() => {
     const container = scrollRef.current;
     if (!container || !activeMonthId) return;
@@ -73,27 +68,15 @@ export function MonthSelector({ months, activeMonthId, onSelect, onCreate }: Pro
 
   return (
     <div className="px-3 py-2">
-      <div
-        ref={scrollRef}
-        onScroll={handleScroll}
-        className="months-scroll items-center"
-      >
-        {/* Botón sticky con efecto glass: blur suave sobre los meses al scrollear */}
-        <div
-          className={`sticky left-0 z-10 shrink-0 -my-1 py-1 pl-1 pr-2 rounded-full transition-all duration-300 ease-out ${
-            scrolled ? 'glass shadow-sm' : 'bg-transparent'
-          }`}
+      {/* Chips de meses: scroll horizontal suave, sin scroll vertical */}
+      <div ref={scrollRef} className="months-scroll items-center">
+        <button
+          type="button"
+          onClick={openModal}
+          className="shrink-0 px-3.5 py-2 text-xs font-bold rounded-full chip-active transition-all duration-300 ease-out whitespace-nowrap"
         >
-          <button
-            type="button"
-            onClick={openModal}
-            className={`px-3.5 py-2 text-xs font-bold rounded-full chip-active transition-all duration-300 ease-out whitespace-nowrap origin-left ${
-              scrolled ? 'scale-[0.95] opacity-95' : 'scale-100 opacity-100'
-            }`}
-          >
-            + Crear Mes
-          </button>
-        </div>
+          + Crear Mes
+        </button>
         {months.map((m) => (
           <button
             key={m.id}
