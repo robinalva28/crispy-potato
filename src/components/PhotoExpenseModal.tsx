@@ -162,9 +162,19 @@ export function PhotoExpenseModal({ month, onSave, onClose }: Props) {
         )}
 
         {phase === 'loading' && (
-          <div className="py-10 text-center text-sm text-neutral-500 dark:text-neutral-400">
-            <div className="text-3xl mb-2 animate-spin inline-block">⏳</div>
-            <div>Leyendo tus apuntes…</div>
+          <div className="py-10 text-center">
+            <div className="flex items-center justify-center gap-3">
+              <div className="w-9 h-9 rounded-full border-4 border-violet-200 border-t-violet-600 animate-spin dark:border-violet-900/50 dark:border-t-violet-400" />
+              <div className="text-sm font-bold text-violet-700 dark:text-violet-300">
+                Leyendo tus apuntes…
+              </div>
+            </div>
+            <div className="mx-auto mt-4 h-1.5 w-48 overflow-hidden rounded-full bg-violet-100 dark:bg-violet-900/40">
+              <div className="h-full w-1/2 rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 animate-pulse" />
+            </div>
+            <div className="mt-3 text-[11px] text-neutral-500 dark:text-neutral-400">
+              Analizando la foto con IA. Puede tardar unos segundos…
+            </div>
           </div>
         )}
 

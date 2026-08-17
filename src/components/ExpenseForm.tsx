@@ -137,11 +137,29 @@ export function ExpenseForm({ initial, onSave, onCancel, onGetLastUsdRate }: Pro
   return (
     <form
       onSubmit={handleSubmit}
-      className="px-4 py-3 space-y-3"
+      className="relative px-4 py-3 space-y-3 rounded-2xl border-2 border-violet-400/40 bg-violet-500/[0.06] dark:border-violet-500/30 dark:bg-violet-500/[0.07]"
     >
-      <div className="font-semibold text-sm text-neutral-700 dark:text-neutral-200">
-        {initial ? 'Editar gasto' : 'Agregar gasto'}
+      <div className="flex items-center justify-between gap-2">
+        <div className="font-semibold text-sm text-neutral-700 dark:text-neutral-200">
+          {initial ? '✏️ Editar gasto' : '➕ Agregar gasto'}
+        </div>
+        <span className="shrink-0 text-[10px] font-bold uppercase tracking-wider text-violet-700 bg-violet-500/15 dark:text-violet-300 dark:bg-violet-400/15 rounded-full px-2.5 py-1">
+          Formulario
+        </span>
       </div>
+
+      {/* Overlay de carga evidente mientras se escanea la factura */}
+      {scanning && (
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2.5 rounded-2xl bg-white/75 dark:bg-neutral-900/75 backdrop-blur-sm">
+          <div className="w-11 h-11 rounded-full border-4 border-violet-200 border-t-violet-600 animate-spin dark:border-violet-900/50 dark:border-t-violet-400" />
+          <div className="text-sm font-semibold text-violet-700 dark:text-violet-300">
+            Escaneando factura…
+          </div>
+          <div className="text-[11px] text-neutral-500 dark:text-neutral-400">
+            Leyendo la foto para autocompletar los campos
+          </div>
+        </div>
+      )}
 
       <div>
         <label className="block text-[11px] text-neutral-500 font-medium mb-1 dark:text-neutral-400">Nombre *</label>
@@ -229,7 +247,7 @@ export function ExpenseForm({ initial, onSave, onCancel, onGetLastUsdRate }: Pro
             aria-label="Escanear factura"
             className="w-8 h-8 rounded-full text-lg bg-violet-100 hover:bg-violet-200 text-violet-700 dark:bg-violet-900/40 dark:hover:bg-violet-900/60 dark:text-violet-300 transition disabled:opacity-40"
           >
-            {scanning ? '⏳' : '📷'}
+            📷
           </button>
         </label>
       </div>
