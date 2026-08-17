@@ -22,9 +22,14 @@ export function parseLocalNumber(input: string): number | null {
     normalized = normalized.replace(/\./g, ''); // quitar miles
     normalized = normalized.replace(',', '.'); // coma → punto decimal
   } else {
-    // Sin coma: si hay más de un punto, los puntos son miles; conservar el último como decimal
-    const parts = normalized.split('.');
-    if (parts.length > 2) {
+    // Sin coma:
+    // - "850.000" y "1.234.567" → los puntos son separadores de miles (formato es-AR)
+    // - "850.5" / "10.90" / "850" → un solo punto es decimal (o no hay)
+    if (/^\d{1,3}(\.\d{3})+$/.test(normalized)) {
+      normalized = normalized.replace(/\./g, '');
+    } else if (normalized.split('.').length > 2) {
+      // Varios puntos que no siguen el patrón de miles: conservar el último como decimal
+      const parts = normalized.split('.');
       normalized = parts.slice(0, -1).join('') + '.' + parts[parts.length - 1];
     }
   }
