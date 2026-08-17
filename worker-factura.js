@@ -47,12 +47,12 @@ Formato EXACTO de la respuesta:
 
 Ejemplo:
 {"name":"Supermercado DIA","amountArs":35899.75,"amountUsd":0,"dueDate":"2026-08-15","notes":"Factura B N° 1234-567890"}
-Otro ejemplo (ticket, el TOTAL es el último importe):
-{"name":"WENDYS","amountArs":27741,"amountUsd":0,"dueDate":"2026-08-26","notes":"TOTAL: $27.741,00"}
+Otro ejemplo (ticket WENDYS, el TOTAL real es 16000):
+{"name":"WENDYS","amountArs":16000,"amountUsd":0,"dueDate":"2026-08-26","notes":""}
 
 REGLAS:
 1. name = el EMISOR/PROVEEDOR de la factura (razón social o comercio). NO pongas "Factura".
-2. amountArs = SOLO el monto que dice EXACTAMENTE "TOTAL" (es SIEMPRE el último monto de la factura, aparece después del IVA). En tickets suele verse "TOTAL: $27.741,00". Si no encontrás la palabra TOTAL, usá el monto MÁS GRANDE de la factura. NUNCA uses "IVA", "SUBTOTAL", "IMPORTE" ni montos de ítems individuales.
+2. amountArs = SOLO el monto que acompaña a la palabra "TOTAL" o "PAGOS". Ej: "TOTAL: 16.000,00" → 16000. NUNCA uses números de LEYES ("L. 27743", "Ley 27743"), números de factura, CAE, IVA, SUBTOTAL ni montos de ítems individuales. El TOTAL es el que aparece junto a la palabra TOTAL o PAGOS, no un número suelto grande.
 3. MONTOS ARGENTINOS: "$35.899,75" → 35899.75 (punto = MILES, coma = decimal). NUNCA uses puntos en la salida.
 4. Si la factura está en dólares ("USD", "u$d") → amountUsd = total y amountArs = 0.
 5. dueDate = fecha de emisión en AAAA-MM-DD. Si no hay, "".
