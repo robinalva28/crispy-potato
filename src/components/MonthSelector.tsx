@@ -72,24 +72,22 @@ export function MonthSelector({ months, activeMonthId, onSelect, onCreate }: Pro
   }
 
   return (
-    <div className="border-b border-neutral-200 bg-neutral-50 dark:border-neutral-800 dark:bg-neutral-900/60">
+    <div className="px-3 py-2">
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        className="px-2 py-2 flex items-center gap-2 overflow-x-auto"
+        className="flex items-center gap-2 overflow-x-auto"
       >
         {/* Botón sticky con efecto glass: blur suave sobre los meses al scrollear */}
         <div
-          className={`sticky left-2 z-10 shrink-0 -my-1 py-1 pl-1 pr-2 rounded-xl transition-all duration-300 ease-out ${
-            scrolled
-              ? 'bg-neutral-50/70 backdrop-blur-md shadow-sm dark:bg-neutral-900/70'
-              : 'bg-transparent'
+          className={`sticky left-0 z-10 shrink-0 -my-1 py-1 pl-1 pr-2 rounded-full transition-all duration-300 ease-out ${
+            scrolled ? 'glass shadow-sm' : 'bg-transparent'
           }`}
         >
           <button
             type="button"
             onClick={openModal}
-            className={`px-3 py-1.5 text-xs font-semibold bg-emerald-600 text-white rounded-md hover:bg-emerald-700 shadow-sm transition-all duration-300 ease-out whitespace-nowrap origin-left ${
+            className={`px-3.5 py-2 text-xs font-bold rounded-full chip-active transition-all duration-300 ease-out whitespace-nowrap origin-left ${
               scrolled ? 'scale-[0.95] opacity-95' : 'scale-100 opacity-100'
             }`}
           >
@@ -102,10 +100,10 @@ export function MonthSelector({ months, activeMonthId, onSelect, onCreate }: Pro
             type="button"
             data-month-id={m.id}
             onClick={() => onSelect(m.id)}
-            className={`shrink-0 px-3 py-1.5 text-xs font-medium rounded-md transition ${
+            className={`shrink-0 px-3.5 py-2 text-xs font-semibold rounded-full transition ${
               m.id === activeMonthId
-                ? 'bg-neutral-900 text-white dark:bg-emerald-500 dark:text-neutral-950'
-                : 'bg-white border border-neutral-300 text-neutral-600 hover:bg-neutral-100 dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-700'
+                ? 'chip-active'
+                : 'glass text-neutral-600 hover:opacity-80 dark:text-neutral-300'
             }`}
           >
             {m.status === 'cerrado' && '🔒 '}
@@ -118,7 +116,7 @@ export function MonthSelector({ months, activeMonthId, onSelect, onCreate }: Pro
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <form
             onSubmit={handleCreate}
-            className="w-full max-w-sm bg-white rounded-xl shadow-xl p-4 space-y-3 dark:bg-neutral-900 dark:border dark:border-neutral-800"
+            className="w-full max-w-sm glass-card rounded-3xl p-4 space-y-3"
           >
             <div className="font-bold text-neutral-900 dark:text-neutral-100">Crear Nuevo Mes</div>
             <p className="text-xs text-neutral-500 dark:text-neutral-400">
@@ -126,7 +124,7 @@ export function MonthSelector({ months, activeMonthId, onSelect, onCreate }: Pro
             </p>
 
             {errorMsg && (
-              <div className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2 dark:text-red-400 dark:bg-red-950/20 dark:border-red-900">
+              <div className="text-xs text-red-600 glass rounded-xl px-3 py-2 dark:text-red-400">
                 ⚠️ {errorMsg}
               </div>
             )}
@@ -139,7 +137,7 @@ export function MonthSelector({ months, activeMonthId, onSelect, onCreate }: Pro
                 type="month"
                 value={newId}
                 onChange={(e) => setNewId(e.target.value)}
-                className="w-full px-2 py-1.5 text-sm border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-100"
+                className="input-aura w-full px-3 py-2 text-sm"
                 required
               />
             </div>
@@ -152,7 +150,7 @@ export function MonthSelector({ months, activeMonthId, onSelect, onCreate }: Pro
                 value={newLabel}
                 onChange={(e) => setNewLabel(e.target.value)}
                 placeholder={monthLabelFromId(newId)}
-                className="w-full px-2 py-1.5 text-sm border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-100"
+                className="input-aura w-full px-3 py-2 text-sm"
               />
             </div>
 
@@ -167,7 +165,7 @@ export function MonthSelector({ months, activeMonthId, onSelect, onCreate }: Pro
                 value={newIncome}
                 onChange={(e) => setNewIncome(e.target.value)}
                 placeholder="Ej: 5000000"
-                className="w-full px-2 py-1.5 text-sm border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-100"
+                className="input-aura w-full px-3 py-2 text-sm"
                 required
               />
             </div>
@@ -175,14 +173,14 @@ export function MonthSelector({ months, activeMonthId, onSelect, onCreate }: Pro
             <div className="flex gap-2 pt-1">
               <button
                 type="submit"
-                className="flex-1 px-3 py-2 text-sm font-semibold bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition"
+                className="flex-1 px-3 py-2 text-sm font-semibold rounded-full btn-aura transition"
               >
                 Crear y abrir
               </button>
               <button
                 type="button"
                 onClick={() => setShowModal(false)}
-                className="px-3 py-2 text-sm font-medium text-neutral-600 border border-neutral-300 rounded-md hover:bg-neutral-100 transition dark:text-neutral-400 dark:border-neutral-700 dark:hover:bg-neutral-800"
+                className="px-3 py-2 text-sm font-medium glass rounded-full hover:opacity-80 transition"
               >
                 Cancelar
               </button>

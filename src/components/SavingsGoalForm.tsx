@@ -70,12 +70,11 @@ export function SavingsGoalForm({ initial, months, expenses, onSave, onCancel }:
     onSave({ name: name.trim(), startMonth, endMonth, extraIncomes: extras });
   }
 
-  const inputCls =
-    'w-full px-2 py-1.5 text-sm border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-100';
+  const inputCls = 'input-aura w-full px-3 py-2 text-sm';
   const labelCls = 'block text-[11px] text-neutral-500 font-medium mb-1 dark:text-neutral-400';
 
   return (
-    <form onSubmit={handleSubmit} className="px-4 py-3 space-y-3 border-b border-neutral-200 bg-neutral-50 dark:border-neutral-800 dark:bg-neutral-900/60">
+    <form onSubmit={handleSubmit} className="px-4 py-3 space-y-3">
       <div className="font-semibold text-sm text-neutral-700 dark:text-neutral-200">
         {initial ? 'Editar segmento de ahorro' : 'Nuevo segmento de ahorro'}
       </div>
@@ -120,7 +119,7 @@ export function SavingsGoalForm({ initial, months, expenses, onSave, onCancel }:
             <div className="text-xs text-neutral-400">Sin ingresos extra.</div>
           )}
           {extras.map((extra) => (
-            <div key={extra.id} className="flex items-center justify-between gap-2 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-md px-2 py-1.5">
+            <div key={extra.id} className="flex items-center justify-between gap-2 glass rounded-xl px-3 py-2">
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-medium truncate dark:text-neutral-100">{extra.label}</div>
                 <div className="text-[11px] text-neutral-500 dark:text-neutral-400">{extra.month} · {fmtARS(extra.amount, 0)}</div>
@@ -159,7 +158,7 @@ export function SavingsGoalForm({ initial, months, expenses, onSave, onCancel }:
             <button
               type="button"
               onClick={addExtra}
-              className="px-2 py-1.5 text-sm font-semibold bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition shrink-0"
+              className="px-3 py-2 text-sm font-bold rounded-full btn-aura transition shrink-0"
             >
               +
             </button>
@@ -168,9 +167,10 @@ export function SavingsGoalForm({ initial, months, expenses, onSave, onCancel }:
       </div>
 
       {/* Preview */}
-      <div className="bg-emerald-50 dark:bg-emerald-950/30 rounded-lg px-3 py-2 flex items-center justify-between">
-        <span className="text-[11px] font-medium text-emerald-700 dark:text-emerald-400 uppercase">Ahorro proyectado</span>
-        <span className="text-sm font-bold text-emerald-800 dark:text-emerald-300">{fmtARS(totalPreview(), 0)}</span>
+      <div className="rounded-2xl px-3 py-2.5 flex items-center justify-between"
+           style={{ background: 'linear-gradient(135deg, rgba(132,204,22,.16), rgba(16,185,129,.12))', border: '1px solid rgba(132,204,22,.25)' }}>
+        <span className="text-[11px] font-semibold uppercase" style={{ color: '#4d7c0f' }}>Ahorro proyectado</span>
+        <span className="text-sm font-bold tabular-nums" style={{ color: '#4d7c0f' }}>{fmtARS(totalPreview(), 0)}</span>
       </div>
 
       {startMonth > endMonth && (
@@ -181,14 +181,14 @@ export function SavingsGoalForm({ initial, months, expenses, onSave, onCancel }:
         <button
           type="submit"
           disabled={!name.trim() || startMonth > endMonth}
-          className="flex-1 px-3 py-2 text-sm font-semibold bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition disabled:opacity-40"
+          className="flex-1 px-3 py-2.5 text-sm font-bold rounded-full btn-aura transition disabled:opacity-40"
         >
           Guardar
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="px-3 py-2 text-sm font-medium text-neutral-600 border border-neutral-300 rounded-md hover:bg-neutral-100 transition dark:text-neutral-400 dark:border-neutral-700 dark:hover:bg-neutral-800"
+          className="px-3 py-2.5 text-sm font-medium glass rounded-full hover:opacity-80 transition"
         >
           Cancelar
         </button>

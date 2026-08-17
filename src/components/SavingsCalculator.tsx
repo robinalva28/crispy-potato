@@ -27,7 +27,7 @@ export function SavingsCalculator({ goals, months, expenses, onAdd, onEdit, onDe
     return (
       <div className="px-4 py-10 text-center">
         <div className="text-4xl mb-2">💰</div>
-        <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-4">
+        <p className="text-sm opacity-60 mb-4">
           Todavía no tenés segmentos de ahorro proyectados.
           <br />
           Creá uno para proyectar, por ejemplo, cuánto podés juntar para tu auto.
@@ -35,7 +35,7 @@ export function SavingsCalculator({ goals, months, expenses, onAdd, onEdit, onDe
         <button
           type="button"
           onClick={onAdd}
-          className="px-4 py-2 text-sm font-semibold bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition"
+          className="px-5 py-2.5 text-sm font-bold rounded-full btn-aura transition"
         >
           + Nuevo segmento
         </button>
@@ -52,24 +52,25 @@ export function SavingsCalculator({ goals, months, expenses, onAdd, onEdit, onDe
       {goals.map((goal) => {
         const proj = projectSavings(goal, months, expenses);
         return (
-          <div key={goal.id} className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl p-3">
+          <div key={goal.id} className="glass-card rounded-3xl p-4">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <div className="w-9 h-9 rounded-lg bg-emerald-100 dark:bg-emerald-950/40 flex items-center justify-center text-lg">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg"
+                     style={{ background: 'linear-gradient(135deg, rgba(132,204,22,.16), rgba(16,185,129,.12))', border: '1px solid rgba(132,204,22,.25)' }}>
                   🎯
                 </div>
                 <div>
                   <div className="font-bold text-neutral-900 dark:text-neutral-100">{goal.name}</div>
-                  <div className="text-[11px] text-neutral-500 dark:text-neutral-400">
+                  <div className="text-[11px] opacity-50">
                     {monthLabel(goal.startMonth)} → {monthLabel(goal.endMonth)}
                   </div>
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-lg font-bold text-emerald-700 dark:text-emerald-400">
+                <div className="text-lg font-bold tabular-nums" style={{ color: '#4d7c0f' }}>
                   {fmtARS(proj.total, 0)}
                 </div>
-                <div className="text-[10px] text-neutral-500 uppercase">proyectado</div>
+                <div className="text-[10px] opacity-50 uppercase">proyectado</div>
               </div>
             </div>
 
@@ -78,17 +79,17 @@ export function SavingsCalculator({ goals, months, expenses, onAdd, onEdit, onDe
               <div className="mt-3 space-y-1">
                 {proj.months.map((p) => (
                   <div key={p.monthId} className="flex items-center justify-between text-xs">
-                    <span className="text-neutral-600 dark:text-neutral-400">{monthLabel(p.monthId)}</span>
+                    <span className="opacity-70">{monthLabel(p.monthId)}</span>
                     <span className="flex items-center gap-3">
                       {p.estimated && (
-                        <span className="text-[10px] text-neutral-400 dark:text-neutral-500 italic">≈ estimado</span>
+                        <span className="text-[10px] opacity-40 italic">≈ estimado</span>
                       )}
                       {p.extras.length > 0 && (
                         <span className="text-amber-600 dark:text-amber-400 font-medium">
                           +{p.extras.map((e) => e.label).join(', ')}
                         </span>
                       )}
-                      <span className={`font-semibold ${p.total < 0 ? 'text-red-500' : 'text-emerald-700 dark:text-emerald-400'}`}>
+                      <span className={`font-semibold tabular-nums ${p.total < 0 ? 'text-red-500' : ''}`}>
                         {fmtARS(p.total, 0)}
                       </span>
                     </span>
@@ -99,11 +100,11 @@ export function SavingsCalculator({ goals, months, expenses, onAdd, onEdit, onDe
 
             {/* Ingresos extra */}
             {goal.extraIncomes.length > 0 && (
-              <div className="mt-2 pt-2 border-t border-neutral-100 dark:border-neutral-800 space-y-1">
-                <div className="text-[10px] font-semibold uppercase text-neutral-500 dark:text-neutral-400">Ingresos extra</div>
+              <div className="mt-2 pt-2 border-t border-black/5 dark:border-white/10 space-y-1">
+                <div className="text-[10px] font-semibold uppercase opacity-50">Ingresos extra</div>
                 {goal.extraIncomes.map((extra) => (
                   <div key={extra.id} className="flex items-center justify-between text-xs">
-                    <span className="text-neutral-700 dark:text-neutral-300">
+                    <span className="opacity-70">
                       {extra.label} · {monthLabel(extra.month)}
                     </span>
                     <span className="flex items-center gap-2">
@@ -127,14 +128,14 @@ export function SavingsCalculator({ goals, months, expenses, onAdd, onEdit, onDe
               <button
                 type="button"
                 onClick={() => onEdit(goal)}
-                className="flex-1 px-2 py-1.5 text-xs font-medium text-neutral-600 border border-neutral-300 rounded-md hover:bg-neutral-100 transition dark:text-neutral-400 dark:border-neutral-700 dark:hover:bg-neutral-800"
+                className="flex-1 px-3 py-2 text-xs font-semibold glass rounded-full hover:opacity-80 transition"
               >
                 ✎ Editar
               </button>
               <button
                 type="button"
                 onClick={() => goal.id && setConfirmDelete(goal)}
-                className="flex-1 px-2 py-1.5 text-xs font-medium text-red-600 border border-red-300 rounded-md hover:bg-red-50 transition dark:text-red-400 dark:border-red-900 dark:hover:bg-red-950/20"
+                className="flex-1 px-3 py-2 text-xs font-semibold text-red-600 glass rounded-full hover:opacity-80 transition dark:text-red-400"
               >
                 🗑 Eliminar
               </button>
@@ -146,7 +147,7 @@ export function SavingsCalculator({ goals, months, expenses, onAdd, onEdit, onDe
       <button
         type="button"
         onClick={onAdd}
-        className="w-full px-3 py-2 text-sm font-semibold bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition"
+        className="w-full px-3 py-3 text-sm font-bold rounded-full btn-aura transition"
       >
         + Nuevo segmento
       </button>
@@ -154,7 +155,7 @@ export function SavingsCalculator({ goals, months, expenses, onAdd, onEdit, onDe
       {/* Confirmación borrado */}
       {confirmDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-sm bg-white dark:bg-neutral-900 dark:border dark:border-neutral-800 rounded-xl shadow-xl p-4 space-y-3">
+          <div className="w-full max-w-sm glass-card rounded-3xl p-4 space-y-3">
             <div className="font-bold text-neutral-900 dark:text-neutral-100">¿Eliminar segmento?</div>
             <p className="text-sm text-neutral-600 dark:text-neutral-400">
               Se borrará el segmento <span className="font-semibold">{confirmDelete.name}</span> y sus ingresos extra.
@@ -166,14 +167,14 @@ export function SavingsCalculator({ goals, months, expenses, onAdd, onEdit, onDe
                   if (confirmDelete.id) onDelete(confirmDelete.id);
                   setConfirmDelete(null);
                 }}
-                className="flex-1 px-3 py-2 text-sm font-semibold bg-red-600 text-white rounded-md hover:bg-red-700 transition"
+                className="flex-1 px-3 py-2 text-sm font-semibold bg-red-500 text-white rounded-full hover:bg-red-600 transition"
               >
                 Sí, borrar
               </button>
               <button
                 type="button"
                 onClick={() => setConfirmDelete(null)}
-                className="px-3 py-2 text-sm font-medium text-neutral-600 border border-neutral-300 rounded-md hover:bg-neutral-100 transition dark:text-neutral-400 dark:border-neutral-700 dark:hover:bg-neutral-800"
+                className="px-3 py-2 text-sm font-medium glass rounded-full hover:opacity-80 transition"
               >
                 Cancelar
               </button>

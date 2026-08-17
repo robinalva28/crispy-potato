@@ -2,8 +2,133 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* ============================================================
+   AURA — Rebranding UX/UI (Soft Glass + light/dark)
+   ============================================================ */
+
+:root {
+  color-scheme: light;
+
+  /* Glass variables (modo claro) */
+  --glass-bg: rgba(255, 255, 255, 0.62);
+  --glass-border: rgba(255, 255, 255, 0.65);
+  --glass-text: rgba(28, 32, 30, 0.85);
+  --glass-strong-bg: rgba(255, 255, 255, 0.55);
+
+  /* Acentos Aura */
+  --accent-lime: #84cc16;
+  --accent-lime-dark: #65a30d;
+  --accent-emerald: #10b981;
+}
+
+.dark {
+  color-scheme: dark;
+
+  /* Glass variables (modo oscuro) */
+  --glass-bg: rgba(26, 28, 31, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-text: rgba(230, 235, 230, 0.9);
+  --glass-strong-bg: rgba(26, 28, 31, 0.6);
+}
+
 @layer base {
+  /* Fondo Aura (modo claro): degradados radiales suaves */
   body {
-    @apply bg-neutral-100 text-neutral-900 antialiased dark:bg-neutral-950 dark:text-neutral-100;
+    @apply antialiased text-neutral-800 dark:text-neutral-100;
+    background:
+      radial-gradient(1200px 500px at 85% -10%, rgba(167, 139, 250, 0.22), transparent 55%),
+      radial-gradient(900px 480px at -10% 15%, rgba(132, 204, 22, 0.20), transparent 55%),
+      radial-gradient(700px 500px at 50% 110%, rgba(14, 165, 233, 0.16), transparent 55%),
+      linear-gradient(160deg, #f8faf7 0%, #eef4ea 55%, #eceff8 100%);
+    background-attachment: fixed;
+    transition: background 0.3s ease;
+  }
+
+  /* Fondo Aura (modo oscuro): misma composición, mucho más tenue */
+  .dark body {
+    background:
+      radial-gradient(1200px 500px at 85% -10%, rgba(139, 92, 246, 0.16), transparent 55%),
+      radial-gradient(900px 480px at -10% 15%, rgba(101, 163, 13, 0.14), transparent 55%),
+      radial-gradient(700px 500px at 50% 110%, rgba(14, 165, 233, 0.10), transparent 55%),
+      linear-gradient(165deg, #0c0d0f 0%, #111312 55%, #0e1116 100%);
+    background-attachment: fixed;
+  }
+}
+
+@layer components {
+  /* Superficie glass estándar (chips, búsqueda, botones secundarios) */
+  .glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(24px) saturate(1.4);
+    -webkit-backdrop-filter: blur(24px) saturate(1.4);
+    border: 1px solid var(--glass-border);
+    transition: background 0.3s ease, border-color 0.3s ease;
+  }
+
+  /* Tarjeta glass principal (hero, lista, modales) */
+  .glass-card {
+    background: var(--glass-strong-bg);
+    backdrop-filter: blur(28px) saturate(1.5);
+    -webkit-backdrop-filter: blur(28px) saturate(1.5);
+    border: 1px solid var(--glass-border);
+    box-shadow:
+      0 24px 60px -24px rgba(80, 120, 60, 0.25),
+      0 8px 24px -12px rgba(80, 120, 60, 0.12);
+    transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .dark .glass-card {
+    box-shadow:
+      0 24px 60px -24px rgba(0, 0, 0, 0.6),
+      0 8px 24px -12px rgba(0, 0, 0, 0.4);
+  }
+
+  /* Chip de mes activo + botón "Crear Mes" */
+  .chip-active {
+    background: linear-gradient(135deg, #65a30d, #84cc16);
+    box-shadow: 0 8px 20px -8px rgba(132, 204, 22, 0.6);
+    color: #fff;
+  }
+
+  /* Botón primario Aura */
+  .btn-aura {
+    background: linear-gradient(135deg, #65a30d, #84cc16);
+    box-shadow: 0 10px 24px -8px rgba(132, 204, 22, 0.55);
+    color: #fff;
+  }
+  .dark .btn-aura {
+    background: linear-gradient(135deg, #4d7c0f, #84cc16);
+    box-shadow: 0 10px 24px -8px rgba(132, 204, 22, 0.35);
+  }
+  .btn-aura:hover {
+    filter: brightness(1.05);
+    transform: translateY(-1px);
+  }
+
+  /* Botón violeta Aura (foto) */
+  .btn-violet {
+    background: linear-gradient(135deg, #8b5cf6, #d946ef);
+    box-shadow: 0 10px 24px -8px rgba(139, 92, 246, 0.5);
+    color: #fff;
+  }
+  .dark .btn-violet {
+    box-shadow: 0 10px 24px -8px rgba(139, 92, 246, 0.35);
+  }
+  .btn-violet:hover {
+    filter: brightness(1.05);
+    transform: translateY(-1px);
+  }
+
+  /* Input glass Aura */
+  .input-aura {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 0.75rem;
+    transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.2s ease;
+  }
+  .input-aura:focus {
+    outline: none;
+    border-color: rgba(132, 204, 22, 0.6);
+    box-shadow: 0 0 0 3px rgba(132, 204, 22, 0.18);
   }
 }

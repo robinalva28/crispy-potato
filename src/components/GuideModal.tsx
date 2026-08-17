@@ -78,20 +78,21 @@ export function GuideModal({ open, onClose, type = 'budget' }: Props) {
   const current = steps[step];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <div className="w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden dark:bg-neutral-900 dark:border dark:border-neutral-800">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+      <div className="w-full max-w-sm glass-card rounded-3xl overflow-hidden">
         {/* Encabezado */}
-        <div className="px-5 pt-5 pb-3 bg-emerald-600 text-white">
+        <div className="px-5 pt-5 pb-3 text-white"
+             style={{ background: 'linear-gradient(135deg,#65a30d,#84cc16 55%,#10b981)' }}>
           <div className="text-3xl mb-1">{current.icon}</div>
           <h2 className="text-lg font-bold">{current.title}</h2>
-          <p className="text-[11px] text-emerald-100 mt-1 opacity-80">
+          <p className="text-[11px] mt-1 opacity-80">
             Paso {step + 1} de {steps.length}
           </p>
         </div>
 
         {/* Cuerpo */}
         <div className="px-5 py-4 min-h-[120px]">
-          <p className="text-sm text-neutral-700 leading-relaxed dark:text-neutral-300">
+          <p className="text-sm leading-relaxed opacity-80">
             {current.text}
           </p>
         </div>
@@ -102,7 +103,7 @@ export function GuideModal({ open, onClose, type = 'budget' }: Props) {
             type="button"
             onClick={() => setStep((s) => Math.max(0, s - 1))}
             disabled={step === 0}
-            className="px-3 py-2 text-sm font-medium text-neutral-600 border border-neutral-300 rounded-md disabled:opacity-30 hover:bg-neutral-100 transition dark:text-neutral-400 dark:border-neutral-700 dark:hover:bg-neutral-800"
+            className="px-3 py-2 text-sm font-medium glass rounded-full disabled:opacity-30 hover:opacity-80 transition"
           >
             ← Atrás
           </button>
@@ -126,7 +127,7 @@ export function GuideModal({ open, onClose, type = 'budget' }: Props) {
             <button
               type="button"
               onClick={() => setStep((s) => Math.min(steps.length - 1, s + 1))}
-              className="px-3 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-md hover:bg-emerald-700 transition"
+              className="px-3 py-2 text-sm font-semibold rounded-full btn-aura transition"
             >
               Siguiente →
             </button>
@@ -134,7 +135,7 @@ export function GuideModal({ open, onClose, type = 'budget' }: Props) {
             <button
               type="button"
               onClick={onClose}
-              className="px-3 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-md hover:bg-emerald-700 transition"
+              className="px-3 py-2 text-sm font-semibold rounded-full btn-aura transition"
             >
               ¡Listo!
             </button>

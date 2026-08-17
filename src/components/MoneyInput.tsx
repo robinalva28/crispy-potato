@@ -20,8 +20,7 @@ export function MoneyInput({
   required,
   inputMode = 'decimal',
 }: MoneyInputProps) {
-  const baseCls =
-    'w-full px-2 py-1.5 text-sm border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-100';
+  const baseCls = 'input-aura w-full px-3 py-2 text-sm';
   const symbolWidth = symbol === 'u$d' ? 'pl-10' : 'pl-7';
 
   return (

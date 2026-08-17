@@ -38,15 +38,18 @@ export function LockScreen({ hasPin, onUnlock, onSetPin }: Props) {
   }
 
   const inputCls =
-    'w-full max-w-[220px] px-4 py-3 text-center text-2xl tracking-[0.4em] font-mono border border-neutral-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-100';
+    'w-full max-w-[220px] px-4 py-3 text-center text-2xl tracking-[0.4em] font-mono input-aura';
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6 bg-neutral-900 dark:bg-neutral-950">
-      <div className="w-16 h-16 mb-4 rounded-2xl bg-emerald-500 flex items-center justify-center text-3xl text-white shadow-lg">
+    <div className="min-h-screen flex flex-col items-center justify-center px-6">
+      <div
+        className="w-16 h-16 mb-4 rounded-3xl flex items-center justify-center text-3xl text-white shadow-lg"
+        style={{ background: 'linear-gradient(135deg,#65a30d,#84cc16 55%,#10b981)', boxShadow: '0 12px 32px -8px rgba(132,204,22,.5)' }}
+      >
         🔒
       </div>
-      <h1 className="text-xl font-bold text-white mb-1">Presupuesto Mensual</h1>
-      <p className="text-sm text-neutral-400 mb-8">
+      <h1 className="text-xl font-bold mb-1">Presupuesto Mensual</h1>
+      <p className="text-sm opacity-50 mb-8">
         {hasPin ? 'Ingresá tu PIN para desbloquear' : 'Creá un PIN para proteger tus datos (4+ dígitos)'}
       </p>
 
@@ -78,7 +81,7 @@ export function LockScreen({ hasPin, onUnlock, onSetPin }: Props) {
 
         <button
           type="submit"
-          className="w-full max-w-[220px] px-4 py-3 text-sm font-semibold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 transition"
+          className="w-full max-w-[220px] px-4 py-3 text-sm font-bold rounded-full btn-aura transition"
         >
           {hasPin ? 'Desbloquear' : 'Crear PIN y entrar'}
         </button>

@@ -20,9 +20,9 @@ export function ExpenseRow({ expense, onTogglePaid, onDelete, onEdit, onDuplicat
 
   return (
     <div
-      className={`px-3 py-2 flex items-center gap-2 ${
-        isPending ? 'bg-amber-50/70 dark:bg-amber-950/20' : 'bg-white dark:bg-neutral-900'
-      } border-b border-neutral-100 last:border-b-0 cursor-pointer dark:border-neutral-800`}
+      className={`flex items-center gap-3 rounded-2xl glass px-3.5 py-3 cursor-pointer hover:opacity-90 transition ${
+        isPending ? 'opacity-70' : ''
+      }`}
       onClick={() => onEdit(expense)}
     >
       <button
@@ -32,51 +32,53 @@ export function ExpenseRow({ expense, onTogglePaid, onDelete, onEdit, onDuplicat
           e.stopPropagation();
           onTogglePaid(expense.id!);
         }}
-        className={`w-5 h-5 shrink-0 rounded border flex items-center justify-center text-[11px] leading-none transition ${
+        className={`w-6 h-6 shrink-0 rounded-full flex items-center justify-center text-[11px] leading-none transition ${
           expense.paid
-            ? 'bg-emerald-500 border-emerald-500 text-white'
-            : 'border-neutral-300 text-transparent dark:border-neutral-600'
+            ? 'bg-gradient-to-br from-emerald-500 to-emerald-400 text-white shadow-sm shadow-emerald-500/30'
+            : isEstimated
+              ? 'border-2 border-dashed border-violet-400 bg-violet-100/30'
+              : 'border-2 border-amber-400/70 bg-amber-100/30'
         }`}
       >
-        ✓
+        {expense.paid && '✓'}
       </button>
 
       <div className="flex-1 min-w-0">
         <div className="flex justify-between items-baseline gap-2">
-          <span className={`text-sm font-medium truncate ${isPending ? 'text-neutral-600 dark:text-neutral-400' : 'text-neutral-900 dark:text-neutral-100'}`}>
+          <span className={`text-sm font-semibold truncate ${isPending ? 'opacity-60' : ''}`}>
             {expense.name}
           </span>
-          <span className={`font-semibold whitespace-nowrap ${isPending ? 'text-neutral-500 dark:text-neutral-400' : 'text-neutral-900 dark:text-neutral-100'}`}>
+          <span className={`font-bold whitespace-nowrap tabular-nums ${isPending ? 'opacity-60' : ''}`}>
             {amountText}
           </span>
         </div>
         <div className="flex justify-between items-baseline gap-2">
-          <span className="text-[11px] text-neutral-400 truncate dark:text-neutral-500">
+          <span className="text-[11px] opacity-40 truncate">
             {fmtDate(expense.dueDate)}
             {expense.dueDate ? ' · ' : ''}
             {isEstimated && (
-              <span className="text-amber-600 font-medium dark:text-amber-400">por confirmar</span>
+              <span className="text-violet-600 font-semibold dark:text-violet-400">por confirmar</span>
             )}
             {isPending && !isEstimated && (
-              <span className="text-amber-600 font-medium dark:text-amber-400">pendiente</span>
+              <span className="text-amber-600 font-semibold dark:text-amber-400">pendiente</span>
             )}
             {expense.notes && !isEstimated && (
-              <span className="text-neutral-400 dark:text-neutral-500">{expense.notes}</span>
+              <span>{expense.notes}</span>
             )}
           </span>
-          <span className="text-[11px] text-neutral-400 whitespace-nowrap dark:text-neutral-500">
+          <span className="text-[11px] opacity-40 whitespace-nowrap tabular-nums">
             {hasUsd && (
               <>
                 + {fmtUSD(expense.amountUsd)} a {fmtARS(expense.usdRate)}
               </>
             )}
-            {hasUsd && <span className="text-neutral-300 dark:text-neutral-700 mx-1">·</span>}
-            <span className="text-neutral-500 dark:text-neutral-400">= {fmtARS(total, 0)}</span>
+            {hasUsd && <span className="opacity-30 mx-1">·</span>}
+            <span className="opacity-60">= {fmtARS(total, 0)}</span>
           </span>
         </div>
       </div>
 
-      <div className="flex items-center gap-1.5 shrink-0">
+      <div className="flex items-center gap-1 shrink-0">
         <button
           type="button"
           aria-label="Duplicar gasto"
@@ -85,7 +87,7 @@ export function ExpenseRow({ expense, onTogglePaid, onDelete, onEdit, onDuplicat
             e.stopPropagation();
             onDuplicate(expense.id!);
           }}
-          className="text-neutral-300 hover:text-emerald-500 text-sm dark:text-neutral-600 dark:hover:text-emerald-400"
+          className="text-neutral-300 hover:text-lime-500 text-sm transition dark:text-neutral-600 dark:hover:text-lime-400"
         >
           ⧉
         </button>
@@ -96,7 +98,7 @@ export function ExpenseRow({ expense, onTogglePaid, onDelete, onEdit, onDuplicat
             e.stopPropagation();
             onDelete(expense.id!);
           }}
-          className="text-neutral-300 hover:text-red-500 text-sm dark:text-neutral-600 dark:hover:text-red-400"
+          className="text-neutral-300 hover:text-red-500 text-sm transition dark:text-neutral-600 dark:hover:text-red-400"
         >
           ✕
         </button>

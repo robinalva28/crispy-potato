@@ -22,13 +22,13 @@ export function SavingsChart({ history }: Props) {
   const maxBar = 80;
 
   return (
-    <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl p-3">
-      <div className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400 mb-2">
+    <div className="glass-card rounded-3xl p-4">
+      <div className="text-[11px] font-semibold uppercase tracking-wide opacity-50 mb-2">
         Evolución mensual
       </div>
 
       <div className="relative">
-        <div className="absolute left-0 right-0 top-1/2 h-px bg-neutral-200 dark:bg-neutral-700" />
+        <div className="absolute left-0 right-0 top-1/2 h-px bg-black/10 dark:bg-white/10" />
 
         <div className="relative flex items-end justify-between gap-1 h-24">
           {history.map((h) => {
@@ -45,7 +45,7 @@ export function SavingsChart({ history }: Props) {
                   className={`w-full max-w-[28px] rounded-t ${positive ? 'bg-emerald-500' : 'bg-red-500'} opacity-80 group-hover:opacity-100 transition-opacity`}
                   style={{ height: `${height}px`, alignSelf: positive ? 'flex-end' : 'flex-start', marginTop: positive ? undefined : 'auto' }}
                 />
-                <div className="absolute -bottom-5 text-[9px] text-neutral-400 dark:text-neutral-500 truncate w-full text-center">
+                <div className="absolute -bottom-5 text-[9px] opacity-40 truncate w-full text-center">
                   {monthLabel(h.monthId)}
                 </div>
               </div>
@@ -54,7 +54,7 @@ export function SavingsChart({ history }: Props) {
         </div>
       </div>
 
-      <div className="mt-5 flex items-center justify-between text-[10px] text-neutral-500 dark:text-neutral-400">
+      <div className="mt-5 flex items-center justify-between text-[10px] opacity-50">
         <span className="flex items-center gap-1">
           <span className="w-2 h-2 rounded-sm bg-emerald-500 inline-block" /> Ahorro
         </span>

@@ -84,12 +84,11 @@ export function PhotoExpenseModal({ month, onSave, onClose }: Props) {
   // Un gasto con USD pero sin cotización no puede guardarse (la cotización se pide al validar).
   const hasMissingRate = drafts.some((d) => d.amountUsd > 0 && d.usdRate <= 0);
 
-  const inputCls =
-    'w-full px-2 py-1 text-sm border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-100';
+  const inputCls = 'input-aura w-full px-3 py-2 text-sm';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="w-full max-w-lg bg-white rounded-xl shadow-xl p-4 space-y-3 dark:bg-neutral-900 dark:border dark:border-neutral-800">
+      <div className="w-full max-w-lg glass-card rounded-3xl p-4 space-y-3">
         <div className="flex items-center justify-between">
           <div className="font-bold text-neutral-900 dark:text-neutral-100">
             📷 Foto de apuntes — {month.label}
@@ -97,14 +96,14 @@ export function PhotoExpenseModal({ month, onSave, onClose }: Props) {
           <button
             type="button"
             onClick={onClose}
-            className="text-neutral-400 hover:text-neutral-600 dark:text-neutral-500 dark:hover:text-neutral-300"
+            className="w-7 h-7 rounded-full glass flex items-center justify-center text-sm hover:opacity-70 transition"
           >
             ✕
           </button>
         </div>
 
         {error && (
-          <div className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2 dark:text-red-400 dark:bg-red-950/20 dark:border-red-900">
+          <div className="text-xs text-red-600 glass rounded-xl px-3 py-2 dark:text-red-400">
             ⚠️ {error}
           </div>
         )}
@@ -127,7 +126,7 @@ export function PhotoExpenseModal({ month, onSave, onClose }: Props) {
               type="button"
               onClick={() => fileRef.current?.click()}
               disabled={!canUsePhoto(month)}
-              className="w-full px-3 py-2.5 text-sm font-semibold bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition disabled:opacity-40 disabled:cursor-not-allowed"
+              className="w-full px-3 py-3 text-sm font-bold rounded-full btn-violet transition disabled:opacity-40 disabled:cursor-not-allowed"
             >
               📷 Tomar foto de los apuntes
             </button>
@@ -150,13 +149,11 @@ export function PhotoExpenseModal({ month, onSave, onClose }: Props) {
 
             <div className="space-y-3 max-h-72 overflow-y-auto">
               {drafts.map((d, i) => (
-                <div
-                  key={i}
-                  className="space-y-2 border border-neutral-200 dark:border-neutral-800 rounded-lg p-3 bg-neutral-50 dark:bg-neutral-800/40"
-                >
+                <div key={i} className="space-y-2 glass rounded-2xl p-3">
                   {/* Fila superior: número + nombre + eliminar */}
                   <div className="flex items-center gap-2">
-                    <span className="shrink-0 w-6 h-6 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-center text-xs font-bold text-emerald-700 dark:text-emerald-400 leading-6">
+                    <span className="shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white"
+                         style={{ background: 'linear-gradient(135deg,#65a30d,#84cc16)' }}>
                       {i + 1}
                     </span>
                     <input
@@ -169,7 +166,7 @@ export function PhotoExpenseModal({ month, onSave, onClose }: Props) {
                       type="button"
                       onClick={() => removeDraft(i)}
                       aria-label="Eliminar fila"
-                      className="shrink-0 w-8 h-8 rounded-md text-neutral-400 hover:text-red-500 hover:bg-red-50 dark:text-neutral-500 dark:hover:text-red-400 dark:hover:bg-red-950/20"
+                      className="shrink-0 w-8 h-8 rounded-full glass text-neutral-400 hover:text-red-500 hover:opacity-80 transition dark:text-neutral-500 dark:hover:text-red-400"
                     >
                       ✕
                     </button>
@@ -246,12 +243,12 @@ export function PhotoExpenseModal({ month, onSave, onClose }: Props) {
               <button
                 type="button"
                 onClick={addEmptyRow}
-                className="text-xs font-medium text-emerald-700 hover:text-emerald-600 dark:text-emerald-400"
+                className="text-xs font-semibold glass rounded-full px-3 py-1.5 hover:opacity-80 transition"
               >
                 ➕ Agregar fila
               </button>
-              <span className="text-neutral-600 dark:text-neutral-300">
-                Total: <span className="font-bold">{fmtARS(total, 0)}</span>
+              <span className="opacity-70">
+                Total: <span className="font-bold tabular-nums">{fmtARS(total, 0)}</span>
               </span>
             </div>
 
@@ -266,7 +263,7 @@ export function PhotoExpenseModal({ month, onSave, onClose }: Props) {
                 onClick={handleSave}
                 disabled={saving || hasMissingRate}
                 title={hasMissingRate ? 'Cargá las cotizaciones de USD faltantes' : undefined}
-                className="flex-1 px-3 py-2 text-sm font-semibold bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition disabled:opacity-40"
+                className="flex-1 px-3 py-2.5 text-sm font-bold rounded-full btn-aura transition disabled:opacity-40"
               >
                 {saving ? 'Guardando…' : 'Guardar gastos'}
               </button>
@@ -276,7 +273,7 @@ export function PhotoExpenseModal({ month, onSave, onClose }: Props) {
                   setPhase('capture');
                   setDrafts([]);
                 }}
-                className="px-3 py-2 text-sm font-medium text-neutral-600 border border-neutral-300 rounded-md hover:bg-neutral-100 transition dark:text-neutral-400 dark:border-neutral-700 dark:hover:bg-neutral-800"
+                className="px-3 py-2.5 text-sm font-medium glass rounded-full hover:opacity-80 transition"
               >
                 Otra foto
               </button>

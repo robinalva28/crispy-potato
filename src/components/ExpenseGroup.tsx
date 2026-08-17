@@ -15,10 +15,10 @@ interface Props {
 
 export function ExpenseGroup({ category, expenses, total, onTogglePaid, onDelete, onEdit, onDuplicate }: Props) {
   return (
-    <div>
-      <div className="px-3 py-1.5 bg-neutral-100 dark:bg-neutral-800/60 flex items-center justify-between text-[11px] font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
+    <div className="space-y-1.5">
+      <div className="px-3 py-1 flex items-center justify-between text-[11px] font-bold uppercase tracking-wide opacity-50">
         <span>{CATEGORY_LABELS[category]}</span>
-        <span className="text-neutral-700 dark:text-neutral-200">{fmtARS(total, 0)}</span>
+        <span className="tabular-nums">{fmtARS(total, 0)}</span>
       </div>
       {expenses.map((expense) => (
         <ExpenseRow

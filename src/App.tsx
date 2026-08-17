@@ -334,16 +334,16 @@ export default function App() {
   }
 
   return (
-    <main className="max-w-md mx-auto my-4 bg-white rounded-xl shadow-sm overflow-hidden dark:bg-neutral-900 dark:shadow-none dark:border dark:border-neutral-800">
+    <main className="max-w-md mx-auto my-4 glass-card rounded-[28px] overflow-hidden">
       {/* Tabs: Presupuesto | Ahorro */}
-      <div className="flex border-b border-neutral-200 dark:border-neutral-800">
+      <div className="flex p-2 gap-2 border-b border-transparent">
         <button
           type="button"
           onClick={() => setView('budget')}
-          className={`flex-1 px-4 py-2.5 text-sm font-semibold transition ${
+          className={`flex-1 px-4 py-2.5 text-sm font-semibold rounded-full transition ${
             view === 'budget'
-              ? 'bg-white text-emerald-700 border-b-2 border-emerald-500 dark:bg-neutral-900 dark:text-emerald-400'
-              : 'bg-neutral-50 text-neutral-500 hover:bg-neutral-100 dark:bg-neutral-900/60 dark:text-neutral-400 dark:hover:bg-neutral-800'
+              ? 'chip-active'
+              : 'glass text-neutral-500 hover:opacity-80 dark:text-neutral-400'
           }`}
         >
           📋 Presupuesto
@@ -351,10 +351,10 @@ export default function App() {
         <button
           type="button"
           onClick={() => setView('savings')}
-          className={`flex-1 px-4 py-2.5 text-sm font-semibold transition ${
+          className={`flex-1 px-4 py-2.5 text-sm font-semibold rounded-full transition ${
             view === 'savings'
-              ? 'bg-white text-emerald-700 border-b-2 border-emerald-500 dark:bg-neutral-900 dark:text-emerald-400'
-              : 'bg-neutral-50 text-neutral-500 hover:bg-neutral-100 dark:bg-neutral-900/60 dark:text-neutral-400 dark:hover:bg-neutral-800'
+              ? 'chip-active'
+              : 'glass text-neutral-500 hover:opacity-80 dark:text-neutral-400'
           }`}
         >
           💰 Ahorro
@@ -412,30 +412,33 @@ export default function App() {
                 )}
               </div>
 
-              <section className="divide-y divide-neutral-100 dark:divide-neutral-800">
-                {budget.monthExpenses.length === 0 && (
-                  <div className="px-4 py-8 text-center text-sm text-neutral-500 dark:text-neutral-400">
-                    Sin gastos todavía. Toque "+ Agregar Gasto".
-                  </div>
-                )}
-                {budget.monthExpenses.length > 0 && (
-                  <div className="px-3 py-2 border-b border-neutral-100 dark:border-neutral-800">
+              {budget.monthExpenses.length === 0 && (
+                <div className="px-4 py-8 text-center text-sm text-neutral-500 dark:text-neutral-400">
+                  Sin gastos todavía. Toque "+ Agregar Gasto".
+                </div>
+              )}
+              {budget.monthExpenses.length > 0 && (
+                <div className="px-3 py-2">
+                  <div className="glass rounded-full px-4 py-2 flex items-center gap-2">
+                    <svg className="w-4 h-4 opacity-40 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z"/></svg>
                     <input
                       type="search"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="🔍 Buscar gasto…"
-                      className="w-full px-3 py-1.5 text-sm bg-neutral-50 border border-neutral-200 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-100"
+                      placeholder="Buscar gasto…"
+                      className="w-full bg-transparent text-sm outline-none placeholder:opacity-50"
                     />
                   </div>
-                )}
-                {searchQuery.trim() !== '' && filteredExpenses.length === 0 && (
-                  <div className="px-4 py-6 text-center text-sm text-neutral-500 dark:text-neutral-400">
-                    Sin resultados para "{searchQuery.trim()}"
-                  </div>
-                )}
-                {!groupByCategory &&
-                  filteredExpenses.map((expense) => (
+                </div>
+              )}
+              {searchQuery.trim() !== '' && filteredExpenses.length === 0 && (
+                <div className="px-4 py-6 text-center text-sm text-neutral-500 dark:text-neutral-400">
+                  Sin resultados para "{searchQuery.trim()}"
+                </div>
+              )}
+              {!groupByCategory && (
+                <div className="px-3 pb-3 space-y-2">
+                  {filteredExpenses.map((expense) => (
                     <ExpenseRow
                       key={expense.id}
                       expense={expense}
@@ -447,36 +450,34 @@ export default function App() {
                       }}
                     />
                   ))}
-                {groupByCategory && (
-                  <>
-                    {activeMonth.status === 'abierto' && (
-                      <div className="border-b border-neutral-200 dark:border-neutral-800">
-                        <CategoryBars totals={categoryTotals(activeMonth.id, budget.monthExpenses)} budgets={monthBudgets} />
-                      </div>
-                    )}
-                    {CATEGORY_ORDER.map((cat) => {
-                      const catExpenses = filteredExpenses.filter((e) => e.category === cat);
-                      if (catExpenses.length === 0) return null;
-                      const totals = categoryTotals(activeMonth.id, filteredExpenses);
-                      return (
-                        <div key={cat} className="divide-y divide-neutral-100 dark:divide-neutral-800">
-                          <ExpenseGroup
-                            category={cat}
-                            expenses={catExpenses}
-                            total={totals.get(cat) ?? 0}
-                            onTogglePaid={activeMonth.status === 'abierto' ? handleTogglePaid : () => {}}
-                            onDelete={activeMonth.status === 'abierto' ? requestDelete : () => {}}
-                            onDuplicate={activeMonth.status === 'abierto' ? handleDuplicate : () => {}}
-                            onEdit={(exp) => {
-                              if (activeMonth.status === 'abierto') setEditing({ expense: exp, adding: false });
-                            }}
-                          />
-                        </div>
-                      );
-                    })}
-                  </>
-                )}
-              </section>
+                </div>
+              )}
+              {groupByCategory && (
+                <div className="px-3 pb-3 space-y-2">
+                  {activeMonth.status === 'abierto' && (
+                    <CategoryBars totals={categoryTotals(activeMonth.id, budget.monthExpenses)} budgets={monthBudgets} />
+                  )}
+                  {CATEGORY_ORDER.map((cat) => {
+                    const catExpenses = filteredExpenses.filter((e) => e.category === cat);
+                    if (catExpenses.length === 0) return null;
+                    const totals = categoryTotals(activeMonth.id, filteredExpenses);
+                    return (
+                      <ExpenseGroup
+                        key={cat}
+                        category={cat}
+                        expenses={catExpenses}
+                        total={totals.get(cat) ?? 0}
+                        onTogglePaid={activeMonth.status === 'abierto' ? handleTogglePaid : () => {}}
+                        onDelete={activeMonth.status === 'abierto' ? requestDelete : () => {}}
+                        onDuplicate={activeMonth.status === 'abierto' ? handleDuplicate : () => {}}
+                        onEdit={(exp) => {
+                          if (activeMonth.status === 'abierto') setEditing({ expense: exp, adding: false });
+                        }}
+                      />
+                    );
+                  })}
+                </div>
+              )}
             </>
           )}
 
@@ -497,21 +498,21 @@ export default function App() {
           )}
 
           {activeMonth && (
-            <footer className="px-4 py-3 bg-neutral-50 border-t border-neutral-200 dark:bg-neutral-900/60 dark:border-neutral-800">
+            <footer className="px-4 pb-5 space-y-2.5">
               {activeMonth.status === 'abierto' && (
                 <>
-                  <div className="w-full mb-2 flex gap-2">
+                  <div className="w-full flex gap-2">
                     <button
                       type="button"
                       onClick={() => setGroupByCategory(!groupByCategory)}
-                      className="flex-1 px-3 py-2 text-sm font-medium text-neutral-600 border border-neutral-300 rounded-md hover:bg-neutral-100 transition dark:text-neutral-400 dark:border-neutral-700 dark:hover:bg-neutral-800"
+                      className="flex-1 px-3 py-2.5 text-sm font-medium glass rounded-full hover:opacity-80 transition"
                     >
                       {groupByCategory ? '☰ Ver lista completa' : '🗂 Agrupar por categoría'}
                     </button>
                     <button
                       type="button"
                       onClick={openBudgetEditor}
-                      className="px-3 py-2 text-sm font-medium text-neutral-600 border border-neutral-300 rounded-md hover:bg-neutral-100 transition dark:text-neutral-400 dark:border-neutral-700 dark:hover:bg-neutral-800"
+                      className="px-3 py-2.5 text-sm font-medium glass rounded-full hover:opacity-80 transition"
                     >
                       ⚙ Presupuestos
                     </button>
@@ -519,7 +520,7 @@ export default function App() {
                   <button
                     type="button"
                     onClick={() => setEditing({ expense: null, adding: true })}
-                    className="w-full px-3 py-2 text-sm font-semibold bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition"
+                    className="w-full px-3 py-3 text-sm font-bold rounded-full btn-aura transition"
                   >
                     + Agregar Gasto
                   </button>
@@ -528,7 +529,7 @@ export default function App() {
                     onClick={() => setShowPhotoModal(true)}
                     disabled={!photoAllowed}
                     title={photoAllowed ? 'Cargar el mes con una foto de apuntes' : 'Este mes ya fue cargado con foto (se permite solo una vez)'}
-                    className="w-full mt-2 px-3 py-2 text-sm font-semibold bg-violet-600 text-white rounded-md hover:bg-violet-700 transition disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="w-full px-3 py-3 text-sm font-bold rounded-full btn-violet transition disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     📷 Foto de apuntes
                   </button>
@@ -541,7 +542,7 @@ export default function App() {
                     void budget.reopenMonth(activeMonth.id);
                     fdb.reopenMonth();
                   }}
-                  className="w-full px-3 py-2 text-sm font-medium text-amber-600 border border-amber-300 rounded-md hover:bg-amber-50 transition dark:text-amber-400 dark:border-amber-900 dark:hover:bg-amber-950/20"
+                  className="w-full px-3 py-2.5 text-sm font-semibold text-amber-600 glass rounded-full hover:opacity-80 transition dark:text-amber-400"
                 >
                   🔓 Reabrir mes
                 </button>
@@ -553,19 +554,19 @@ export default function App() {
                     void budget.closeMonth(activeMonth.id);
                     fdb.closeMonth();
                   }}
-                  className="w-full mt-2 px-3 py-2 text-sm font-medium text-neutral-500 border border-neutral-300 rounded-md hover:bg-neutral-100 transition dark:text-neutral-400 dark:border-neutral-700 dark:hover:bg-neutral-800"
+                  className="w-full px-3 py-2.5 text-sm font-semibold glass rounded-full hover:opacity-80 transition"
                 >
                   🔒 Cerrar mes
                 </button>
               )}
 
-              <div className="mt-3 flex items-center justify-center gap-2">
+              <div className="flex items-center justify-center gap-1.5 !mt-4">
                 <button
                   type="button"
                   onClick={() => setShowGuide(true)}
                   aria-label="Guía de uso"
                   title="Guía de uso"
-                  className="px-3 py-1.5 text-xs font-medium text-neutral-600 border border-neutral-300 rounded-md hover:bg-neutral-100 transition dark:text-neutral-400 dark:border-neutral-700 dark:hover:bg-neutral-800"
+                  className="px-3 py-1.5 text-xs font-medium glass rounded-full hover:opacity-80 transition"
                 >
                   ❓ Guía
                 </button>
@@ -574,10 +575,8 @@ export default function App() {
                   onClick={toggleSound}
                   aria-label={soundEnabled ? 'Silenciar sonidos' : 'Activar sonidos'}
                   title={soundEnabled ? 'Silenciar sonidos' : 'Activar sonidos'}
-                  className={`px-3 py-1.5 text-xs font-medium border rounded-md transition ${
-                    soundEnabled
-                      ? 'text-neutral-600 border-neutral-300 hover:bg-neutral-100 dark:text-neutral-400 dark:border-neutral-700 dark:hover:bg-neutral-800'
-                      : 'text-neutral-300 border-neutral-200 hover:bg-neutral-100 dark:text-neutral-600 dark:border-neutral-800 dark:hover:bg-neutral-800'
+                  className={`px-3 py-1.5 text-xs font-medium glass rounded-full transition ${
+                    soundEnabled ? 'hover:opacity-80' : 'opacity-50 hover:opacity-80'
                   }`}
                 >
                   {soundEnabled ? '🔊 Sonidos' : '🔇 Sonidos'}
@@ -585,12 +584,12 @@ export default function App() {
                 <button
                   type="button"
                   onClick={exportJSON}
-                  className="px-3 py-1.5 text-xs font-medium text-neutral-600 border border-neutral-300 rounded-md hover:bg-neutral-100 transition dark:text-neutral-400 dark:border-neutral-700 dark:hover:bg-neutral-800"
+                  className="px-3 py-1.5 text-xs font-medium glass rounded-full hover:opacity-80 transition"
                 >
-                  Exportar JSON
+                  Exportar
                 </button>
-                <label className="px-3 py-1.5 text-xs font-medium text-neutral-600 border border-neutral-300 rounded-md hover:bg-neutral-100 transition cursor-pointer dark:text-neutral-400 dark:border-neutral-700 dark:hover:bg-neutral-800">
-                  Importar JSON
+                <label className="px-3 py-1.5 text-xs font-medium glass rounded-full hover:opacity-80 transition cursor-pointer">
+                  Importar
                   <input type="file" accept="application/json" className="hidden" onChange={importJSON} />
                 </label>
               </div>
@@ -640,7 +639,7 @@ export default function App() {
               onClick={() => setShowSavingsGuide(true)}
               aria-label="Guía de ahorro"
               title="Guía de ahorro"
-              className="w-full px-3 py-1.5 text-xs font-medium text-neutral-600 border border-neutral-300 rounded-md hover:bg-neutral-100 transition dark:text-neutral-400 dark:border-neutral-700 dark:hover:bg-neutral-800"
+              className="w-full px-3 py-2.5 text-xs font-semibold glass rounded-full hover:opacity-80 transition"
             >
               ❓ Guía de ahorro
             </button>
@@ -672,12 +671,12 @@ export default function App() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <form
             onSubmit={confirmEstimatedAmount}
-            className="w-full max-w-sm bg-white rounded-xl shadow-xl p-4 space-y-3 dark:bg-neutral-900 dark:border dark:border-neutral-800"
+            className="w-full max-w-sm glass-card rounded-3xl p-4 space-y-3"
           >
             <div className="font-bold text-neutral-900 dark:text-neutral-100">Confirmar gasto</div>
 
             {/* Contexto completo del gasto por confirmar */}
-            <div className="bg-neutral-50 rounded-lg p-3 space-y-1 text-xs dark:bg-neutral-800/60">
+            <div className="glass rounded-xl p-3 space-y-1 text-xs">
               <div className="flex justify-between">
                 <span className="text-neutral-500 dark:text-neutral-400">Categoría</span>
                 <span className="font-semibold text-neutral-900 dark:text-neutral-100">
@@ -727,14 +726,14 @@ export default function App() {
             <div className="flex gap-2 pt-1">
               <button
                 type="submit"
-                className="flex-1 px-3 py-2 text-sm font-semibold bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition"
+                className="flex-1 px-3 py-2 text-sm font-semibold rounded-full btn-aura transition"
               >
                 Confirmar y marcar pagado
               </button>
               <button
                 type="button"
                 onClick={() => setConfirmAmount(null)}
-                className="px-3 py-2 text-sm font-medium text-neutral-600 border border-neutral-300 rounded-md hover:bg-neutral-100 transition dark:text-neutral-400 dark:border-neutral-700 dark:hover:bg-neutral-800"
+                className="px-3 py-2 text-sm font-medium glass rounded-full hover:opacity-80 transition"
               >
                 Cancelar
               </button>
@@ -745,7 +744,7 @@ export default function App() {
 
       {confirmDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-sm bg-white rounded-xl shadow-xl p-4 space-y-3 dark:bg-neutral-900 dark:border dark:border-neutral-800">
+          <div className="w-full max-w-sm glass-card rounded-3xl p-4 space-y-3">
             <div className="font-bold text-neutral-900 dark:text-neutral-100">¿Eliminar gasto?</div>
             <p className="text-sm text-neutral-600 dark:text-neutral-400">
               Se borrará <span className="font-semibold">{confirmDelete.name}</span>. Vas a poder
@@ -755,14 +754,14 @@ export default function App() {
               <button
                 type="button"
                 onClick={confirmExpenseDelete}
-                className="flex-1 px-3 py-2 text-sm font-semibold bg-red-600 text-white rounded-md hover:bg-red-700 transition"
+                className="flex-1 px-3 py-2 text-sm font-semibold bg-red-500 text-white rounded-full hover:bg-red-600 transition"
               >
                 Sí, borrar
               </button>
               <button
                 type="button"
                 onClick={() => setConfirmDelete(null)}
-                className="px-3 py-2 text-sm font-medium text-neutral-600 border border-neutral-300 rounded-md hover:bg-neutral-100 transition dark:text-neutral-400 dark:border-neutral-700 dark:hover:bg-neutral-800"
+                className="px-3 py-2 text-sm font-medium glass rounded-full hover:opacity-80 transition"
               >
                 Cancelar
               </button>
@@ -773,7 +772,7 @@ export default function App() {
 
       {confirmDeleteMonth && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-sm bg-white rounded-xl shadow-xl p-4 space-y-3 dark:bg-neutral-900 dark:border dark:border-neutral-800">
+          <div className="w-full max-w-sm glass-card rounded-3xl p-4 space-y-3">
             <div className="font-bold text-red-600 dark:text-red-400">¿Eliminar mes?</div>
             <p className="text-sm text-neutral-600 dark:text-neutral-400">
               Se borrará <span className="font-semibold">{confirmDeleteMonth.label}</span> y TODOS
@@ -783,14 +782,14 @@ export default function App() {
               <button
                 type="button"
                 onClick={confirmMonthDelete}
-                className="flex-1 px-3 py-2 text-sm font-semibold bg-red-600 text-white rounded-md hover:bg-red-700 transition"
+                className="flex-1 px-3 py-2 text-sm font-semibold bg-red-500 text-white rounded-full hover:bg-red-600 transition"
               >
                 Sí, borrar mes
               </button>
               <button
                 type="button"
                 onClick={() => setConfirmDeleteMonth(null)}
-                className="px-3 py-2 text-sm font-medium text-neutral-600 border border-neutral-300 rounded-md hover:bg-neutral-100 transition dark:text-neutral-400 dark:border-neutral-700 dark:hover:bg-neutral-800"
+                className="px-3 py-2 text-sm font-medium glass rounded-full hover:opacity-80 transition"
               >
                 Cancelar
               </button>
@@ -803,7 +802,7 @@ export default function App() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <form
             onSubmit={saveBudgets}
-            className="w-full max-w-sm bg-white rounded-xl shadow-xl p-4 space-y-3 dark:bg-neutral-900 dark:border dark:border-neutral-800"
+            className="w-full max-w-sm glass-card rounded-3xl p-4 space-y-3"
           >
             <div className="font-bold text-neutral-900 dark:text-neutral-100">Presupuestos del mes</div>
             <p className="text-xs text-neutral-500 dark:text-neutral-400">
@@ -827,14 +826,14 @@ export default function App() {
             <div className="flex gap-2 pt-1">
               <button
                 type="submit"
-                className="flex-1 px-3 py-2 text-sm font-semibold bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition"
+                className="flex-1 px-3 py-2 text-sm font-semibold rounded-full btn-aura transition"
               >
                 Guardar presupuestos
               </button>
               <button
                 type="button"
                 onClick={() => setEditingBudgets(false)}
-                className="px-3 py-2 text-sm font-medium text-neutral-600 border border-neutral-300 rounded-md hover:bg-neutral-100 transition dark:text-neutral-400 dark:border-neutral-700 dark:hover:bg-neutral-800"
+                className="px-3 py-2 text-sm font-medium glass rounded-full hover:opacity-80 transition"
               >
                 Cancelar
               </button>
@@ -847,14 +846,14 @@ export default function App() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <form
             onSubmit={saveMonth}
-            className="w-full max-w-sm bg-white rounded-xl shadow-xl p-4 space-y-3 dark:bg-neutral-900 dark:border dark:border-neutral-800"
+            className="w-full max-w-sm glass-card rounded-3xl p-4 space-y-3"
           >
             <div className="flex justify-between items-center">
               <div className="font-bold text-neutral-900 dark:text-neutral-100">Editar mes</div>
               <button
                 type="button"
                 onClick={() => setConfirmDeleteMonth(editingMonth.month)}
-                className="px-2 py-1 text-[11px] font-medium text-red-600 border border-red-300 rounded-md hover:bg-red-50 transition dark:text-red-400 dark:border-red-900 dark:hover:bg-red-950/20"
+                className="px-2 py-1 text-[11px] font-medium text-red-600 glass rounded-full hover:opacity-80 transition dark:text-red-400"
               >
                 🗑 Eliminar mes
               </button>
@@ -864,7 +863,7 @@ export default function App() {
               <input
                 value={editingMonth.label}
                 onChange={(e) => setEditingMonth({ ...editingMonth, label: e.target.value })}
-                className="w-full px-2 py-1.5 text-sm border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-100"
+                className="input-aura w-full px-3 py-2 text-sm"
               />
             </div>
             <div>
@@ -881,14 +880,14 @@ export default function App() {
             <div className="flex gap-2 pt-1">
               <button
                 type="submit"
-                className="flex-1 px-3 py-2 text-sm font-semibold bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition"
+                className="flex-1 px-3 py-2 text-sm font-semibold rounded-full btn-aura transition"
               >
                 Guardar
               </button>
               <button
                 type="button"
                 onClick={() => setEditingMonth(null)}
-                className="px-3 py-2 text-sm font-medium text-neutral-600 border border-neutral-300 rounded-md hover:bg-neutral-100 transition dark:text-neutral-400 dark:border-neutral-700 dark:hover:bg-neutral-800"
+                className="px-3 py-2 text-sm font-medium glass rounded-full hover:opacity-80 transition"
               >
                 Cancelar
               </button>

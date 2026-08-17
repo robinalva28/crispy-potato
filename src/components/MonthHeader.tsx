@@ -30,12 +30,12 @@ export function MonthHeader({ month, expenses, onEditMonth, dark, onToggleDark, 
   );
 
   return (
-    <header className="px-4 pt-4 pb-3 border-b border-neutral-200">
+    <header className="px-4 pt-4 pb-3">
       <div className="flex items-center justify-between gap-2">
-        <h1 className="text-lg font-bold tracking-tight uppercase dark:text-neutral-50">
+        <h1 className="text-xl font-bold tracking-tight uppercase dark:text-neutral-50">
           {month.label}
           {isClosed && (
-            <span className="ml-2 align-middle text-[10px] font-bold uppercase tracking-wide text-amber-600 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5 dark:text-amber-400 dark:bg-amber-950/20 dark:border-amber-900">
+            <span className="ml-2 align-middle text-[10px] font-bold uppercase tracking-wide text-amber-700 bg-amber-100/80 border border-amber-200/60 rounded-full px-2.5 py-1 dark:text-amber-400 dark:bg-amber-950/20 dark:border-amber-900">
               🔒 Cerrado
             </span>
           )}
@@ -45,61 +45,76 @@ export function MonthHeader({ month, expenses, onEditMonth, dark, onToggleDark, 
             type="button"
             onClick={onToggleDark}
             aria-label={dark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
-            className="w-9 h-9 shrink-0 rounded-full flex items-center justify-center text-base border border-neutral-300 hover:bg-neutral-100 transition dark:border-neutral-700 dark:hover:bg-neutral-800"
+            className="w-10 h-10 shrink-0 rounded-full glass flex items-center justify-center text-base hover:scale-105 transition"
           >
             {dark ? '☀️' : '🌙'}
           </button>
           <button
             type="button"
             onClick={onEditMonth}
-            className="text-[11px] font-medium text-neutral-500 border border-neutral-300 rounded-md px-2 py-1 hover:bg-neutral-100 transition dark:text-neutral-400 dark:border-neutral-700 dark:hover:bg-neutral-800"
+            className="text-[11px] font-semibold glass rounded-full px-3 py-2 hover:opacity-80 transition"
           >
             ✎ Editar mes
           </button>
         </div>
       </div>
 
-      <div className="mt-2 flex items-baseline gap-2">
-        <span className="text-sm text-neutral-600 dark:text-neutral-400">
-          Ingreso: <span className="font-bold dark:text-neutral-100">{fmtARS(month.income)}</span>
-        </span>
-      </div>
-
-      <div className="mt-1 flex items-baseline gap-2">
-        <span className="text-sm text-emerald-700 font-semibold dark:text-emerald-400">
-          Resto proy.: {fmtARS(rest, 0)} ({fmtPct(restPct)})
-        </span>
-      </div>
-
-      <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-        <div className="bg-neutral-50 rounded-lg px-2 py-2 dark:bg-neutral-800/60">
-          <div className="text-[11px] text-neutral-500 uppercase tracking-wide font-medium dark:text-neutral-400">Confirmado</div>
-          <div className="text-sm font-bold text-neutral-900 dark:text-neutral-100">{fmtARS(confirmed, 0)}</div>
+      {/* Hero: Ingreso + Resto proyectado */}
+      <div className="mt-3 rounded-3xl p-3.5 flex items-center justify-between"
+           style={{ background: 'linear-gradient(135deg, rgba(132,204,22,.16), rgba(16,185,129,.12))', border: '1px solid rgba(132,204,22,.25)' }}>
+        <div>
+          <div className="text-[10px] font-semibold uppercase tracking-widest opacity-50">
+            Ingreso · Resto proyectado
+          </div>
+          <div className="text-lg font-bold tabular-nums tracking-tight mt-0.5">
+            {fmtARS(month.income, 0)}
+          </div>
+          <div className="text-xs font-bold tabular-nums mt-0.5" style={{ color: '#4d7c0f' }}>
+            <span className="opacity-70 font-medium">Resto: </span>{fmtARS(rest, 0)}
+            <span className="text-xs font-semibold opacity-60"> ({fmtPct(restPct)})</span>
+          </div>
         </div>
-        <div className="bg-neutral-50 rounded-lg px-2 py-2 dark:bg-neutral-800/60">
-          <div className="text-[11px] text-neutral-500 uppercase tracking-wide font-medium dark:text-neutral-400">
+        <div className="w-11 h-11 rounded-full flex items-center justify-center text-lg shrink-0"
+             style={{ background: 'linear-gradient(135deg,#65a30d,#84cc16)', boxShadow: '0 8px 20px -8px rgba(132,204,22,.55)' }}>
+          🎯
+        </div>
+      </div>
+
+      {/* Stats: Confirmado / Proyectado / Resto */}
+      <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+        <div className="glass rounded-2xl px-2 py-2.5">
+          <div className="text-[10px] text-neutral-500 uppercase tracking-widest font-semibold dark:text-neutral-400">Confirmado</div>
+          <div className="text-[13px] font-extrabold tabular-nums mt-0.5 text-neutral-900 dark:text-neutral-100">{fmtARS(confirmed, 0)}</div>
+        </div>
+        <div className="glass rounded-2xl px-2 py-2.5">
+          <div className="text-[10px] text-neutral-500 uppercase tracking-widest font-semibold dark:text-neutral-400">
             Proyectado{hasEstimated ? ' ~' : ''}
           </div>
-          <div className="text-sm font-bold text-neutral-900 dark:text-neutral-100">{fmtARS(projected, 0)}</div>
+          <div className="text-[13px] font-extrabold tabular-nums mt-0.5 text-neutral-900 dark:text-neutral-100">{fmtARS(projected, 0)}</div>
         </div>
-        <div className="bg-emerald-50 rounded-lg px-2 py-2 dark:bg-emerald-950/40">
-          <div className="text-[11px] text-emerald-700 uppercase tracking-wide font-medium dark:text-emerald-400">Resto</div>
-          <div className="text-sm font-bold text-emerald-800 dark:text-emerald-300">{fmtARS(rest, 0)}</div>
+        <div className="rounded-2xl px-2 py-2.5"
+             style={{ background: 'linear-gradient(135deg, rgba(132,204,22,.14), rgba(16,185,129,.10))', border: '1px solid rgba(132,204,22,.22)' }}>
+          <div className="text-[10px] uppercase tracking-widest font-semibold" style={{ color: '#4d7c0f' }}>Resto</div>
+          <div className="text-[13px] font-extrabold tabular-nums mt-0.5" style={{ color: '#4d7c0f' }}>{fmtARS(rest, 0)}</div>
         </div>
       </div>
 
-      {/* Desglose pagado vs pendiente */}
-      <div className="mt-2 space-y-1">
-        <div className="flex items-center justify-between text-xs">
-          <span className="text-emerald-700 dark:text-emerald-400">✅ Pagado</span>
-          <span className="font-semibold text-neutral-700 dark:text-neutral-300">{fmtARS(paid, 0)}</span>
-        </div>
-        <div className="flex items-center justify-between text-xs">
-          <span className="text-amber-600 dark:text-amber-400">⏳ Pendiente</span>
-          <span className="font-semibold text-neutral-700 dark:text-neutral-300">{fmtARS(unpaid, 0)}</span>
-        </div>
-        {projected > 0 && (
-          <div className="flex h-1.5 bg-neutral-200 rounded-full overflow-hidden dark:bg-neutral-800">
+      {/* Desglose pagado vs pendiente: UNA SOLA LÍNEA (estilo nórdico) */}
+      {projected > 0 && (
+        <div className="mt-3">
+          <div className="flex items-center justify-between text-[11px] mb-1.5">
+            <div className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span>
+              <span className="text-neutral-500 font-medium dark:text-neutral-400">Pagado</span>
+              <span className="font-bold tabular-nums text-neutral-700 dark:text-neutral-200">{fmtARS(paid, 0)}</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block"></span>
+              <span className="text-neutral-500 font-medium dark:text-neutral-400">Pendiente</span>
+              <span className="font-bold tabular-nums text-neutral-700 dark:text-neutral-200">{fmtARS(unpaid, 0)}</span>
+            </div>
+          </div>
+          <div className="flex h-1.5 bg-white/60 rounded-full overflow-hidden dark:bg-white/10">
             <div
               className="h-full bg-emerald-500 transition-all"
               style={{ width: `${Math.min((paid / projected) * 100, 100)}%` }}
@@ -109,8 +124,8 @@ export function MonthHeader({ month, expenses, onEditMonth, dark, onToggleDark, 
               style={{ width: `${Math.min((unpaid / projected) * 100, 100)}%` }}
             />
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </header>
   );
 }

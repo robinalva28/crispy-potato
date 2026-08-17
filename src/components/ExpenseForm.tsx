@@ -132,13 +132,12 @@ export function ExpenseForm({ initial, onSave, onCancel, onGetLastUsdRate }: Pro
     });
   }
 
-  const inputCls =
-    'w-full px-2 py-1.5 text-sm border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-100';
+  const inputCls = 'input-aura w-full px-3 py-2 text-sm';
 
   return (
     <form
       onSubmit={handleSubmit}
-      className="px-4 py-3 space-y-3 border-b border-neutral-200 bg-neutral-50 dark:border-neutral-800 dark:bg-neutral-900/60"
+      className="px-4 py-3 space-y-3"
     >
       <div className="font-semibold text-sm text-neutral-700 dark:text-neutral-200">
         {initial ? 'Editar gasto' : 'Agregar gasto'}
@@ -228,7 +227,7 @@ export function ExpenseForm({ initial, onSave, onCancel, onGetLastUsdRate }: Pro
             disabled={scanning}
             title="Escanear factura"
             aria-label="Escanear factura"
-            className="w-8 h-8 rounded-md text-lg bg-violet-100 hover:bg-violet-200 text-violet-700 dark:bg-violet-900/40 dark:hover:bg-violet-900/60 dark:text-violet-300 transition disabled:opacity-40"
+            className="w-8 h-8 rounded-full text-lg bg-violet-100 hover:bg-violet-200 text-violet-700 dark:bg-violet-900/40 dark:hover:bg-violet-900/60 dark:text-violet-300 transition disabled:opacity-40"
           >
             {scanning ? '⏳' : '📷'}
           </button>
@@ -253,14 +252,14 @@ export function ExpenseForm({ initial, onSave, onCancel, onGetLastUsdRate }: Pro
       <div className="flex gap-2 pt-1">
         <button
           type="submit"
-          className="flex-1 px-3 py-2 text-sm font-semibold bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition"
+          className="flex-1 px-3 py-2.5 text-sm font-bold rounded-full btn-aura transition"
         >
           Guardar
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="px-3 py-2 text-sm font-medium text-neutral-600 border border-neutral-300 rounded-md hover:bg-neutral-100 transition dark:text-neutral-400 dark:border-neutral-700 dark:hover:bg-neutral-800"
+          className="px-3 py-2.5 text-sm font-medium glass rounded-full hover:opacity-80 transition"
         >
           Cancelar
         </button>
