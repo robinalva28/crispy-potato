@@ -1,4 +1,4 @@
-/**
+ /**
  * Worker de Cloudflare — Extracción de gastos con Llama 3.2 11B Vision Instruct.
  *
  * Modelo: @cf/meta/llama-3.2-11b-vision-instruct (el mejor VLM de visión de Workers AI).
@@ -47,19 +47,22 @@ Formato EXACTO de la respuesta:
 
 Ejemplo:
 {"name":"Supermercado DIA","amountArs":35899.75,"amountUsd":0,"dueDate":"2026-08-15","notes":"Factura B N° 1234-567890"}
+Otro ejemplo (ticket, el TOTAL es el último importe):
+{"name":"WENDYS","amountArs":27741,"amountUsd":0,"dueDate":"2026-08-26","notes":"TOTAL: $27.741,00"}
 
 REGLAS:
 1. name = el EMISOR/PROVEEDOR de la factura (razón social o comercio). NO pongas "Factura".
-2. amountArs = el MONTO TOTAL (NO subtotal, NO IVA, NO línea suelta).
+2. amountArs = SOLO el monto que dice EXACTAMENTE "TOTAL" (es SIEMPRE el último monto de la factura, aparece después del IVA). En tickets suele verse "TOTAL: $27.741,00". Si no encontrás la palabra TOTAL, usá el monto MÁS GRANDE de la factura. NUNCA uses "IVA", "SUBTOTAL", "IMPORTE" ni montos de ítems individuales.
 3. MONTOS ARGENTINOS: "$35.899,75" → 35899.75 (punto = MILES, coma = decimal). NUNCA uses puntos en la salida.
 4. Si la factura está en dólares ("USD", "u$d") → amountUsd = total y amountArs = 0.
 5. dueDate = fecha de emisión en AAAA-MM-DD. Si no hay, "".
 6. notes = detalle breve o número de factura (máx 80 caracteres).
 7. Si no se puede leer nada, devolvé {"name":"","amountArs":0,"amountUsd":0,"dueDate":"","notes":""}.`;
 
-      const STRICT_PROMPT = `Devolvé SOLO el objeto JSON de la factura, sin texto alrededor.
-Formato: {"name":"","amountArs":0,"amountUsd":0,"dueDate":"AAAA-MM-DD","notes":""}
-name = emisor. amountArs = MONTO TOTAL (sin puntos de miles). Si es USD, solo amountUsd.
+      const STRICT_PROMPT = `Devolvé SOLO el objeto JSON de la factura, sin texto, sin razonar, sin explicaciones.
+Formato EXACTO: {"name":"","amountArs":0,"amountUsd":0,"dueDate":"AAAA-MM-DD","notes":""}
+amountArs = el número MÁS GRANDE de la factura (es el TOTAL). NUNCA uses IVA, SUBTOTAL ni montos de ítems.
+Si es USD, solo amountUsd.
 Si no se puede leer nada, devolvé {"name":"","amountArs":0,"amountUsd":0,"dueDate":"","notes":""}.`;
 
       const MODEL = '@cf/meta/llama-3.2-11b-vision-instruct';
@@ -98,12 +101,8 @@ Si no se puede leer nada, devolvé {"name":"","amountArs":0,"amountUsd":0,"dueDa
           }
         }
         text = extractText(resp);
-
-        // Si el modelo devolvió markdown/texto en vez de JSON, reintentar estricto.
-        if (!hasJson(text)) {
-          resp = await runModel(STRICT_PROMPT);
-          text = extractText(resp);
-        }
+        // Para facturas NO reintentamos: la primera pasada suele ser más precisa
+        // (el reintento estricto degrada y pierde proveedor/monto total).
       } catch (err) {
         return new Response(JSON.stringify({ error: String(err?.message ?? err) }), {
           status: 500,
