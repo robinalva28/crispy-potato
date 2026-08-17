@@ -37,7 +37,11 @@ export async function extractInvoice(file: File): Promise<InvoiceData> {
     throw new Error(`Fallo al leer la factura (${res.status}): ${detail.slice(0, 300)}`);
   }
   const data = (await res.json()) as Record<string, unknown>;
-  const text = typeof data.description === 'string' ? data.description : JSON.stringify(data);
+  // description puede venir como string (JSON) o como objeto directo
+  const text =
+    typeof data.description === 'string'
+      ? data.description
+      : JSON.stringify(data.description ?? data);
   const objMatch = text.match(/\{[\s\S]*\}/);
   if (!objMatch) throw new Error('El modelo no devolvió JSON de la factura');
   let parsed: Record<string, unknown>;
