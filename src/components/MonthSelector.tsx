@@ -76,7 +76,7 @@ export function MonthSelector({ months, activeMonthId, onSelect, onCreate }: Pro
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        className="flex items-center gap-2 overflow-x-auto"
+        className="months-scroll items-center"
       >
         {/* Botón sticky con efecto glass: blur suave sobre los meses al scrollear */}
         <div

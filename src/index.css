@@ -131,4 +131,60 @@
     border-color: rgba(132, 204, 22, 0.6);
     box-shadow: 0 0 0 3px rgba(132, 204, 22, 0.18);
   }
+
+  /* Sticky header transformable: hero completo → compacto al scrollear */
+  .sticky-wrap {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+  }
+
+  /* Fondo glass del sticky (blur sobre el contenido al scrollear) */
+  .glass-bg-layer {
+    background: var(--glass-bg);
+    backdrop-filter: blur(28px) saturate(1.5);
+    -webkit-backdrop-filter: blur(28px) saturate(1.5);
+    border-bottom: 1px solid var(--glass-border);
+    box-shadow: 0 16px 40px -20px rgba(0, 0, 0, 0.25);
+  }
+  .dark .glass-bg-layer {
+    background: rgba(14, 16, 18, 0.72);
+    box-shadow: 0 16px 40px -20px rgba(0, 0, 0, 0.55);
+  }
+
+  /* Bloque expandible: hero+stats+barra se colapsan con transición suave */
+  .expandable {
+    max-height: 480px;
+    opacity: 1;
+    overflow: hidden;
+    transition:
+      max-height 0.45s cubic-bezier(0.32, 0.72, 0, 1),
+      opacity 0.35s ease,
+      margin 0.45s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+  .expandable.collapsed {
+    max-height: 0;
+    opacity: 0;
+    margin-top: 0;
+  }
+
+  /* Scroll horizontal cómodo de meses (sin scroll vertical, ocupa su espacio) */
+  .months-scroll {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 2px;
+  }
+  .months-scroll::-webkit-scrollbar {
+    height: 4px;
+  }
+  .months-scroll::-webkit-scrollbar-thumb {
+    background: rgba(128, 128, 128, 0.25);
+    border-radius: 9999px;
+  }
+  .months-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
 }

@@ -82,11 +82,25 @@ export default function App() {
   const [showPhotoModal, setShowPhotoModal] = useState(false);
   const [confirmDeleteMonth, setConfirmDeleteMonth] = useState<Month | null>(null);
   const expenseFormRef = useRef<HTMLDivElement | null>(null);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const [stickyCollapsed, setStickyCollapsed] = useState(false);
 
   const { activeMonth } = budget;
   const filteredExpenses = filterExpensesByText(budget.monthExpenses, searchQuery);
   const monthBudgets = activeMonth?.categoryBudgets ?? {};
   const photoAllowed = canUsePhoto(activeMonth);
+
+  // Header transformable: cuando el sentinel sale de la vista, el sticky quedó pegado arriba
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setStickyCollapsed(!entry.isIntersecting),
+      { threshold: [0] }
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [activeMonth]);
 
   // Guía de uso: aparece automáticamente la primera vez que se abre la app
   useEffect(() => {
@@ -334,47 +348,41 @@ export default function App() {
   }
 
   return (
-    <main className="max-w-md mx-auto my-4 glass-card rounded-[28px] overflow-hidden">
-      {/* Tabs: Presupuesto | Ahorro */}
-      <div className="flex p-2 gap-2 border-b border-transparent">
-        <button
-          type="button"
-          onClick={() => setView('budget')}
-          className={`flex-1 px-4 py-2.5 text-sm font-semibold rounded-full transition ${
-            view === 'budget'
-              ? 'chip-active'
-              : 'glass text-neutral-500 hover:opacity-80 dark:text-neutral-400'
-          }`}
-        >
-          📋 Presupuesto
-        </button>
-        <button
-          type="button"
-          onClick={() => setView('savings')}
-          className={`flex-1 px-4 py-2.5 text-sm font-semibold rounded-full transition ${
-            view === 'savings'
-              ? 'chip-active'
-              : 'glass text-neutral-500 hover:opacity-80 dark:text-neutral-400'
-          }`}
-        >
-          💰 Ahorro
-        </button>
-      </div>
+    <main className="max-w-md mx-auto my-4 glass-card rounded-[28px]">
+      {/* Sentinel: cuando sale de la vista, el sticky quedó pegado arriba */}
+      <div ref={sentinelRef} className="h-px" />
 
-      {view === 'budget' && (
-        <>
-          <MonthSelector
-            months={budget.months}
-            activeMonthId={budget.activeMonthId}
-            onSelect={budget.setActiveMonthId}
-            onCreate={async (input) => {
-              await budget.createMonth(input);
-              fdb.success();
-            }}
-          />
+      {/* Sticky transformable: tabs + mes + meses */}
+      <div className="sticky-wrap">
+        <div className="glass-bg-layer px-4 pt-3 pb-2">
+          {/* Tabs: Presupuesto | Ahorro */}
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setView('budget')}
+              className={`flex-1 px-4 py-2 text-xs font-semibold rounded-full transition ${
+                view === 'budget'
+                  ? 'chip-active'
+                  : 'glass text-neutral-500 hover:opacity-80 dark:text-neutral-400'
+              }`}
+            >
+              📋 Presupuesto
+            </button>
+            <button
+              type="button"
+              onClick={() => setView('savings')}
+              className={`flex-1 px-4 py-2 text-xs font-semibold rounded-full transition ${
+                view === 'savings'
+                  ? 'chip-active'
+                  : 'glass text-neutral-500 hover:opacity-80 dark:text-neutral-400'
+              }`}
+            >
+              💰 Ahorro
+            </button>
+          </div>
 
-          {activeMonth && (
-            <>
+          {view === 'budget' && activeMonth && (
+            <div className="mt-3">
               <MonthHeader
                 month={activeMonth}
                 expenses={budget.monthExpenses}
@@ -390,7 +398,31 @@ export default function App() {
                 dark={dark}
                 onToggleDark={toggle}
                 isClosed={activeMonth.status === 'cerrado'}
+                collapsed={stickyCollapsed}
               />
+            </div>
+          )}
+
+          {view === 'budget' && (
+            <div className="mt-3">
+              <MonthSelector
+                months={budget.months}
+                activeMonthId={budget.activeMonthId}
+                onSelect={budget.setActiveMonthId}
+                onCreate={async (input) => {
+                  await budget.createMonth(input);
+                  fdb.success();
+                }}
+              />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {view === 'budget' && (
+        <>
+          {activeMonth && (
+            <>
 
               <div ref={expenseFormRef}>
                 {activeMonth.status === 'abierto' && editing && editing.expense !== null && (
