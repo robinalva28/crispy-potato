@@ -3,6 +3,7 @@ import type { Category, Expense } from '../types.ts';
 import { parseLocalNumber, formatInputNumber } from '../utils/format.ts';
 import { MoneyInput } from './MoneyInput.tsx';
 import { extractInvoice } from '../utils/invoiceExtract.ts';
+import { inferCategory } from '../utils/photoExtract.ts';
 
 const CATEGORIES: Category[] = [
   'vivienda', 'servicios', 'tarjetas', 'eventos', 'salud', 'impuestos', 'otros',
@@ -72,10 +73,13 @@ export function ExpenseForm({ initial, onSave, onCancel, onGetLastUsdRate }: Pro
       setForm((f) => ({
         ...f,
         name: inv.name || f.name,
+        // La categoría se infiere del proveedor cuando sea posible
+        category: inv.name ? inferCategory(inv.name) : f.category,
         amountArs: inv.amountArs != null ? formatInputNumber(inv.amountArs) : f.amountArs,
         amountUsd: inv.amountUsd > 0 ? formatInputNumber(inv.amountUsd) : f.amountUsd,
         dueDate: inv.dueDate || f.dueDate,
-        notes: inv.notes ? (f.notes ? `${f.notes} — ${inv.notes}` : inv.notes) : f.notes,
+        // Notes NO se rellenan con el detalle del escaneo (ya no son necesarias)
+        notes: f.notes,
       }));
     } catch (err) {
       setScanError(err instanceof Error ? err.message : 'No se pudo leer la factura');

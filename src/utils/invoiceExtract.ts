@@ -20,6 +20,24 @@ function toNum(v: unknown): number {
   return 0;
 }
 
+/** Si el modelo razonó sin devolver JSON, extrae proveedor y el monto más grande del texto. */
+function parseFromProse(text: string): Record<string, unknown> {
+  const nameMatch = text.match(/proveedor es ([^\n.,]+)/i)
+    ?? text.match(/emisor[:\s]+([^\n.,]+)/i)
+    ?? text.match(/^([A-ZÁ-Ú0-9][A-ZÁ-Ú0-9 .'-]{2,})$/m);
+  const amounts = (text.match(/\d[\d.,]*/g) ?? [])
+    .map((s) => Number(s.replace(/\./g, '').replace(',', '.')))
+    .filter((n) => n > 0 && Number.isFinite(n));
+  const biggest = amounts.length ? Math.max(...amounts) : 0;
+  return {
+    name: (nameMatch?.[1] ?? '').trim(),
+    amountArs: biggest,
+    amountUsd: 0,
+    dueDate: '',
+    notes: '',
+  };
+}
+
 export async function extractInvoice(file: File): Promise<InvoiceData> {
   const base64 = await fileToBase64(file);
   let res: Response;
@@ -37,18 +55,23 @@ export async function extractInvoice(file: File): Promise<InvoiceData> {
     throw new Error(`Fallo al leer la factura (${res.status}): ${detail.slice(0, 300)}`);
   }
   const data = (await res.json()) as Record<string, unknown>;
-  // description puede venir como string (JSON) o como objeto directo
+  // description puede venir como string (JSON + posible texto razonado) o como objeto directo
   const text =
     typeof data.description === 'string'
       ? data.description
       : JSON.stringify(data.description ?? data);
+  // Primero intentar extraer el objeto JSON ({...}) si está presente
   const objMatch = text.match(/\{[\s\S]*\}/);
-  if (!objMatch) throw new Error('El modelo no devolvió JSON de la factura');
   let parsed: Record<string, unknown>;
-  try {
-    parsed = JSON.parse(objMatch[0]) as Record<string, unknown>;
-  } catch {
-    throw new Error('No se pudo interpretar la factura');
+  if (objMatch) {
+    try {
+      parsed = JSON.parse(objMatch[0]) as Record<string, unknown>;
+    } catch {
+      parsed = parseFromProse(text);
+    }
+  } else {
+    // Sin JSON: parsear el texto razonado (proveedor + monto más grande)
+    parsed = parseFromProse(text);
   }
   const name = typeof parsed.name === 'string' ? parsed.name.trim() : '';
   const amountArs = toNum(parsed.amountArs) > 0 ? toNum(parsed.amountArs) : null;

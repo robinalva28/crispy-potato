@@ -56,7 +56,7 @@ REGLAS:
 3. MONTOS ARGENTINOS: "$35.899,75" → 35899.75 (punto = MILES, coma = decimal). NUNCA uses puntos en la salida.
 4. Si la factura está en dólares ("USD", "u$d") → amountUsd = total y amountArs = 0.
 5. dueDate = fecha de emisión en AAAA-MM-DD. Si no hay, "".
-6. notes = detalle breve o número de factura (máx 80 caracteres).
+6. notes = SIEMPRE "" (vacío). NO rellenes notas con detalle de la compra ni número de factura.
 7. Si no se puede leer nada, devolvé {"name":"","amountArs":0,"amountUsd":0,"dueDate":"","notes":""}.`;
 
       const STRICT_PROMPT = `Devolvé SOLO el objeto JSON de la factura, sin texto, sin razonar, sin explicaciones.
