@@ -154,7 +154,7 @@ export function SavingsCalculator({ goals, months, expenses, onAdd, onEdit, onDe
 
       {/* Confirmación borrado */}
       {confirmDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+        <div className="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="w-full max-w-sm glass-card rounded-3xl p-4 space-y-3">
             <div className="font-bold text-neutral-900 dark:text-neutral-100">¿Eliminar segmento?</div>
             <p className="text-sm text-neutral-600 dark:text-neutral-400">

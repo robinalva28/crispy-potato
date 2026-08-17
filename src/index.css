@@ -10,10 +10,10 @@
   color-scheme: light;
 
   /* Glass variables (modo claro) */
-  --glass-bg: rgba(255, 255, 255, 0.62);
-  --glass-border: rgba(255, 255, 255, 0.65);
-  --glass-text: rgba(28, 32, 30, 0.85);
-  --glass-strong-bg: rgba(255, 255, 255, 0.55);
+  --glass-bg: rgba(255, 255, 255, 0.78);
+  --glass-border: rgba(255, 255, 255, 0.75);
+  --glass-text: rgba(28, 32, 30, 0.9);
+  --glass-strong-bg: rgba(255, 255, 255, 0.72);
 
   /* Acentos Aura */
   --accent-lime: #84cc16;
@@ -25,10 +25,10 @@
   color-scheme: dark;
 
   /* Glass variables (modo oscuro) */
-  --glass-bg: rgba(26, 28, 31, 0.6);
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-text: rgba(230, 235, 230, 0.9);
-  --glass-strong-bg: rgba(26, 28, 31, 0.6);
+  --glass-bg: rgba(26, 28, 31, 0.78);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-text: rgba(230, 235, 230, 0.92);
+  --glass-strong-bg: rgba(26, 28, 31, 0.78);
 }
 
 @layer base {
@@ -81,6 +81,16 @@
     box-shadow:
       0 24px 60px -24px rgba(0, 0, 0, 0.6),
       0 8px 24px -12px rgba(0, 0, 0, 0.4);
+  }
+
+  /* Modales y overlays: fondo más opaco para que no se filtre el contenido de abajo */
+  .modal-overlay {
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+  .dark .modal-overlay {
+    background: rgba(0, 0, 0, 0.7);
   }
 
   /* Chip de mes activo + botón "Crear Mes" */

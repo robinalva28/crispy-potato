@@ -70,10 +70,12 @@ export function MonthSelector({ months, activeMonthId, onSelect, onCreate }: Pro
     <div className="px-3 py-2">
       {/* Chips de meses: scroll horizontal suave, sin scroll vertical */}
       <div ref={scrollRef} className="months-scroll items-center">
+        {/* Botón fijo a la izquierda: queda pegado al scrollear los meses */}
         <button
           type="button"
           onClick={openModal}
-          className="shrink-0 px-3.5 py-2 text-xs font-bold rounded-full chip-active transition-all duration-300 ease-out whitespace-nowrap"
+          className="sticky left-0 z-10 shrink-0 px-3.5 py-2 text-xs font-bold rounded-full chip-active transition-all duration-300 ease-out whitespace-nowrap"
+          style={{ boxShadow: '0 8px 20px -8px rgba(132,204,22,.6), 0 0 0 6px var(--glass-bg)' }}
         >
           + Crear Mes
         </button>
@@ -96,7 +98,7 @@ export function MonthSelector({ months, activeMonthId, onSelect, onCreate }: Pro
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+        <div className="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4">
           <form
             onSubmit={handleCreate}
             className="w-full max-w-sm glass-card rounded-3xl p-4 space-y-3"
