@@ -20,6 +20,10 @@ export function PhotoExpenseModal({ month, onSave, onClose }: Props) {
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
   const fileRef = useRef<HTMLInputElement | null>(null);
+  // Texto crudo por fila (sin formateo en vivo) para no cortar la escritura de montos
+  const [arsTexts, setArsTexts] = useState<string[]>([]);
+  const [usdTexts, setUsdTexts] = useState<string[]>([]);
+  const [rateTexts, setRateTexts] = useState<string[]>([]);
 
   useEffect(() => {
     if (!canUsePhoto(month)) {
@@ -42,6 +46,10 @@ export function PhotoExpenseModal({ month, onSave, onClose }: Props) {
         return;
       }
       setDrafts(result);
+      // Inicializa el texto crudo de los montos (sin formateo en vivo)
+      setArsTexts(result.map((d) => (d.amountArs != null ? formatInputNumber(d.amountArs) : '')));
+      setUsdTexts(result.map((d) => (d.amountUsd > 0 ? formatInputNumber(d.amountUsd) : '')));
+      setRateTexts(result.map((d) => (d.usdRate > 0 ? formatInputNumber(d.usdRate) : '')));
       setPhase('review');
     } catch (err) {
       setError(`Error al procesar la foto: ${err instanceof Error ? err.message : String(err)}`);
@@ -57,6 +65,9 @@ export function PhotoExpenseModal({ month, onSave, onClose }: Props) {
 
   function removeDraft(index: number) {
     setDrafts((prev) => prev.filter((_, i) => i !== index));
+    setArsTexts((prev) => prev.filter((_, i) => i !== index));
+    setUsdTexts((prev) => prev.filter((_, i) => i !== index));
+    setRateTexts((prev) => prev.filter((_, i) => i !== index));
   }
 
   function addEmptyRow() {
@@ -64,14 +75,30 @@ export function PhotoExpenseModal({ month, onSave, onClose }: Props) {
       ...prev,
       { name: '', category: 'otros', amountArs: null, amountUsd: 0, usdRate: 0, notes: '' },
     ]);
+    setArsTexts((prev) => [...prev, '']);
+    setUsdTexts((prev) => [...prev, '']);
+    setRateTexts((prev) => [...prev, '']);
+  }
+
+  /** Parsear un texto crudo a number (null si vacío). */
+  function parseText(v: string): number | null {
+    if (v.trim() === '') return null;
+    return parseLocalNumber(v);
   }
 
   async function handleSave() {
     setSaving(true);
     try {
+      // Construye los drafts finales desde los textos crudos (parseo al guardar)
+      const finalDrafts = drafts.map((d, i) => ({
+        ...d,
+        amountArs: parseText(arsTexts[i]),
+        amountUsd: parseText(usdTexts[i]) ?? 0,
+        usdRate: parseText(rateTexts[i]) ?? 0,
+      }));
       // Aprendizaje: guarda los nombres/categorías corregidos para próximas fotos
-      saveCorrections(drafts);
-      await onSave(drafts, month.id);
+      saveCorrections(finalDrafts);
+      await onSave(finalDrafts, month.id);
       onClose();
     } catch {
       setError('No se pudo guardar. Intentá de nuevo.');
@@ -80,9 +107,10 @@ export function PhotoExpenseModal({ month, onSave, onClose }: Props) {
     }
   }
 
-  const total = drafts.reduce((sum, d) => sum + (d.amountArs ?? 0) + (d.amountUsd * d.usdRate), 0);
+  // Total y validación desde los textos crudos (sin depender del formateo en vivo)
+  const total = drafts.reduce((sum, _d, i) => sum + (parseText(arsTexts[i]) ?? 0) + (parseText(usdTexts[i]) ?? 0) * (parseText(rateTexts[i]) ?? 0), 0);
   // Un gasto con USD pero sin cotización no puede guardarse (la cotización se pide al validar).
-  const hasMissingRate = drafts.some((d) => d.amountUsd > 0 && d.usdRate <= 0);
+  const hasMissingRate = drafts.some((_d, i) => (parseText(usdTexts[i]) ?? 0) > 0 && (parseText(rateTexts[i]) ?? 0) <= 0);
 
   const inputCls = 'input-aura w-full px-3 py-2 text-sm';
 
@@ -193,12 +221,11 @@ export function PhotoExpenseModal({ month, onSave, onClose }: Props) {
                       </label>
                       <MoneyInput
                         symbol="$"
-                        value={d.amountArs != null ? formatInputNumber(d.amountArs) : ''}
-                        onChange={(v) =>
-                          updateDraft(i, {
-                            amountArs: v === '' ? null : parseLocalNumber(v),
-                          })
-                        }
+                        value={arsTexts[i] ?? ''}
+                        onChange={(v) => {
+                          setArsTexts((prev) => prev.map((t, j) => (j === i ? v : t)));
+                          updateDraft(i, { amountArs: parseText(v) });
+                        }}
                         placeholder="450.000"
                       />
                     </div>
@@ -208,27 +235,33 @@ export function PhotoExpenseModal({ month, onSave, onClose }: Props) {
                       </label>
                       <MoneyInput
                         symbol="u$d"
-                        value={d.amountUsd > 0 ? formatInputNumber(d.amountUsd) : ''}
-                        onChange={(v) => updateDraft(i, { amountUsd: parseLocalNumber(v) || 0 })}
+                        value={usdTexts[i] ?? ''}
+                        onChange={(v) => {
+                          setUsdTexts((prev) => prev.map((t, j) => (j === i ? v : t)));
+                          updateDraft(i, { amountUsd: parseText(v) ?? 0 });
+                        }}
                         placeholder="10,90"
                       />
                     </div>
                   </div>
 
                   {/* Cotización USD (obligatoria si hay USD — el modelo NO la adivina) */}
-                  {d.amountUsd > 0 && (
+                  {(parseText(usdTexts[i]) ?? 0) > 0 && (
                     <div>
                       <label className="block text-[10px] uppercase tracking-wide text-amber-600 font-semibold mb-0.5 dark:text-amber-400">
                         Cotización USD ($ por 1 USD) *
                       </label>
                       <MoneyInput
                         symbol="$"
-                        value={d.usdRate > 0 ? formatInputNumber(d.usdRate) : ''}
-                        onChange={(v) => updateDraft(i, { usdRate: parseLocalNumber(v) || 0 })}
+                        value={rateTexts[i] ?? ''}
+                        onChange={(v) => {
+                          setRateTexts((prev) => prev.map((t, j) => (j === i ? v : t)));
+                          updateDraft(i, { usdRate: parseText(v) ?? 0 });
+                        }}
                         placeholder="1.500"
-                        required={d.amountUsd > 0}
+                        required={(parseText(usdTexts[i]) ?? 0) > 0}
                       />
-                      {d.usdRate <= 0 && (
+                      {(parseText(rateTexts[i]) ?? 0) <= 0 && (parseText(usdTexts[i]) ?? 0) > 0 && (
                         <p className="text-[10px] text-amber-600 dark:text-amber-400 mt-0.5">
                           Ingresá la cotización para calcular el total en pesos
                         </p>

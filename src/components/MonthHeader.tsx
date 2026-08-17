@@ -16,11 +16,9 @@ interface Props {
   dark: boolean;
   onToggleDark: () => void;
   isClosed: boolean;
-  /** true cuando el sticky quedó pegado: colapsa el hero con transición suave */
-  collapsed: boolean;
 }
 
-export function MonthHeader({ month, expenses, onEditMonth, dark, onToggleDark, isClosed, collapsed }: Props) {
+export function MonthHeader({ month, expenses, onEditMonth, dark, onToggleDark, isClosed }: Props) {
   const confirmed = confirmedTotal(month.id, expenses);
   const projected = projectedTotal(month.id, expenses);
   const rest = remaining(month, expenses);
@@ -75,9 +73,8 @@ export function MonthHeader({ month, expenses, onEditMonth, dark, onToggleDark, 
         </div>
       </div>
 
-      {/* Bloque expandible: hero + stats + barra (colapsa al quedar pegado) */}
-      <div className={`expandable mt-3 space-y-3 ${collapsed ? 'collapsed' : ''}`}>
-        {/* Hero: Ingreso + Resto proyectado */}
+      {/* Hero: Ingreso + Resto proyectado */}
+      <div className="mt-3 space-y-3">
         <div
           className="rounded-3xl p-3.5 flex items-center justify-between"
           style={{ background: 'linear-gradient(135deg, rgba(132,204,22,.16), rgba(16,185,129,.12))', border: '1px solid rgba(132,204,22,.25)' }}

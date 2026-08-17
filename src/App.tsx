@@ -82,25 +82,11 @@ export default function App() {
   const [showPhotoModal, setShowPhotoModal] = useState(false);
   const [confirmDeleteMonth, setConfirmDeleteMonth] = useState<Month | null>(null);
   const expenseFormRef = useRef<HTMLDivElement | null>(null);
-  const sentinelRef = useRef<HTMLDivElement | null>(null);
-  const [stickyCollapsed, setStickyCollapsed] = useState(false);
 
   const { activeMonth } = budget;
   const filteredExpenses = filterExpensesByText(budget.monthExpenses, searchQuery);
   const monthBudgets = activeMonth?.categoryBudgets ?? {};
   const photoAllowed = canUsePhoto(activeMonth);
-
-  // Header transformable: cuando el sentinel sale de la vista, el sticky quedó pegado arriba
-  useEffect(() => {
-    const sentinel = sentinelRef.current;
-    if (!sentinel) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => setStickyCollapsed(!entry.isIntersecting),
-      { threshold: [0] }
-    );
-    observer.observe(sentinel);
-    return () => observer.disconnect();
-  }, [activeMonth]);
 
   // Guía de uso: aparece automáticamente la primera vez que se abre la app
   useEffect(() => {
@@ -349,10 +335,7 @@ export default function App() {
 
   return (
     <main className="max-w-md mx-auto my-4 glass-card rounded-[28px]">
-      {/* Sentinel: cuando sale de la vista, el sticky quedó pegado arriba */}
-      <div ref={sentinelRef} className="h-px" />
-
-      {/* Sticky transformable: tabs + mes + meses */}
+      {/* Sticky: tabs + chips de meses (sin el hero, así no hay saltos al scrollear) */}
       <div className="sticky-wrap">
         <div className="glass-bg-layer px-4 pt-3 pb-2">
           {/* Tabs: Presupuesto | Ahorro */}
@@ -381,28 +364,6 @@ export default function App() {
             </button>
           </div>
 
-          {view === 'budget' && activeMonth && (
-            <div className="mt-3">
-              <MonthHeader
-                month={activeMonth}
-                expenses={budget.monthExpenses}
-                onEditMonth={() => {
-                  if (activeMonth.status === 'abierto') {
-                    setEditingMonth({
-                      month: activeMonth,
-                      label: activeMonth.label,
-                      income: formatInputNumber(activeMonth.income),
-                    });
-                  }
-                }}
-                dark={dark}
-                onToggleDark={toggle}
-                isClosed={activeMonth.status === 'cerrado'}
-                collapsed={stickyCollapsed}
-              />
-            </div>
-          )}
-
           {view === 'budget' && (
             <div className="mt-3">
               <MonthSelector
@@ -423,6 +384,25 @@ export default function App() {
         <>
           {activeMonth && (
             <>
+              {/* Hero del mes: contenido normal (no sticky), sin saltos al scrollear */}
+              <div className="px-4 pt-3 pb-1">
+                <MonthHeader
+                  month={activeMonth}
+                  expenses={budget.monthExpenses}
+                  onEditMonth={() => {
+                    if (activeMonth.status === 'abierto') {
+                      setEditingMonth({
+                        month: activeMonth,
+                        label: activeMonth.label,
+                        income: formatInputNumber(activeMonth.income),
+                      });
+                    }
+                  }}
+                  dark={dark}
+                  onToggleDark={toggle}
+                  isClosed={activeMonth.status === 'cerrado'}
+                />
+              </div>
 
               <div ref={expenseFormRef}>
                 {activeMonth.status === 'abierto' && editing && editing.expense !== null && (
