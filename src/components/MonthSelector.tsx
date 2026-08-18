@@ -74,7 +74,7 @@ export function MonthSelector({ months, activeMonthId, onSelect, onCreate }: Pro
         <button
           type="button"
           onClick={openModal}
-          className="sticky left-0 z-10 shrink-0 px-3.5 py-2 text-xs font-bold rounded-full chip-active transition-all duration-300 ease-out whitespace-nowrap"
+          className="sticky left-0 z-10 shrink-0 min-h-[44px] px-4 text-xs font-bold rounded-full chip-active transition-all duration-300 ease-out whitespace-nowrap"
           style={{ boxShadow: '0 8px 20px -8px rgba(132,204,22,.6), 0 0 0 6px var(--glass-bg)' }}
         >
           + Mes
@@ -85,7 +85,7 @@ export function MonthSelector({ months, activeMonthId, onSelect, onCreate }: Pro
             type="button"
             data-month-id={m.id}
             onClick={() => onSelect(m.id)}
-            className={`shrink-0 px-3.5 py-2 text-xs font-semibold rounded-full transition ${
+            className={`shrink-0 min-h-[44px] px-4 text-xs font-semibold rounded-full transition ${
               m.id === activeMonthId
                 ? 'chip-active'
                 : 'glass text-neutral-600 hover:opacity-80 dark:text-neutral-300'

@@ -5,7 +5,6 @@ import { useBudget, monthLabelFromId } from './hooks/useBudget.ts';
 import { useSavings } from './hooks/useSavings.ts';
 import { useDarkMode } from './hooks/useDarkMode.ts';
 import { MonthSelector } from './components/MonthSelector.tsx';
-import { MonthHeader } from './components/MonthHeader.tsx';
 import { ExpenseRow } from './components/ExpenseRow.tsx';
 import { ExpenseGroup } from './components/ExpenseGroup.tsx';
 import { CategoryBars } from './components/CategoryBars.tsx';
@@ -32,6 +31,8 @@ import {
   confirmedTotal,
   projectedTotal,
   remaining,
+  paidTotal,
+  unpaidTotal,
 } from './utils/money.ts';
 import { feedback as playFeedback } from './utils/feedback.ts';
 import {
@@ -101,6 +102,8 @@ export default function App() {
   const confirmed = activeMonth ? confirmedTotal(activeMonth.id, budget.monthExpenses) : 0;
   const projected = activeMonth ? projectedTotal(activeMonth.id, budget.monthExpenses) : 0;
   const rest = activeMonth ? remaining(activeMonth, budget.monthExpenses) : 0;
+  const paid = activeMonth ? paidTotal(activeMonth.id, budget.monthExpenses) : 0;
+  const unpaid = activeMonth ? unpaidTotal(activeMonth.id, budget.monthExpenses) : 0;
   const headerTitle = `${activeMonth ? `${activeMonth.label} · ` : ''}${view === 'budget' ? 'Presupuesto' : 'Ahorro'}`;
 
   /** Cierra todos los paneles flotantes (speed dial, mini menú, sheet). */
@@ -431,23 +434,34 @@ export default function App() {
           <div className="px-3 pt-3 pb-4 space-y-2.5">
             {activeMonth && (
               <>
-                {/* Hero compacto del mes */}
-                <div className="px-1 pt-1 pb-1">
-                  <MonthHeader
-                    month={activeMonth}
-                    expenses={budget.monthExpenses}
-                    onEditMonth={() => {
-                      if (activeMonth.status === 'abierto') {
-                        setEditingMonth({
-                          month: activeMonth,
-                          label: activeMonth.label,
-                          income: formatInputNumber(activeMonth.income),
-                        });
-                      }
-                    }}
-                    isClosed={monthClosed}
-                  />
-                </div>
+                {/* ÚNICA info del mes dentro del scroll: barra Pagado vs Pendiente
+                    (el mes, el ✎ y los montos ya viven fijos en el header v4) */}
+                {projected > 0 && (
+                  <div className="px-1 pt-1 pb-1">
+                    <div className="flex items-center justify-between text-[11px] mb-1.5">
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span>
+                        <span className="opacity-50 font-medium">Pagado</span>
+                        <span className="font-bold tabular-nums opacity-80">{fmtARS(paid, 0)}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block"></span>
+                        <span className="opacity-50 font-medium">Pendiente</span>
+                        <span className="font-bold tabular-nums opacity-80">{fmtARS(unpaid, 0)}</span>
+                      </div>
+                    </div>
+                    <div className="flex h-1.5 rounded-full overflow-hidden bg-white/60 dark:bg-white/10">
+                      <div
+                        className="h-full bg-emerald-500 transition-all"
+                        style={{ width: `${Math.min((paid / projected) * 100, 100)}%` }}
+                      />
+                      <div
+                        className="h-full bg-amber-400 transition-all"
+                        style={{ width: `${Math.min((unpaid / projected) * 100, 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
 
                 <div ref={expenseFormRef}>
                   {activeMonth.status === 'abierto' && editing && editing.expense !== null && (
