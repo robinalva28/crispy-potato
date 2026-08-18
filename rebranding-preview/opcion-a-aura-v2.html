@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Opción A v2 — "Aura" · Soft Glass + Dark/Light + Menú</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  body { font-family: 'Inter', system-ui, sans-serif; }
+  ::selection { background: rgba(132,204,22,.25); }
+
+  /* ===== Modo claro (default) ===== */
+  html { color-scheme: light; }
+  html.dark { color-scheme: dark; }
+
+  .app-bg-light {
+    background:
+      radial-gradient(1200px 500px at 85% -10%, rgba(167,139,250,.22), transparent 55%),
+      radial-gradient(900px 480px at -10% 15%, rgba(132,204,22,.20), transparent 55%),
+      radial-gradient(700px 500px at 50% 110%, rgba(14,165,233,.16), transparent 55%),
+      linear-gradient(160deg, #f8faf7 0%, #eef4ea 55%, #eceff8 100%);
+  }
+  .app-bg-dark {
+    background:
+      radial-gradient(1200px 500px at 85% -10%, rgba(139,92,246,.16), transparent 55%),
+      radial-gradient(900px 480px at -10% 15%, rgba(101,163,13,.14), transparent 55%),
+      radial-gradient(700px 500px at 50% 110%, rgba(14,165,233,.10), transparent 55%),
+      linear-gradient(165deg, #0c0d0f 0%, #111312 55%, #0e1116 100%);
+  }
+
+  /* Glass en claro */
+  .glass-light {
+    background: rgba(255,255,255,.62);
+    backdrop-filter: blur(24px) saturate(1.4);
+    -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  }
+  .glass-card-light {
+    background: rgba(255,255,255,.55);
+    backdrop-filter: blur(28px) saturate(1.5);
+    -webkit-backdrop-filter: blur(28px) saturate(1.5);
+    border: 1px solid rgba(255,255,255,.65);
+    box-shadow: 0 24px 60px -24px rgba(80,120,60,.25), 0 8px 24px -12px rgba(80,120,60,.12);
+  }
+  /* Glass en oscuro */
+  .glass-dark {
+    background: rgba(24,26,28,.55);
+    backdrop-filter: blur(24px) saturate(1.2);
+    -webkit-backdrop-filter: blur(24px) saturate(1.2);
+  }
+  .glass-card-dark {
+    background: rgba(26,28,31,.6);
+    backdrop-filter: blur(28px) saturate(1.3);
+    -webkit-backdrop-filter: blur(28px) saturate(1.3);
+    border: 1px solid rgba(255,255,255,.08);
+    box-shadow: 0 24px 60px -24px rgba(0,0,0,.6), 0 8px 24px -12px rgba(0,0,0,.4);
+  }
+
+  html:not(.dark) .glass,   html:not(.dark) .glass-card   { display:block; }
+  html.dark      .glass,    html.dark      .glass-card    { display:block; }
+  html:not(.dark) .glass-dark, html:not(.dark) .glass-card-dark { display:none; }
+  html.dark      .glass-light, html.dark      .glass-card-light { display:none; }
+
+  /* Sistema dual: usamos variables por modo */
+  html:not(.dark) { --glass-bg: rgba(255,255,255,.62); --glass-border: rgba(255,255,255,.65); --glass-text: rgba(28,32,30,.8); }
+  html.dark      { --glass-bg: rgba(26,28,31,.6); --glass-border: rgba(255,255,255,.08); --glass-text: rgba(230,235,230,.85); }
+
+  .g {
+    background: var(--glass-bg);
+    backdrop-filter: blur(24px) saturate(1.4);
+    -webkit-backdrop-filter: blur(24px) saturate(1.4);
+    border: 1px solid var(--glass-border);
+  }
+  .gc {
+    background: var(--glass-bg);
+    backdrop-filter: blur(28px) saturate(1.5);
+    -webkit-backdrop-filter: blur(28px) saturate(1.5);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 24px 60px -24px rgba(0,0,0,.18), 0 8px 24px -12px rgba(0,0,0,.08);
+  }
+  html.dark .gc {
+    box-shadow: 0 24px 60px -24px rgba(0,0,0,.6), 0 8px 24px -12px rgba(0,0,0,.4);
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #65a30d, #84cc16);
+    box-shadow: 0 10px 24px -8px rgba(132,204,22,.55);
+  }
+  html.dark .btn-primary {
+    background: linear-gradient(135deg, #4d7c0f, #84cc16);
+    box-shadow: 0 10px 24px -8px rgba(132,204,22,.35);
+  }
+  .btn-primary:hover { filter: brightness(1.05); transform: translateY(-1px); }
+
+  .pill { border-radius: 9999px; }
+
+  /* Bottom nav */
+  .bottom-nav {
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 24px);
+    max-width: 440px;
+    border-radius: 9999px;
+    padding: 6px;
+    z-index: 40;
+  }
+  .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+    padding: 6px 4px;
+    border-radius: 9999px;
+    font-size: 9px;
+    font-weight: 600;
+    color: rgba(80,90,80,.65);
+    transition: all .2s ease;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    flex: 1;
+  }
+  html.dark .nav-item { color: rgba(200,210,200,.6); }
+  .nav-item.active {
+    color: #4d7c0f;
+    background: rgba(132,204,22,.15);
+  }
+  html.dark .nav-item.active {
+    color: #a3e635;
+    background: rgba(132,204,22,.15);
+  }
+  .nav-item .ic { height: 20px; display: flex; align-items: center; justify-content: center; }
+
+  /* FAB central */
+  .fab {
+    width: 52px;
+    height: 52px;
+    border-radius: 9999px;
+    margin-top: -30px;
+    background: linear-gradient(135deg, #65a30d, #84cc16);
+    box-shadow: 0 10px 28px -6px rgba(132,204,22,.6), 0 0 0 6px rgba(255,255,255,.0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    transition: transform .2s ease, box-shadow .2s ease;
+    cursor: pointer;
+    border: none;
+    font-size: 22px;
+    font-weight: 700;
+  }
+  html.dark .fab {
+    background: linear-gradient(135deg, #65a30d, #a3e635);
+    box-shadow: 0 10px 28px -6px rgba(132,204,22,.4);
+  }
+  .fab:hover { transform: scale(1.06); }
+
+  /* Sheet */
+  .sheet {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 60;
+    transform: translateY(100%);
+    transition: transform .35s cubic-bezier(.32,.72,0,1);
+    border-radius: 28px 28px 0 0;
+    max-width: 440px;
+    margin: 0 auto;
+  }
+  .sheet.open { transform: translateY(0); }
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.35);
+    backdrop-filter: blur(2px);
+    z-index: 50;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .25s ease;
+  }
+  html.dark .overlay { background: rgba(0,0,0,.6); }
+  .overlay.open { opacity: 1; pointer-events: auto; }
+
+  .sheet-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 14px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    color: rgba(35,40,36,.85);
+    transition: background .15s ease;
+    text-align: left;
+  }
+  html.dark .sheet-item { color: rgba(225,230,225,.9); }
+  .sheet-item:hover { background: rgba(132,204,22,.10); }
+  .sheet-item .ic-wrap {
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+
+  /* Transiciones de modo */
+  body { transition: background .3s ease, color .3s ease; }
+  .gc, .g { transition: background .3s ease, border-color .3s ease; }
+</style>
+</head>
+<body class="min-h-screen text-neutral-800 antialiased app-bg-light">
+  <div class="max-w-md mx-auto px-4 pt-6 pb-36">
+
+    <!-- ===== Header ===== -->
+    <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-2xl bg-gradient-to-br from-lime-500 to-emerald-600 shadow-lg shadow-lime-500/30 flex items-center justify-center text-white text-base">✦</div>
+        <div>
+          <div class="text-sm font-bold tracking-tight">Presupuesto</div>
+          <div class="text-[11px] text-neutral-500 font-medium" id="modo-label">Modo claro</div>
+        </div>
+      </div>
+      <button id="toggle-dark" class="w-9 h-9 rounded-full g pill flex items-center justify-center text-base hover:scale-105 transition" aria-label="Cambiar modo">
+        <span id="icon-modo">🌙</span>
+      </button>
+    </div>
+
+    <!-- ===== Selector de meses ===== -->
+    <div class="g rounded-3xl p-2 mb-4 flex items-center gap-2 overflow-x-auto">
+      <button class="shrink-0 pill px-3.5 py-2 text-xs font-bold text-white" style="background:linear-gradient(135deg,#65a30d,#84cc16);box-shadow:0 8px 20px -8px rgba(132,204,22,.6)">+ Crear Mes</button>
+      <button class="shrink-0 pill px-3.5 py-2 text-xs font-semibold g hover:opacity-80 transition">Julio</button>
+      <button class="shrink-0 pill px-3.5 py-2 text-xs font-semibold g hover:opacity-80 transition">Marzo</button>
+      <button class="shrink-0 pill px-3.5 py-2 text-xs font-semibold g hover:opacity-80 transition">Febrero</button>
+      <button class="shrink-0 pill px-3.5 py-2 text-xs font-semibold g hover:opacity-80 transition">Enero</button>
+    </div>
+
+    <!-- ===== Hero: tarjeta de saldo (estilo banco) ===== -->
+    <div class="gc rounded-[28px] overflow-hidden mb-4">
+      <div class="px-5 pt-5 pb-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="text-[10px] font-semibold uppercase tracking-widest opacity-50">Agosto 2026 · Ingreso</div>
+            <div class="text-2xl font-bold tracking-tight tabular-nums mt-1">$ 2.500.000</div>
+          </div>
+          <span class="text-[10px] font-bold uppercase tracking-widest text-amber-700 bg-amber-100/80 border border-amber-200/60 pill px-2.5 py-1">🔒 Cerrado</span>
+        </div>
+
+        <!-- Disponible destacado -->
+        <div class="mt-4 rounded-2xl p-3.5 flex items-center justify-between"
+             style="background:linear-gradient(135deg,rgba(132,204,22,.16),rgba(16,185,129,.12));border:1px solid rgba(132,204,22,.25)">
+          <div>
+            <div class="text-[10px] font-semibold uppercase tracking-widest opacity-50">Resto proyectado</div>
+            <div class="text-xl font-bold tabular-nums mt-0.5" style="color:#4d7c0f">$ 418.500 <span class="text-xs font-semibold opacity-60">· 17%</span></div>
+          </div>
+          <div class="w-10 h-10 rounded-full flex items-center justify-center text-lg" style="background:linear-gradient(135deg,#65a30d,#84cc16);box-shadow:0 8px 20px -8px rgba(132,204,22,.55)">🎯</div>
+        </div>
+
+        <!-- Stats -->
+        <div class="mt-3 grid grid-cols-3 gap-2">
+          <div class="rounded-2xl p-2.5 text-center g">
+            <div class="text-[9px] uppercase tracking-widest font-semibold opacity-50">Confirmado</div>
+            <div class="text-[13px] font-extrabold tabular-nums mt-0.5">$ 1.896.000</div>
+          </div>
+          <div class="rounded-2xl p-2.5 text-center g">
+            <div class="text-[9px] uppercase tracking-widest font-semibold opacity-50">Proyectado</div>
+            <div class="text-[13px] font-extrabold tabular-nums mt-0.5">$ 2.081.500</div>
+          </div>
+          <div class="rounded-2xl p-2.5 text-center g">
+            <div class="text-[9px] uppercase tracking-widest font-semibold opacity-50">Gastado</div>
+            <div class="text-[13px] font-extrabold tabular-nums mt-0.5">$ 1.546.000</div>
+          </div>
+        </div>
+
+        <!-- Pagado vs pendiente -->
+        <div class="mt-3 space-y-1.5">
+          <div class="flex justify-between text-[11px]">
+            <span class="font-semibold" style="color:#059669">✓ Pagado</span>
+            <span class="font-bold tabular-nums opacity-80">$ 1.546.000</span>
+          </div>
+          <div class="flex justify-between text-[11px]">
+            <span class="font-semibold" style="color:#d97706">⏳ Pendiente</span>
+            <span class="font-bold tabular-nums opacity-80">$ 535.500</span>
+          </div>
+          <div class="flex h-2 rounded-full overflow-hidden g">
+            <div class="h-full" style="width:74%;background:linear-gradient(90deg,#10b981,#34d399)"></div>
+            <div class="h-full" style="width:26%;background:linear-gradient(90deg,#f59e0b,#fbbf24)"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Búsqueda ===== -->
+    <div class="g rounded-full px-4 py-2.5 flex items-center gap-2 mb-4">
+      <svg class="w-4 h-4 opacity-40" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z"/></svg>
+      <input type="search" placeholder="Buscar gasto…" class="w-full bg-transparent text-sm outline-none placeholder:opacity-50" />
+    </div>
+
+    <!-- ===== Lista de gastos ===== -->
+    <div class="gc rounded-[28px] overflow-hidden mb-4">
+      <div class="px-5 pt-4 pb-1 flex items-center justify-between">
+        <h2 class="text-sm font-bold tracking-tight">Movimientos</h2>
+        <button class="text-[11px] font-semibold opacity-60 hover:opacity-90 transition">Ver todos →</button>
+      </div>
+      <div class="p-3 space-y-1.5">
+        <!-- Pagado -->
+        <div class="flex items-center gap-3 rounded-2xl g px-3.5 py-3 hover:opacity-90 transition cursor-pointer">
+          <div class="w-6 h-6 shrink-0 rounded-full flex items-center justify-center text-xs" style="background:linear-gradient(135deg,#10b981,#34d399);box-shadow:0 4px 10px -4px rgba(16,185,129,.5)">✓</div>
+          <div class="flex-1 min-w-0">
+            <div class="flex justify-between items-baseline gap-2">
+              <span class="text-sm font-semibold truncate">Alquiler</span>
+              <span class="text-sm font-bold tabular-nums">$ 680.000</span>
+            </div>
+            <div class="flex justify-between items-baseline gap-2">
+              <span class="text-[11px] opacity-40 truncate">05/08 · Vivienda</span>
+              <span class="text-[11px] opacity-40 tabular-nums">= $ 680.000</span>
+            </div>
+          </div>
+        </div>
+        <!-- Pendiente -->
+        <div class="flex items-center gap-3 rounded-2xl g px-3.5 py-3 hover:opacity-90 transition cursor-pointer">
+          <div class="w-6 h-6 shrink-0 rounded-full border-2 border-amber-400/70 bg-amber-100/30"></div>
+          <div class="flex-1 min-w-0">
+            <div class="flex justify-between items-baseline gap-2">
+              <span class="text-sm font-semibold truncate opacity-60">Expensas</span>
+              <span class="text-sm font-bold tabular-nums opacity-60">$ 120.000</span>
+            </div>
+            <div class="flex justify-between items-baseline gap-2">
+              <span class="text-[11px] opacity-40 truncate">10/08 · <span style="color:#d97706" class="font-semibold">pendiente</span></span>
+              <span class="text-[11px] opacity-40 tabular-nums">= $ 120.000</span>
+            </div>
+          </div>
+        </div>
+        <!-- Por confirmar + USD -->
+        <div class="flex items-center gap-3 rounded-2xl g px-3.5 py-3 hover:opacity-90 transition cursor-pointer">
+          <div class="w-6 h-6 shrink-0 rounded-full border-2 border-dashed border-violet-400 bg-violet-100/30"></div>
+          <div class="flex-1 min-w-0">
+            <div class="flex justify-between items-baseline gap-2">
+              <span class="text-sm font-semibold truncate">Tarjeta Visa</span>
+              <span class="text-sm font-bold tabular-nums">~ $ 350.000</span>
+            </div>
+            <div class="flex justify-between items-baseline gap-2">
+              <span class="text-[11px] opacity-40 truncate">18/08 · <span style="color:#8b5cf6" class="font-semibold">por confirmar</span></span>
+              <span class="text-[11px] opacity-40 tabular-nums">+ u$d 35,50 · = $ 393.665</span>
+            </div>
+          </div>
+        </div>
+        <!-- Pagado USD -->
+        <div class="flex items-center gap-3 rounded-2xl g px-3.5 py-3 hover:opacity-90 transition cursor-pointer">
+          <div class="w-6 h-6 shrink-0 rounded-full flex items-center justify-center text-xs" style="background:linear-gradient(135deg,#10b981,#34d399);box-shadow:0 4px 10px -4px rgba(16,185,129,.5)">✓</div>
+          <div class="flex-1 min-w-0">
+            <div class="flex justify-between items-baseline gap-2">
+              <span class="text-sm font-semibold truncate">Streaming (Netflix)</span>
+              <span class="text-sm font-bold tabular-nums">$ 15.978</span>
+            </div>
+            <div class="flex justify-between items-baseline gap-2">
+              <span class="text-[11px] opacity-40 truncate">02/08 · Servicios</span>
+              <span class="text-[11px] opacity-40 tabular-nums">+ u$d 12,99 a $ 1.230</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Acción rápida -->
+    <button class="w-full rounded-full px-4 py-3.5 text-sm font-bold text-white btn-primary transition">+ Agregar Gasto</button>
+  </div>
+
+  <!-- ===== Overlay ===== -->
+  <div id="overlay" class="overlay"></div>
+
+  <!-- ===== Bottom Nav (estilo app de banco) ===== -->
+  <nav class="bottom-nav gc">
+    <div class="flex items-center">
+      <button class="nav-item active" data-tab="inicio">
+        <span class="ic">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h3a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1h3a1 1 0 001-1V10"/></svg>
+        </span>
+        <span>Inicio</span>
+      </button>
+      <button class="nav-item" data-tab="meses">
+        <span class="ic">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3M3 11h18M5 5h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2z"/></svg>
+        </span>
+        <span>Meses</span>
+      </button>
+      <div class="flex-1 flex justify-center">
+        <button class="fab" id="fab-add" aria-label="Agregar gasto">+</button>
+      </div>
+      <button class="nav-item" data-tab="ahorro">
+        <span class="ic">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </span>
+        <span>Ahorro</span>
+      </button>
+      <button class="nav-item" id="btn-mas">
+        <span class="ic">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/></svg>
+        </span>
+        <span>Más</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ===== Sheet: Menú Más ===== -->
+  <div id="sheet" class="sheet gc">
+    <div class="pt-3 pb-6 px-4 space-y-1">
+      <div class="flex items-center justify-between px-2 pb-2">
+        <h3 class="text-sm font-bold tracking-tight">Más opciones</h3>
+        <button id="sheet-close" class="w-7 h-7 rounded-full g flex items-center justify-center text-sm hover:opacity-70 transition">✕</button>
+      </div>
+
+      <button class="sheet-item">
+        <span class="ic-wrap" style="background:linear-gradient(135deg,rgba(139,92,246,.18),rgba(217,70,239,.14));color:#8b5cf6">📷</span>
+        Foto de apuntes
+      </button>
+      <button class="sheet-item">
+        <span class="ic-wrap" style="background:rgba(16,185,129,.12);color:#059669">⚙</span>
+        Presupuestos por categoría
+      </button>
+      <button class="sheet-item">
+        <span class="ic-wrap" style="background:rgba(245,158,11,.12);color:#d97706">🗂</span>
+        Agrupar por categoría
+      </button>
+      <button class="sheet-item">
+        <span class="ic-wrap" style="background:rgba(14,165,233,.12);color:#0284c7">🔒</span>
+        Cerrar mes
+      </button>
+      <button class="sheet-item">
+        <span class="ic-wrap" style="background:rgba(99,102,241,.12);color:#6366f1">❓</span>
+        Guía de uso
+      </button>
+      <button class="sheet-item">
+        <span class="ic-wrap" style="background:rgba(132,204,22,.14);color:#4d7c0f">🔊</span>
+        Sonidos
+      </button>
+
+      <div class="h-px g my-2 mx-2"></div>
+      <div class="grid grid-cols-2 gap-2 px-2">
+        <button class="rounded-xl g px-3 py-2.5 text-[11px] font-semibold hover:opacity-80 transition">⬇ Exportar JSON</button>
+        <button class="rounded-xl g px-3 py-2.5 text-[11px] font-semibold hover:opacity-80 transition">⬆ Importar JSON</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const html = document.documentElement;
+    const toggleBtn = document.getElementById('toggle-dark');
+    const iconModo = document.getElementById('icon-modo');
+    const modoLabel = document.getElementById('modo-label');
+    const body = document.body;
+    const overlay = document.getElementById('overlay');
+    const sheet = document.getElementById('sheet');
+    const btnMas = document.getElementById('btn-mas');
+    const sheetClose = document.getElementById('sheet-close');
+
+    // Dark mode por defecto (como la app actual)
+    html.classList.add('dark');
+    body.classList.add('app-bg-dark');
+    body.classList.remove('app-bg-light');
+    iconModo.textContent = '☀️';
+    modoLabel.textContent = 'Modo oscuro';
+
+    toggleBtn.addEventListener('click', () => {
+      html.classList.toggle('dark');
+      const isDark = html.classList.contains('dark');
+      body.classList.toggle('app-bg-dark', isDark);
+      body.classList.toggle('app-bg-light', !isDark);
+      iconModo.textContent = isDark ? '☀️' : '🌙';
+      modoLabel.textContent = isDark ? 'Modo oscuro' : 'Modo claro';
+    });
+
+    function openSheet() {
+      sheet.classList.add('open');
+      overlay.classList.add('open');
+    }
+    function closeSheet() {
+      sheet.classList.remove('open');
+      overlay.classList.remove('open');
+    }
+    btnMas.addEventListener('click', openSheet);
+    sheetClose.addEventListener('click', closeSheet);
+    overlay.addEventListener('click', closeSheet);
+
+    // Tabs demo
+    document.querySelectorAll('.nav-item').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.nav-item').forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        closeSheet();
+      });
+    });
+    document.getElementById('fab-add').addEventListener('click', () => {
+      closeSheet();
+      document.querySelectorAll('.nav-item').forEach((b) => b.classList.remove('active'));
+    });
+  </script>
+</body>
+</html>

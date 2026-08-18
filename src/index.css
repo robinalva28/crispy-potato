@@ -181,4 +181,356 @@
   .months-scroll::-webkit-scrollbar-track {
     background: transparent;
   }
+
+  /* ============================================================
+     V4 — App shell: card fija + header fijo + scroll interno + bottom bar
+     ============================================================ */
+
+  /* Superficies internas (tarjetas/botones) con variables de tema */
+  :root {
+    --surface: rgba(0, 0, 0, 0.03);
+    --surface-strong: rgba(0, 0, 0, 0.06);
+  }
+  .dark {
+    --surface: rgba(255, 255, 255, 0.06);
+    --surface-strong: rgba(255, 255, 255, 0.1);
+  }
+
+  /* App shell: card fija con header fijo, scroll interno y bottom bar */
+  .app-shell {
+    height: calc(100dvh - 2rem);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .app-shell .app-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .app-shell .app-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Header v4: fijo, sin scroll */
+  .v4-hdr {
+    flex-shrink: 0;
+    border-bottom: 1px solid var(--glass-border);
+    transition: background-color 0.35s, border-color 0.35s;
+  }
+  .v4-hdr .months-scroll {
+    scrollbar-width: none;
+  }
+  .v4-hdr .months-scroll::-webkit-scrollbar {
+    display: none;
+  }
+  .v4-hdr .months-scroll::-webkit-scrollbar-thumb,
+  .v4-hdr .months-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  /* Stats fijas del header */
+  .v4-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    padding-bottom: 14px;
+  }
+
+  /* Botón redondo glass 44×44 (✎) */
+  .icon-btn-v4 {
+    width: 44px;
+    height: 44px;
+    border-radius: 9999px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    transition: background 0.3s, border-color 0.3s;
+  }
+  .icon-btn-v4:active {
+    background: var(--surface-strong);
+  }
+
+  /* Bottom bar fija dentro de la card */
+  .bbar {
+    flex-shrink: 0;
+    position: relative;
+    border-top: 1px solid var(--glass-border);
+    background: var(--glass-strong-bg);
+    padding-top: 6px;
+    padding-bottom: 8px;
+    z-index: 50;
+    transition: background-color 0.35s, border-color 0.35s;
+  }
+  .bbar .bi {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 12px;
+  }
+  .bbar .ni {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    min-width: 64px;
+    min-height: 48px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--glass-text);
+    opacity: 0.65;
+    transition: color 0.3s, opacity 0.3s;
+  }
+  .bbar .ni.on {
+    color: #84cc16;
+    opacity: 1;
+  }
+  .bbar .ni .ico {
+    font-size: 18px;
+    line-height: 1;
+  }
+
+  /* FAB + speed dial: FIXED fuera del main (el glass-card crea stacking context
+     y el overlay con z45 taparía todo lo que viva adentro de la card). */
+  .fab-shell {
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    pointer-events: none;
+    z-index: 60;
+  }
+  .fab-shell .fab {
+    position: absolute;
+    left: 50%;
+    bottom: 6px;
+    transform: translateX(-50%);
+    pointer-events: auto;
+    width: 56px;
+    height: 56px;
+    border-radius: 9999px;
+    background: linear-gradient(135deg, #65a30d, #84cc16);
+    box-shadow: 0 10px 24px -8px rgba(132, 204, 22, 0.55);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    font-weight: 700;
+    transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1), background 0.3s;
+    border: 3px solid var(--glass-strong-bg);
+  }
+  .fab-shell .fab.open {
+    transform: translateX(-50%) rotate(45deg);
+    background: linear-gradient(135deg, #d946ef, #8b5cf6);
+    box-shadow: 0 10px 24px -8px rgba(139, 92, 246, 0.5);
+  }
+
+  /* Speed dial: anclado al FAB, por encima del overlay (mismo contexto body) */
+  .fab-shell .sd {
+    position: absolute;
+    left: 50%;
+    bottom: 74px;
+    transform: translateX(-50%) translateY(10px) scale(0.9);
+    transform-origin: bottom center;
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.25s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  .fab-shell .sd.open {
+    transform: translateX(-50%) translateY(0) scale(1);
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .si {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 48px;
+    padding: 6px 18px 6px 6px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 9999px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--glass-text);
+    box-shadow: 0 12px 32px -12px rgba(0, 0, 0, 0.4);
+    white-space: nowrap;
+    transition: background 0.3s, border-color 0.3s;
+  }
+  .si:active {
+    background: var(--surface-strong);
+  }
+  .si .ico {
+    width: 36px;
+    height: 36px;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 17px;
+    color: #fff;
+    flex-shrink: 0;
+  }
+
+  /* Overlay unificado (cierra cualquier panel) */
+  .ov-v4 {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s;
+    z-index: 45;
+  }
+  .ov-v4.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* Mini menú de vista: flotante sobre la bottom bar, alineado a la izquierda */
+  .view-menu {
+    position: fixed;
+    /* Alineado al borde izquierdo de la card centrada (max-w-md mx-auto) */
+    bottom: 86px;
+    left: max(16px, calc(50% - 14rem + 16px));
+    width: min(236px, calc(100% - 32px));
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 6px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(28px) saturate(1.4);
+    -webkit-backdrop-filter: blur(28px) saturate(1.4);
+    border: 1px solid var(--glass-border);
+    border-radius: 18px;
+    box-shadow: 0 20px 48px -16px rgba(0, 0, 0, 0.55);
+    transform: translateY(12px) scale(0.96);
+    transform-origin: bottom left;
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.25s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.2s;
+    z-index: 65;
+  }
+  .view-menu.open {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .vm-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 52px;
+    padding: 0 14px;
+    border-radius: 14px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--glass-text);
+    width: 100%;
+    text-align: left;
+    transition: background-color 0.2s, color 0.2s;
+  }
+  .vm-item .ico {
+    font-size: 18px;
+  }
+  .vm-item.on {
+    color: #84cc16;
+    background: rgba(132, 204, 22, 0.12);
+  }
+  .vm-item.on::after {
+    content: '✓';
+    margin-left: auto;
+    font-size: 14px;
+    color: #84cc16;
+  }
+
+  /* Bottom sheet "Más" */
+  .sheet {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: 0 auto;
+    max-width: 28rem;
+    background: var(--glass-bg);
+    backdrop-filter: blur(28px) saturate(1.4);
+    -webkit-backdrop-filter: blur(28px) saturate(1.4);
+    border-top: 1px solid var(--glass-border);
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 -24px 60px -24px rgba(0, 0, 0, 0.4);
+    transform: translateY(100%);
+    transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1), background-color 0.35s, border-color 0.35s;
+    z-index: 60;
+    padding: 10px 12px 16px;
+  }
+  .sheet.open {
+    transform: translateY(0);
+  }
+  .sheet-h {
+    width: 44px;
+    height: 4px;
+    border-radius: 9999px;
+    background: var(--glass-text);
+    opacity: 0.4;
+    margin: 0 auto 6px;
+  }
+  .sheet-title {
+    font-size: 14px;
+    font-weight: 700;
+    padding: 8px 8px 4px;
+  }
+  .sh-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-height: 52px;
+    padding: 0 12px;
+    border-radius: 14px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--glass-text);
+    width: 100%;
+    text-align: left;
+    transition: background-color 0.2s;
+  }
+  .sh-item:active {
+    background: var(--surface);
+  }
+  .sh-item .ico {
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 17px;
+    background: var(--surface);
+    flex-shrink: 0;
+  }
+  .sh-item .trailing {
+    margin-left: auto;
+    font-size: 12px;
+    color: var(--glass-text);
+    opacity: 0.65;
+    white-space: nowrap;
+  }
 }

@@ -53,3 +53,6 @@ export interface SavingsGoal {
   endMonth: string; // "2026-12"
   extraIncomes: ExtraIncome[];
 }
+
+/** Vista principal de la app: Presupuesto o Ahorro (selector en la bottom bar). */
+export type View = 'budget' | 'savings';

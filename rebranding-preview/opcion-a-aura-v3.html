@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Opción A v3 — "Aura" · Home Banco + Menú</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  body { font-family: 'Inter', system-ui, sans-serif; }
+  ::selection { background: rgba(132,204,22,.25); }
+
+  html { color-scheme: light; }
+  html.dark { color-scheme: dark; }
+
+  .app-bg-light {
+    background:
+      radial-gradient(1200px 500px at 85% -10%, rgba(167,139,250,.20), transparent 55%),
+      radial-gradient(900px 480px at -10% 15%, rgba(132,204,22,.18), transparent 55%),
+      radial-gradient(700px 500px at 50% 110%, rgba(14,165,233,.14), transparent 55%),
+      linear-gradient(160deg, #f8faf7 0%, #eef4ea 55%, #eceff8 100%);
+  }
+  .app-bg-dark {
+    background:
+      radial-gradient(1200px 500px at 85% -10%, rgba(139,92,246,.16), transparent 55%),
+      radial-gradient(900px 480px at -10% 15%, rgba(101,163,13,.14), transparent 55%),
+      radial-gradient(700px 500px at 50% 110%, rgba(14,165,233,.10), transparent 55%),
+      linear-gradient(165deg, #0c0d0f 0%, #111312 55%, #0e1116 100%);
+  }
+
+  html:not(.dark) { --glass-bg: rgba(255,255,255,.62); --glass-border: rgba(255,255,255,.65); --text-1: rgba(25,30,27,.9); --text-2: rgba(25,30,27,.55); }
+  html.dark      { --glass-bg: rgba(26,28,31,.6); --glass-border: rgba(255,255,255,.08); --text-1: rgba(230,235,230,.92); --text-2: rgba(230,235,230,.55); }
+
+  .g {
+    background: var(--glass-bg);
+    backdrop-filter: blur(24px) saturate(1.4);
+    -webkit-backdrop-filter: blur(24px) saturate(1.4);
+    border: 1px solid var(--glass-border);
+  }
+  .gc {
+    background: var(--glass-bg);
+    backdrop-filter: blur(28px) saturate(1.5);
+    -webkit-backdrop-filter: blur(28px) saturate(1.5);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 24px 60px -24px rgba(0,0,0,.18), 0 8px 24px -12px rgba(0,0,0,.08);
+  }
+  html.dark .gc { box-shadow: 0 24px 60px -24px rgba(0,0,0,.6), 0 8px 24px -12px rgba(0,0,0,.4); }
+
+  body { color: var(--text-1); transition: background .3s ease, color .3s ease; }
+
+  .pill { border-radius: 9999px; }
+
+  .bottom-nav {
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 24px);
+    max-width: 440px;
+    border-radius: 9999px;
+    padding: 6px;
+    z-index: 40;
+  }
+  .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+    padding: 6px 4px;
+    border-radius: 9999px;
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--text-2);
+    transition: all .2s ease;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    flex: 1;
+  }
+  .nav-item.active {
+    color: #4d7c0f;
+    background: rgba(132,204,22,.15);
+  }
+  html.dark .nav-item.active { color: #a3e635; }
+  .nav-item .ic { height: 20px; display: flex; align-items: center; justify-content: center; }
+
+  .fab {
+    width: 52px; height: 52px; border-radius: 9999px; margin-top: -30px;
+    background: linear-gradient(135deg, #65a30d, #84cc16);
+    box-shadow: 0 10px 28px -6px rgba(132,204,22,.6);
+    display: flex; align-items: center; justify-content: center; color: #fff;
+    transition: transform .2s ease; cursor: pointer; border: none; font-size: 22px; font-weight: 700;
+  }
+  html.dark .fab { background: linear-gradient(135deg, #65a30d, #a3e635); box-shadow: 0 10px 28px -6px rgba(132,204,22,.4); }
+  .fab:hover { transform: scale(1.06); }
+
+  .sheet {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 60;
+    transform: translateY(100%); transition: transform .35s cubic-bezier(.32,.72,0,1);
+    border-radius: 28px 28px 0 0; max-width: 440px; margin: 0 auto;
+  }
+  .sheet.open { transform: translateY(0); }
+  .overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.35); backdrop-filter: blur(2px);
+    z-index: 50; opacity: 0; pointer-events: none; transition: opacity .25s ease;
+  }
+  html.dark .overlay { background: rgba(0,0,0,.6); }
+  .overlay.open { opacity: 1; pointer-events: auto; }
+
+  .sheet-item {
+    display: flex; align-items: center; gap: 12px; width: 100%;
+    padding: 12px 14px; border-radius: 14px; font-size: 13px; font-weight: 600;
+    cursor: pointer; border: none; background: transparent; color: var(--text-1);
+    transition: background .15s ease; text-align: left;
+  }
+  .sheet-item:hover { background: rgba(132,204,22,.10); }
+  .sheet-item .ic-wrap {
+    width: 34px; height: 34px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0;
+  }
+
+  .quick {
+    display: flex; flex-direction: column; align-items: center; gap: 5px;
+    font-size: 10px; font-weight: 600; color: var(--text-2); cursor: pointer; border: none;
+    background: transparent; transition: transform .15s ease; padding: 4px 0;
+  }
+  .quick:hover { transform: translateY(-2px); color: var(--text-1); }
+  .quick .qi {
+    width: 46px; height: 46px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 20px;
+  }
+
+  .menu-side {
+    position: fixed; top: 0; left: 0; bottom: 0; width: 280px; max-width: 85vw;
+    border-radius: 0 28px 28px 0; z-index: 70; padding: 20px 16px;
+    transform: translateX(-100%); transition: transform .35s cubic-bezier(.32,.72,0,1);
+  }
+  .menu-side.open { transform: translateX(0); }
+  html.dark .menu-side { box-shadow: 20px 0 60px -20px rgba(0,0,0,.6); }
+  .profile-row {
+    display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 16px;
+  }
+</style>
+</head>
+<body class="min-h-screen antialiased app-bg-light">
+  <div class="max-w-md mx-auto px-4 pt-6 pb-36">
+
+    <!-- ===== Header con perfil (estilo MercadoPago) ===== -->
+    <div class="flex items-center justify-between mb-5">
+      <button id="btn-menu" class="w-10 h-10 rounded-full g flex items-center justify-center hover:opacity-80 transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+
+      <div class="flex items-center gap-2">
+        <div class="w-9 h-9 rounded-2xl bg-gradient-to-br from-lime-500 to-emerald-600 shadow-lg shadow-lime-500/30 flex items-center justify-center text-white text-base">✦</div>
+        <div class="text-left">
+          <div class="text-sm font-bold tracking-tight leading-none">Presupuesto</div>
+          <div class="text-[10px] opacity-50 font-medium mt-0.5">Agosto 2026</div>
+        </div>
+      </div>
+
+      <button id="toggle-dark" class="w-10 h-10 rounded-full g flex items-center justify-center hover:scale-105 transition" aria-label="Cambiar modo">
+        <span id="icon-modo">🌙</span>
+      </button>
+    </div>
+
+    <!-- ===== Hero saldo (tarjeta bancaria con degradado) ===== -->
+    <div class="rounded-[28px] p-5 mb-4 text-white relative overflow-hidden"
+         style="background:linear-gradient(135deg,#84cc16 0%,#10b981 55%,#0ea5e9 130%);box-shadow:0 24px 50px -18px rgba(16,185,129,.55)">
+      <div class="absolute -right-10 -top-10 w-40 h-40 rounded-full bg-white/10 blur-2xl"></div>
+      <div class="absolute -left-6 -bottom-14 w-32 h-32 rounded-full bg-white/10 blur-2xl"></div>
+      <div class="relative">
+        <div class="flex items-center justify-between">
+          <div class="text-[10px] font-semibold uppercase tracking-widest opacity-80">Saldo disponible</div>
+          <span class="text-[10px] font-bold uppercase tracking-widest bg-white/20 border border-white/30 pill px-2.5 py-1">Agosto 2026</span>
+        </div>
+        <div class="text-[30px] font-extrabold tracking-tight tabular-nums mt-1.5">$ 418.500</div>
+        <div class="flex items-center gap-1.5 text-[11px] opacity-90 mt-0.5">
+          <span class="font-medium">17% del ingreso</span>
+          <span class="opacity-60">·</span>
+          <span class="font-medium">Ingreso $ 2.500.000</span>
+        </div>
+
+        <div class="flex items-end justify-between mt-4">
+          <div class="flex gap-2">
+            <div class="bg-white/20 border border-white/30 pill px-3 py-1.5 text-[10px] font-bold backdrop-blur-sm">👁 Ocultar</div>
+            <div class="bg-white/20 border border-white/30 pill px-3 py-1.5 text-[10px] font-bold backdrop-blur-sm">↻ Recargar</div>
+          </div>
+          <div class="w-8 h-8 rounded-full bg-white/25 border border-white/40 flex items-center justify-center text-sm backdrop-blur-sm">✦</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Accesos rápidos (grilla estilo banco) ===== -->
+    <div class="gc rounded-[28px] p-4 mb-4">
+      <div class="grid grid-cols-4 gap-1">
+        <button class="quick">
+          <span class="qi" style="background:rgba(132,204,22,.16);color:#4d7c0f">＋</span>
+          Gasto
+        </button>
+        <button class="quick">
+          <span class="qi" style="background:rgba(139,92,246,.16);color:#8b5cf6">📷</span>
+          Foto
+        </button>
+        <button class="quick">
+          <span class="qi" style="background:rgba(16,185,129,.16);color:#059669">⚙</span>
+          Presup.
+        </button>
+        <button class="quick">
+          <span class="qi" style="background:rgba(245,158,11,.16);color:#d97706">🗂</span>
+          Grupos
+        </button>
+        <button class="quick">
+          <span class="qi" style="background:rgba(14,165,233,.16);color:#0284c7">💰</span>
+          Ahorro
+        </button>
+        <button class="quick">
+          <span class="qi" style="background:rgba(99,102,241,.16);color:#6366f1">📊</span>
+          Stats
+        </button>
+        <button class="quick">
+          <span class="qi" style="background:rgba(236,72,153,.14);color:#db2777">🔒</span>
+          Cerrar
+        </button>
+        <button class="quick">
+          <span class="qi" style="background:rgba(20,184,166,.14);color:#0d9488">⋯</span>
+          Más
+        </button>
+      </div>
+    </div>
+
+    <!-- ===== Stats mini ===== -->
+    <div class="grid grid-cols-2 gap-2.5 mb-4">
+      <div class="gc rounded-3xl p-4">
+        <div class="text-[10px] uppercase tracking-widest font-semibold opacity-50">Confirmado</div>
+        <div class="text-lg font-extrabold tabular-nums mt-1">$ 1.896.000</div>
+        <div class="text-[10px] mt-0.5 font-semibold" style="color:#059669">✓ 74% pagado</div>
+      </div>
+      <div class="gc rounded-3xl p-4">
+        <div class="text-[10px] uppercase tracking-widest font-semibold opacity-50">Pendiente</div>
+        <div class="text-lg font-extrabold tabular-nums mt-1">$ 535.500</div>
+        <div class="text-[10px] mt-0.5 font-semibold" style="color:#d97706">⏳ 26% por pagar</div>
+      </div>
+    </div>
+
+    <!-- ===== Búsqueda + Movimientos ===== -->
+    <div class="g rounded-full px-4 py-2.5 flex items-center gap-2 mb-4">
+      <svg class="w-4 h-4 opacity-40" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z"/></svg>
+      <input type="search" placeholder="Buscar gasto…" class="w-full bg-transparent text-sm outline-none placeholder:opacity-50" />
+    </div>
+
+    <div class="gc rounded-[28px] overflow-hidden mb-4">
+      <div class="px-5 pt-4 pb-1 flex items-center justify-between">
+        <h2 class="text-sm font-bold tracking-tight">Movimientos</h2>
+        <button class="text-[11px] font-semibold opacity-60 hover:opacity-90 transition">Ver todos →</button>
+      </div>
+      <div class="p-3 space-y-1.5">
+        <div class="flex items-center gap-3 rounded-2xl g px-3.5 py-3 hover:opacity-90 transition cursor-pointer">
+          <div class="w-6 h-6 shrink-0 rounded-full flex items-center justify-center text-xs" style="background:linear-gradient(135deg,#10b981,#34d399);box-shadow:0 4px 10px -4px rgba(16,185,129,.5)">✓</div>
+          <div class="flex-1 min-w-0">
+            <div class="flex justify-between items-baseline gap-2">
+              <span class="text-sm font-semibold truncate">Alquiler</span>
+              <span class="text-sm font-bold tabular-nums">$ 680.000</span>
+            </div>
+            <div class="flex justify-between items-baseline gap-2">
+              <span class="text-[11px] opacity-40 truncate">05/08 · Vivienda</span>
+              <span class="text-[11px] opacity-40 tabular-nums">= $ 680.000</span>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center gap-3 rounded-2xl g px-3.5 py-3 hover:opacity-90 transition cursor-pointer">
+          <div class="w-6 h-6 shrink-0 rounded-full border-2 border-amber-400/70 bg-amber-100/30"></div>
+          <div class="flex-1 min-w-0">
+            <div class="flex justify-between items-baseline gap-2">
+              <span class="text-sm font-semibold truncate opacity-60">Expensas</span>
+              <span class="text-sm font-bold tabular-nums opacity-60">$ 120.000</span>
+            </div>
+            <div class="flex justify-between items-baseline gap-2">
+              <span class="text-[11px] opacity-40 truncate">10/08 · <span style="color:#d97706" class="font-semibold">pendiente</span></span>
+              <span class="text-[11px] opacity-40 tabular-nums">= $ 120.000</span>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center gap-3 rounded-2xl g px-3.5 py-3 hover:opacity-90 transition cursor-pointer">
+          <div class="w-6 h-6 shrink-0 rounded-full border-2 border-dashed border-violet-400 bg-violet-100/30"></div>
+          <div class="flex-1 min-w-0">
+            <div class="flex justify-between items-baseline gap-2">
+              <span class="text-sm font-semibold truncate">Tarjeta Visa</span>
+              <span class="text-sm font-bold tabular-nums">~ $ 350.000</span>
+            </div>
+            <div class="flex justify-between items-baseline gap-2">
+              <span class="text-[11px] opacity-40 truncate">18/08 · <span style="color:#8b5cf6" class="font-semibold">por confirmar</span></span>
+              <span class="text-[11px] opacity-40 tabular-nums">+ u$d 35,50 · = $ 393.665</span>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center gap-3 rounded-2xl g px-3.5 py-3 hover:opacity-90 transition cursor-pointer">
+          <div class="w-6 h-6 shrink-0 rounded-full flex items-center justify-center text-xs" style="background:linear-gradient(135deg,#10b981,#34d399);box-shadow:0 4px 10px -4px rgba(16,185,129,.5)">✓</div>
+          <div class="flex-1 min-w-0">
+            <div class="flex justify-between items-baseline gap-2">
+              <span class="text-sm font-semibold truncate">Streaming (Netflix)</span>
+              <span class="text-sm font-bold tabular-nums">$ 15.978</span>
+            </div>
+            <div class="flex justify-between items-baseline gap-2">
+              <span class="text-[11px] opacity-40 truncate">02/08 · Servicios</span>
+              <span class="text-[11px] opacity-40 tabular-nums">+ u$d 12,99 a $ 1.230</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Overlay ===== -->
+  <div id="overlay" class="overlay"></div>
+
+  <!-- ===== Menú lateral (hamburguesa) ===== -->
+  <div id="menu-side" class="menu-side gc">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-sm font-bold tracking-tight">Menú</h3>
+      <button id="menu-close" class="w-7 h-7 rounded-full g flex items-center justify-center text-sm hover:opacity-70 transition">✕</button>
+    </div>
+
+    <div class="profile-row g mb-3">
+      <div class="w-10 h-10 rounded-full bg-gradient-to-br from-lime-500 to-emerald-600 flex items-center justify-center text-white font-bold text-sm">R</div>
+      <div>
+        <div class="text-[13px] font-bold">Mis presupuestos</div>
+        <div class="text-[10px] opacity-50">Datos en este dispositivo</div>
+      </div>
+    </div>
+
+    <button class="sheet-item"><span class="ic-wrap" style="background:rgba(16,185,129,.12);color:#059669">🏠</span>Inicio</button>
+    <button class="sheet-item"><span class="ic-wrap" style="background:rgba(132,204,22,.14);color:#4d7c0f">🗓</span>Meses</button>
+    <button class="sheet-item"><span class="ic-wrap" style="background:rgba(14,165,233,.12);color:#0284c7">💰</span>Ahorro</button>
+    <button class="sheet-item"><span class="ic-wrap" style="background:rgba(139,92,246,.14);color:#8b5cf6">📷</span>Foto de apuntes</button>
+    <button class="sheet-item"><span class="ic-wrap" style="background:rgba(99,102,241,.12);color:#6366f1">⚙</span>Presupuestos</button>
+    <button class="sheet-item"><span class="ic-wrap" style="background:rgba(245,158,11,.12);color:#d97706">🗂</span>Agrupar</button>
+    <button class="sheet-item"><span class="ic-wrap" style="background:rgba(236,72,153,.12);color:#db2777">🔒</span>Cerrar mes</button>
+    <button class="sheet-item"><span class="ic-wrap" style="background:rgba(132,204,22,.14);color:#4d7c0f">🔊</span>Sonidos</button>
+
+    <div class="h-px g my-2"></div>
+    <button class="sheet-item"><span class="ic-wrap" style="background:rgba(99,102,241,.12);color:#6366f1">❓</span>Guía de uso</button>
+    <div class="grid grid-cols-2 gap-2 mt-1">
+      <button class="rounded-xl g px-3 py-2 text-[11px] font-semibold hover:opacity-80 transition">⬇ Exportar</button>
+      <button class="rounded-xl g px-3 py-2 text-[11px] font-semibold hover:opacity-80 transition">⬆ Importar</button>
+    </div>
+  </div>
+
+  <!-- ===== Bottom Nav ===== -->
+  <nav class="bottom-nav gc">
+    <div class="flex items-center">
+      <button class="nav-item active" data-tab="inicio">
+        <span class="ic">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h3a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1h3a1 1 0 001-1V10"/></svg>
+        </span>
+        <span>Inicio</span>
+      </button>
+      <button class="nav-item" data-tab="meses">
+        <span class="ic">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3M3 11h18M5 5h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2z"/></svg>
+        </span>
+        <span>Meses</span>
+      </button>
+      <div class="flex-1 flex justify-center">
+        <button class="fab" aria-label="Agregar gasto">+</button>
+      </div>
+      <button class="nav-item" data-tab="ahorro">
+        <span class="ic">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </span>
+        <span>Ahorro</span>
+      </button>
+      <button class="nav-item" id="btn-mas">
+        <span class="ic">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/></svg>
+        </span>
+        <span>Más</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ===== Sheet Más ===== -->
+  <div id="sheet" class="sheet gc">
+    <div class="pt-3 pb-6 px-4 space-y-1">
+      <div class="flex items-center justify-between px-2 pb-2">
+        <h3 class="text-sm font-bold tracking-tight">Más opciones</h3>
+        <button id="sheet-close" class="w-7 h-7 rounded-full g flex items-center justify-center text-sm hover:opacity-70 transition">✕</button>
+      </div>
+      <button class="sheet-item"><span class="ic-wrap" style="background:linear-gradient(135deg,rgba(139,92,246,.18),rgba(217,70,239,.14));color:#8b5cf6">📷</span>Foto de apuntes</button>
+      <button class="sheet-item"><span class="ic-wrap" style="background:rgba(16,185,129,.12);color:#059669">⚙</span>Presupuestos por categoría</button>
+      <button class="sheet-item"><span class="ic-wrap" style="background:rgba(245,158,11,.12);color:#d97706">🗂</span>Agrupar por categoría</button>
+      <button class="sheet-item"><span class="ic-wrap" style="background:rgba(14,165,233,.12);color:#0284c7">🔒</span>Cerrar mes</button>
+      <button class="sheet-item"><span class="ic-wrap" style="background:rgba(99,102,241,.12);color:#6366f1">❓</span>Guía de uso</button>
+      <button class="sheet-item"><span class="ic-wrap" style="background:rgba(132,204,22,.14);color:#4d7c0f">🔊</span>Sonidos</button>
+      <div class="h-px g my-2 mx-2"></div>
+      <div class="grid grid-cols-2 gap-2 px-2">
+        <button class="rounded-xl g px-3 py-2.5 text-[11px] font-semibold hover:opacity-80 transition">⬇ Exportar JSON</button>
+        <button class="rounded-xl g px-3 py-2.5 text-[11px] font-semibold hover:opacity-80 transition">⬆ Importar JSON</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const html = document.documentElement;
+    const body = document.body;
+    const overlay = document.getElementById('overlay');
+    const sheet = document.getElementById('sheet');
+    const btnMas = document.getElementById('btn-mas');
+    const sheetClose = document.getElementById('sheet-close');
+    const menuSide = document.getElementById('menu-side');
+    const btnMenu = document.getElementById('btn-menu');
+    const menuClose = document.getElementById('menu-close');
+    const toggleBtn = document.getElementById('toggle-dark');
+    const iconModo = document.getElementById('icon-modo');
+
+    // Dark mode por defecto
+    html.classList.add('dark');
+    body.classList.add('app-bg-dark');
+    body.classList.remove('app-bg-light');
+    iconModo.textContent = '☀️';
+
+    toggleBtn.addEventListener('click', () => {
+      html.classList.toggle('dark');
+      const isDark = html.classList.contains('dark');
+      body.classList.toggle('app-bg-dark', isDark);
+      body.classList.toggle('app-bg-light', !isDark);
+      iconModo.textContent = isDark ? '☀️' : '🌙';
+    });
+
+    function openSheet() { sheet.classList.add('open'); overlay.classList.add('open'); }
+    function closeSheet() { sheet.classList.remove('open'); overlay.classList.remove('open'); }
+    btnMas.addEventListener('click', openSheet);
+    sheetClose.addEventListener('click', closeSheet);
+
+    function openMenu() { menuSide.classList.add('open'); overlay.classList.add('open'); }
+    function closeMenu() { menuSide.classList.remove('open'); overlay.classList.remove('open'); }
+    btnMenu.addEventListener('click', openMenu);
+    menuClose.addEventListener('click', closeMenu);
+
+    overlay.addEventListener('click', () => { closeSheet(); closeMenu(); });
+
+    document.querySelectorAll('.nav-item').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.nav-item').forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        closeSheet();
+      });
+    });
+    document.querySelectorAll('.fab').forEach((f) => f.addEventListener('click', () => { closeSheet(); closeMenu(); }));
+  </script>
+</body>
+</html>

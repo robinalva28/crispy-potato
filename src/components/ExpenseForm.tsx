@@ -143,9 +143,6 @@ export function ExpenseForm({ initial, onSave, onCancel, onGetLastUsdRate }: Pro
         <div className="font-semibold text-sm text-neutral-700 dark:text-neutral-200">
           {initial ? '✏️ Editar gasto' : '➕ Agregar gasto'}
         </div>
-        <span className="shrink-0 text-[10px] font-bold uppercase tracking-wider text-violet-700 bg-violet-500/15 dark:text-violet-300 dark:bg-violet-400/15 rounded-full px-2.5 py-1">
-          Formulario
-        </span>
       </div>
 
       {/* Overlay de carga evidente mientras se escanea la factura */}

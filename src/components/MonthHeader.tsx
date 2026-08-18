@@ -13,12 +13,10 @@ interface Props {
   month: Month;
   expenses: Expense[];
   onEditMonth: () => void;
-  dark: boolean;
-  onToggleDark: () => void;
   isClosed: boolean;
 }
 
-export function MonthHeader({ month, expenses, onEditMonth, dark, onToggleDark, isClosed }: Props) {
+export function MonthHeader({ month, expenses, onEditMonth, isClosed }: Props) {
   const confirmed = confirmedTotal(month.id, expenses);
   const projected = projectedTotal(month.id, expenses);
   const rest = remaining(month, expenses);
@@ -54,23 +52,13 @@ export function MonthHeader({ month, expenses, onEditMonth, dark, onToggleDark, 
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-1.5 shrink-0">
-          <button
-            type="button"
-            onClick={onToggleDark}
-            aria-label={dark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
-            className="w-9 h-9 rounded-full glass flex items-center justify-center text-sm hover:scale-105 transition"
-          >
-            {dark ? '☀️' : '🌙'}
-          </button>
-          <button
-            type="button"
-            onClick={onEditMonth}
-            className="text-[11px] font-semibold glass rounded-full px-3 py-2 hover:opacity-80 transition"
-          >
-            ✎ Mes
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={onEditMonth}
+          className="text-[11px] font-semibold glass rounded-full px-3 py-2 hover:opacity-80 transition shrink-0"
+        >
+          ✎ Mes
+        </button>
       </div>
 
       {/* Hero: Ingreso + Resto proyectado */}

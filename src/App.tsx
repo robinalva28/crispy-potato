@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { db } from './db.ts';
-import type { Category, Expense, Month, SavingsGoal } from './types.ts';
+import type { Category, Expense, Month, SavingsGoal, View } from './types.ts';
 import { useBudget, monthLabelFromId } from './hooks/useBudget.ts';
 import { useSavings } from './hooks/useSavings.ts';
 import { useDarkMode } from './hooks/useDarkMode.ts';
@@ -11,6 +11,9 @@ import { ExpenseGroup } from './components/ExpenseGroup.tsx';
 import { CategoryBars } from './components/CategoryBars.tsx';
 import { ExpenseForm } from './components/ExpenseForm.tsx';
 import { PhotoExpenseModal } from './components/PhotoExpenseModal.tsx';
+import { BottomNav } from './components/BottomNav.tsx';
+import { ViewMenu } from './components/ViewMenu.tsx';
+import { MoreSheet } from './components/MoreSheet.tsx';
 import type { ExpenseDraft } from './utils/photoExtract.ts';
 import { canUsePhoto } from './utils/monthUtils.ts';
 import { GuideModal } from './components/GuideModal.tsx';
@@ -26,6 +29,9 @@ import {
   fmtARS,
   fmtUSD,
   filterExpensesByText,
+  confirmedTotal,
+  projectedTotal,
+  remaining,
 } from './utils/money.ts';
 import { feedback as playFeedback } from './utils/feedback.ts';
 import {
@@ -44,8 +50,6 @@ interface EditingMonthState {
   label: string;
   income: string;
 }
-
-type View = 'budget' | 'savings';
 
 export default function App() {
   const budget = useBudget();
@@ -66,6 +70,9 @@ export default function App() {
     if (next) playFeedback('success');
   }
   const [view, setView] = useState<View>('budget');
+  const [fabOpen, setFabOpen] = useState(false);
+  const [viewMenuOpen, setViewMenuOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   const [groupByCategory, setGroupByCategory] = useState(false);
   const [editing, setEditing] = useState<EditingState | null>(null);
   const [editingMonth, setEditingMonth] = useState<EditingMonthState | null>(null);
@@ -87,6 +94,21 @@ export default function App() {
   const filteredExpenses = filterExpensesByText(budget.monthExpenses, searchQuery);
   const monthBudgets = activeMonth?.categoryBudgets ?? {};
   const photoAllowed = canUsePhoto(activeMonth);
+  const monthClosed = activeMonth?.status === 'cerrado';
+  const overlayOpen = fabOpen || viewMenuOpen || moreOpen;
+
+  // Se calculan los totales del mes activo (stats fijas del header)
+  const confirmed = activeMonth ? confirmedTotal(activeMonth.id, budget.monthExpenses) : 0;
+  const projected = activeMonth ? projectedTotal(activeMonth.id, budget.monthExpenses) : 0;
+  const rest = activeMonth ? remaining(activeMonth, budget.monthExpenses) : 0;
+  const headerTitle = `${activeMonth ? `${activeMonth.label} · ` : ''}${view === 'budget' ? 'Presupuesto' : 'Ahorro'}`;
+
+  /** Cierra todos los paneles flotantes (speed dial, mini menú, sheet). */
+  function closePanels() {
+    setFabOpen(false);
+    setViewMenuOpen(false);
+    setMoreOpen(false);
+  }
 
   // Guía de uso: aparece automáticamente la primera vez que se abre la app
   useEffect(() => {
@@ -96,7 +118,7 @@ export default function App() {
     }
   }, []);
 
-  // Guía de ahorro: aparece la primera vez que se entra a la pestaña 💰
+  // Guía de ahorro: aparece la primera vez que se entra a la vista 💰
   useEffect(() => {
     if (view === 'savings' && localStorage.getItem('pe-guided-savings') !== '1') {
       setShowSavingsGuide(true);
@@ -334,151 +356,149 @@ export default function App() {
   }
 
   return (
-    <main className="max-w-md mx-auto my-4 glass-card rounded-[28px]">
-      {/* Sticky: tabs + chips de meses (sin el hero, así no hay saltos al scrollear) */}
-      <div className="sticky-wrap">
-        <div className="glass-bg-layer px-4 pt-3 pb-2">
-          {/* Tabs: Presupuesto | Ahorro */}
-          <div className="flex gap-2">
+    <>
+    <main className="max-w-md mx-auto my-4 glass-card rounded-[28px] app-shell">
+      {/* HEADER FIJO v4: título + mes + resto + ✎ · chips de meses · stats */}
+      <header className="v4-hdr px-4 pt-3">
+        <div className="flex items-center justify-between gap-2 min-h-[44px]">
+          <div className="text-[15px] font-bold tracking-tight truncate min-w-0">
+            {headerTitle}
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            {view === 'budget' && activeMonth && (
+              <div className="text-xs font-semibold tabular-nums text-lime-700 dark:text-lime-400 whitespace-nowrap">
+                Resto {fmtARS(rest, 0)}
+              </div>
+            )}
             <button
               type="button"
-              onClick={() => setView('budget')}
-              className={`flex-1 px-4 py-2 text-xs font-semibold rounded-full transition ${
-                view === 'budget'
-                  ? 'chip-active'
-                  : 'glass text-neutral-500 hover:opacity-80 dark:text-neutral-400'
-              }`}
+              className="icon-btn-v4"
+              onClick={() => {
+                if (activeMonth && activeMonth.status === 'abierto') {
+                  setEditingMonth({
+                    month: activeMonth,
+                    label: activeMonth.label,
+                    income: formatInputNumber(activeMonth.income),
+                  });
+                }
+              }}
+              aria-label="Editar mes"
+              title="Editar mes"
             >
-              📋 Presupuesto
-            </button>
-            <button
-              type="button"
-              onClick={() => setView('savings')}
-              className={`flex-1 px-4 py-2 text-xs font-semibold rounded-full transition ${
-                view === 'savings'
-                  ? 'chip-active'
-                  : 'glass text-neutral-500 hover:opacity-80 dark:text-neutral-400'
-              }`}
-            >
-              💰 Ahorro
+              ✎
             </button>
           </div>
-
-          {view === 'budget' && (
-            <div className="mt-3">
-              <MonthSelector
-                months={budget.months}
-                activeMonthId={budget.activeMonthId}
-                onSelect={budget.setActiveMonthId}
-                onCreate={async (input) => {
-                  await budget.createMonth(input);
-                  fdb.success();
-                }}
-              />
-            </div>
-          )}
         </div>
-      </div>
 
-      {view === 'budget' && (
-        <>
-          {activeMonth && (
-            <>
-              {/* Hero del mes: contenido normal (no sticky), sin saltos al scrollear */}
-              <div className="px-4 pt-3 pb-1">
-                <MonthHeader
-                  month={activeMonth}
-                  expenses={budget.monthExpenses}
-                  onEditMonth={() => {
-                    if (activeMonth.status === 'abierto') {
-                      setEditingMonth({
-                        month: activeMonth,
-                        label: activeMonth.label,
-                        income: formatInputNumber(activeMonth.income),
-                      });
-                    }
-                  }}
-                  dark={dark}
-                  onToggleDark={toggle}
-                  isClosed={activeMonth.status === 'cerrado'}
-                />
-              </div>
+        {view === 'budget' && (
+          <div className="-mx-2">
+            <MonthSelector
+              months={budget.months}
+              activeMonthId={budget.activeMonthId}
+              onSelect={budget.setActiveMonthId}
+              onCreate={async (input) => {
+                await budget.createMonth(input);
+                fdb.success();
+              }}
+            />
+          </div>
+        )}
 
-              <div ref={expenseFormRef}>
-                {activeMonth.status === 'abierto' && editing && editing.expense !== null && (
-                  <ExpenseForm
-                    initial={editing.expense}
-                    onSave={saveExpense}
-                    onCancel={() => setEditing(null)}
-                    onGetLastUsdRate={budget.getLastUsdRate}
+        {view === 'budget' && activeMonth && (
+          <div className="v4-stats">
+            <div className="glass rounded-2xl px-2 py-2 text-center">
+              <div className="text-[9px] uppercase tracking-widest font-semibold opacity-50">Confirmado</div>
+              <div className="text-[11px] font-extrabold tabular-nums mt-0.5">{fmtARS(confirmed, 0)}</div>
+            </div>
+            <div className="glass rounded-2xl px-2 py-2 text-center">
+              <div className="text-[9px] uppercase tracking-widest font-semibold opacity-50">Proyectado</div>
+              <div className="text-[11px] font-extrabold tabular-nums mt-0.5">{fmtARS(projected, 0)}</div>
+            </div>
+            <div
+              className="rounded-2xl px-2 py-2 text-center"
+              style={{ background: 'linear-gradient(135deg, rgba(132,204,22,.14), rgba(16,185,129,.10))', border: '1px solid rgba(132,204,22,.22)' }}
+            >
+              <div className="text-[9px] uppercase tracking-widest font-semibold" style={{ color: '#4d7c0f' }}>Resto</div>
+              <div className="text-[11px] font-extrabold tabular-nums mt-0.5" style={{ color: '#4d7c0f' }}>{fmtARS(rest, 0)}</div>
+            </div>
+          </div>
+        )}
+      </header>
+
+      {/* SCROLL interno: solo el contenido cambia según la vista */}
+      <div className="app-scroll">
+        {view === 'budget' && (
+          <div className="px-3 pt-3 pb-4 space-y-2.5">
+            {activeMonth && (
+              <>
+                {/* Hero compacto del mes */}
+                <div className="px-1 pt-1 pb-1">
+                  <MonthHeader
+                    month={activeMonth}
+                    expenses={budget.monthExpenses}
+                    onEditMonth={() => {
+                      if (activeMonth.status === 'abierto') {
+                        setEditingMonth({
+                          month: activeMonth,
+                          label: activeMonth.label,
+                          income: formatInputNumber(activeMonth.income),
+                        });
+                      }
+                    }}
+                    isClosed={monthClosed}
                   />
-                )}
+                </div>
 
-                {activeMonth.status === 'abierto' && editing?.adding && (
-                  <ExpenseForm
-                    initial={null}
-                    onSave={saveExpense}
-                    onCancel={() => setEditing(null)}
-                    onGetLastUsdRate={budget.getLastUsdRate}
-                  />
-                )}
-              </div>
-
-              {budget.monthExpenses.length === 0 && (
-                <div className="px-4 py-8 text-center text-sm text-neutral-500 dark:text-neutral-400">
-                  Sin gastos todavía. Toque "+ Agregar Gasto".
-                </div>
-              )}
-              {budget.monthExpenses.length > 0 && (
-                <div className="px-3 py-2">
-                  <div className="glass rounded-full px-4 py-2 flex items-center gap-2">
-                    <svg className="w-4 h-4 opacity-40 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z"/></svg>
-                    <input
-                      type="search"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Buscar gasto…"
-                      className="w-full bg-transparent text-sm outline-none placeholder:opacity-50"
+                <div ref={expenseFormRef}>
+                  {activeMonth.status === 'abierto' && editing && editing.expense !== null && (
+                    <ExpenseForm
+                      initial={editing.expense}
+                      onSave={saveExpense}
+                      onCancel={() => setEditing(null)}
+                      onGetLastUsdRate={budget.getLastUsdRate}
                     />
-                  </div>
-                </div>
-              )}
-              {searchQuery.trim() !== '' && filteredExpenses.length === 0 && (
-                <div className="px-4 py-6 text-center text-sm text-neutral-500 dark:text-neutral-400">
-                  Sin resultados para "{searchQuery.trim()}"
-                </div>
-              )}
-              {!groupByCategory && (
-                <div className="px-3 pb-3 space-y-2">
-                  {filteredExpenses.map((expense) => (
-                    <ExpenseRow
-                      key={expense.id}
-                      expense={expense}
-                      onTogglePaid={activeMonth.status === 'abierto' ? handleTogglePaid : () => {}}
-                      onDelete={activeMonth.status === 'abierto' ? requestDelete : () => {}}
-                      onDuplicate={activeMonth.status === 'abierto' ? handleDuplicate : () => {}}
-                      onEdit={(exp) => {
-                        if (activeMonth.status === 'abierto') setEditing({ expense: exp, adding: false });
-                      }}
-                    />
-                  ))}
-                </div>
-              )}
-              {groupByCategory && (
-                <div className="px-3 pb-3 space-y-2">
-                  {activeMonth.status === 'abierto' && (
-                    <CategoryBars totals={categoryTotals(activeMonth.id, budget.monthExpenses)} budgets={monthBudgets} />
                   )}
-                  {CATEGORY_ORDER.map((cat) => {
-                    const catExpenses = filteredExpenses.filter((e) => e.category === cat);
-                    if (catExpenses.length === 0) return null;
-                    const totals = categoryTotals(activeMonth.id, filteredExpenses);
-                    return (
-                      <ExpenseGroup
-                        key={cat}
-                        category={cat}
-                        expenses={catExpenses}
-                        total={totals.get(cat) ?? 0}
+
+                  {activeMonth.status === 'abierto' && editing?.adding && (
+                    <ExpenseForm
+                      initial={null}
+                      onSave={saveExpense}
+                      onCancel={() => setEditing(null)}
+                      onGetLastUsdRate={budget.getLastUsdRate}
+                    />
+                  )}
+                </div>
+
+                {budget.monthExpenses.length === 0 && (
+                  <div className="py-8 text-center text-sm text-neutral-500 dark:text-neutral-400">
+                    Sin gastos todavía. Toque "+ Agregar Gasto".
+                  </div>
+                )}
+                {budget.monthExpenses.length > 0 && (
+                  <div className="app-scroll-sticky">
+                    <div className="glass rounded-full px-4 py-2 flex items-center gap-2">
+                      <svg className="w-4 h-4 opacity-40 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z"/></svg>
+                      <input
+                        type="search"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Buscar gasto…"
+                        className="w-full bg-transparent text-sm outline-none placeholder:opacity-50"
+                      />
+                    </div>
+                  </div>
+                )}
+                {searchQuery.trim() !== '' && filteredExpenses.length === 0 && (
+                  <div className="py-6 text-center text-sm text-neutral-500 dark:text-neutral-400">
+                    Sin resultados para "{searchQuery.trim()}"
+                  </div>
+                )}
+                {!groupByCategory && (
+                  <div className="space-y-2">
+                    {filteredExpenses.map((expense) => (
+                      <ExpenseRow
+                        key={expense.id}
+                        expense={expense}
                         onTogglePaid={activeMonth.status === 'abierto' ? handleTogglePaid : () => {}}
                         onDelete={activeMonth.status === 'abierto' ? requestDelete : () => {}}
                         onDuplicate={activeMonth.status === 'abierto' ? handleDuplicate : () => {}}
@@ -486,427 +506,444 @@ export default function App() {
                           if (activeMonth.status === 'abierto') setEditing({ expense: exp, adding: false });
                         }}
                       />
-                    );
-                  })}
-                </div>
-              )}
-            </>
-          )}
-
-          {budget.lastDeleted && (
-            <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-sm px-4 py-3 bg-neutral-900 text-white rounded-xl shadow-lg flex items-center justify-between gap-3 dark:bg-neutral-100 dark:text-neutral-900">
-              <span className="text-sm">Gasto eliminado</span>
-              <button
-                type="button"
-                onClick={() => {
-                  void budget.restoreLastDeleted();
-                  fdb.undo();
-                }}
-                className="text-sm font-semibold text-emerald-400 hover:text-emerald-300 dark:text-emerald-600 dark:hover:text-emerald-500"
-              >
-                Deshacer
-              </button>
-            </div>
-          )}
-
-          {activeMonth && (
-            <footer className="px-4 pb-5 space-y-2.5">
-              {activeMonth.status === 'abierto' && (
-                <>
-                  <div className="w-full flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setGroupByCategory(!groupByCategory)}
-                      className="flex-1 px-3 py-2.5 text-sm font-medium glass rounded-full hover:opacity-80 transition"
-                    >
-                      {groupByCategory ? '☰ Ver lista completa' : '🗂 Agrupar por categoría'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={openBudgetEditor}
-                      className="px-3 py-2.5 text-sm font-medium glass rounded-full hover:opacity-80 transition"
-                    >
-                      ⚙ Presupuestos
-                    </button>
+                    ))}
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setEditing({ expense: null, adding: true })}
-                    className="w-full px-3 py-3 text-sm font-bold rounded-full btn-aura transition"
-                  >
-                    + Agregar Gasto
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowPhotoModal(true)}
-                    disabled={!photoAllowed}
-                    title={photoAllowed ? 'Cargar el mes con una foto de apuntes' : 'Este mes ya fue cargado con foto (se permite solo una vez)'}
-                    className="w-full px-3 py-3 text-sm font-bold rounded-full btn-violet transition disabled:opacity-40 disabled:cursor-not-allowed"
-                  >
-                    📷 Foto de apuntes
-                  </button>
-                </>
-              )}
-              {activeMonth.status === 'cerrado' && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    void budget.reopenMonth(activeMonth.id);
-                    fdb.reopenMonth();
-                  }}
-                  className="w-full px-3 py-2.5 text-sm font-semibold text-amber-600 glass rounded-full hover:opacity-80 transition dark:text-amber-400"
-                >
-                  🔓 Reabrir mes
-                </button>
-              )}
-              {activeMonth.status === 'abierto' && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    void budget.closeMonth(activeMonth.id);
-                    fdb.closeMonth();
-                  }}
-                  className="w-full px-3 py-2.5 text-sm font-semibold glass rounded-full hover:opacity-80 transition"
-                >
-                  🔒 Cerrar mes
-                </button>
-              )}
+                )}
+                {groupByCategory && (
+                  <div className="space-y-2">
+                    {activeMonth.status === 'abierto' && (
+                      <CategoryBars totals={categoryTotals(activeMonth.id, budget.monthExpenses)} budgets={monthBudgets} />
+                    )}
+                    {CATEGORY_ORDER.map((cat) => {
+                      const catExpenses = filteredExpenses.filter((e) => e.category === cat);
+                      if (catExpenses.length === 0) return null;
+                      const totals = categoryTotals(activeMonth.id, filteredExpenses);
+                      return (
+                        <ExpenseGroup
+                          key={cat}
+                          category={cat}
+                          expenses={catExpenses}
+                          total={totals.get(cat) ?? 0}
+                          onTogglePaid={activeMonth.status === 'abierto' ? handleTogglePaid : () => {}}
+                          onDelete={activeMonth.status === 'abierto' ? requestDelete : () => {}}
+                          onDuplicate={activeMonth.status === 'abierto' ? handleDuplicate : () => {}}
+                          onEdit={(exp) => {
+                            if (activeMonth.status === 'abierto') setEditing({ expense: exp, adding: false });
+                          }}
+                        />
+                      );
+                    })}
+                  </div>
+                )}
+              </>
+            )}
 
-              <div className="flex items-center justify-center gap-1.5 !mt-4">
-                <button
-                  type="button"
-                  onClick={() => setShowGuide(true)}
-                  aria-label="Guía de uso"
-                  title="Guía de uso"
-                  className="px-3 py-1.5 text-xs font-medium glass rounded-full hover:opacity-80 transition"
-                >
-                  ❓ Guía
-                </button>
-                <button
-                  type="button"
-                  onClick={toggleSound}
-                  aria-label={soundEnabled ? 'Silenciar sonidos' : 'Activar sonidos'}
-                  title={soundEnabled ? 'Silenciar sonidos' : 'Activar sonidos'}
-                  className={`px-3 py-1.5 text-xs font-medium glass rounded-full transition ${
-                    soundEnabled ? 'hover:opacity-80' : 'opacity-50 hover:opacity-80'
-                  }`}
-                >
-                  {soundEnabled ? '🔊 Sonidos' : '🔇 Sonidos'}
-                </button>
-                <button
-                  type="button"
-                  onClick={exportJSON}
-                  className="px-3 py-1.5 text-xs font-medium glass rounded-full hover:opacity-80 transition"
-                >
-                  Exportar
-                </button>
-                <label className="px-3 py-1.5 text-xs font-medium glass rounded-full hover:opacity-80 transition cursor-pointer">
-                  Importar
-                  <input type="file" accept="application/json" className="hidden" onChange={importJSON} />
-                </label>
+            {!activeMonth && (
+              <div className="py-10 text-center text-sm text-neutral-500 dark:text-neutral-400">
+                Creá un mes para empezar a cargar gastos.
               </div>
-            </footer>
-          )}
-        </>
-      )}
+            )}
 
-      {view === 'savings' && (
-        <>
-          {(addingGoal || editingGoal) && (
-            <SavingsGoalForm
-              initial={editingGoal}
+            {budget.lastDeleted && (
+              <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-sm px-4 py-3 bg-neutral-900 text-white rounded-xl shadow-lg flex items-center justify-between gap-3 dark:bg-neutral-100 dark:text-neutral-900">
+                <span className="text-sm">Gasto eliminado</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    void budget.restoreLastDeleted();
+                    fdb.undo();
+                  }}
+                  className="text-sm font-semibold text-emerald-400 hover:text-emerald-300 dark:text-emerald-600 dark:hover:text-emerald-500"
+                >
+                  Deshacer
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {view === 'savings' && (
+          <div className="pb-4">
+            {(addingGoal || editingGoal) && (
+              <SavingsGoalForm
+                initial={editingGoal}
+                months={budget.months}
+                expenses={budget.expenses}
+                onSave={saveGoal}
+                onCancel={() => {
+                  setEditingGoal(null);
+                  setAddingGoal(false);
+                }}
+              />
+            )}
+
+            <SavingsCalculator
+              goals={savings.goals}
               months={budget.months}
               expenses={budget.expenses}
-              onSave={saveGoal}
-              onCancel={() => {
+              onAdd={() => {
                 setEditingGoal(null);
-                setAddingGoal(false);
+                setAddingGoal(true);
               }}
+              onEdit={(goal) => {
+                setAddingGoal(false);
+                setEditingGoal(goal);
+              }}
+              onDelete={(id) => {
+                void savings.deleteGoal(id);
+                fdb.delete();
+              }}
+              onRemoveExtra={savings.removeExtraIncome}
             />
-          )}
 
-          <SavingsCalculator
-            goals={savings.goals}
-            months={budget.months}
-            expenses={budget.expenses}
-            onAdd={() => {
-              setEditingGoal(null);
-              setAddingGoal(true);
-            }}
-            onEdit={(goal) => {
-              setAddingGoal(false);
-              setEditingGoal(goal);
-            }}
-            onDelete={(id) => {
-              void savings.deleteGoal(id);
-              fdb.delete();
-            }}
-            onRemoveExtra={savings.removeExtraIncome}
-          />
+            {/* Botón discreto de guía de ahorro, siempre visible abajo */}
+            <div className="px-4">
+              <button
+                type="button"
+                onClick={() => setShowSavingsGuide(true)}
+                aria-label="Guía de ahorro"
+                title="Guía de ahorro"
+                className="w-full px-3 py-2.5 text-xs font-semibold glass rounded-full hover:opacity-80 transition"
+              >
+                ❓ Guía de ahorro
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
 
-          {/* Botón discreto de guía de ahorro, siempre visible abajo */}
-          <div className="px-4 pb-4">
+      {/* BOTTOM BAR v4: selector de vista · Más (el FAB vive fuera del main) */}
+      <BottomNav
+        view={view}
+        onToggleView={() => {
+          setFabOpen(false);
+          setMoreOpen(false);
+          setViewMenuOpen((v) => !v);
+        }}
+        onMore={() => {
+          setFabOpen(false);
+          setViewMenuOpen(false);
+          setMoreOpen((v) => !v);
+        }}
+      />
+    </main>
+
+    {/* FAB + Speed Dial: fixed FUERA del main para no quedar bajo el overlay (z45) */}
+    <div className="fab-shell">
+      <div className={`sd ${fabOpen ? 'open' : ''}`}>
+        <button type="button" className="si" onClick={() => { setFabOpen(false); if (activeMonth?.status === 'abierto') { setView('budget'); setEditing({ expense: null, adding: true }); } }}>
+          <span className="ico" style={{ background: 'linear-gradient(135deg,#65a30d,#84cc16)' }}>➕</span>
+          Agregar Gasto
+        </button>
+        <button type="button" className="si" onClick={() => { setFabOpen(false); if (activeMonth) { setView('budget'); setShowPhotoModal(true); } }}>
+          <span className="ico" style={{ background: 'linear-gradient(135deg,#8b5cf6,#d946ef)' }}>📷</span>
+          Foto de apuntes
+        </button>
+      </div>
+      <button
+        type="button"
+        className={`fab ${fabOpen ? 'open' : ''}`}
+        onClick={() => {
+          setViewMenuOpen(false);
+          setMoreOpen(false);
+          setFabOpen((v) => !v);
+        }}
+        aria-label={fabOpen ? 'Cerrar acciones' : 'Agregar'}
+        title="Agregar"
+      >
+        +
+      </button>
+    </div>
+
+    {/* Overlay unificado: cierra cualquier panel abierto */}
+    <div className={`ov-v4 ${overlayOpen ? 'open' : ''}`} onClick={closePanels} />
+
+    {/* Mini menú de vista (flotante sobre la bottom bar) */}
+    <ViewMenu
+      open={viewMenuOpen}
+      view={view}
+      onSelect={(v) => {
+        setView(v);
+        setViewMenuOpen(false);
+      }}
+    />
+
+    {/* Bottom sheet "Más" */}
+    {activeMonth && view === 'budget' && (
+      <MoreSheet
+        open={moreOpen}
+        dark={dark}
+        soundEnabled={soundEnabled}
+        monthClosed={monthClosed}
+        onClose={() => setMoreOpen(false)}
+        onGroupBy={() => setGroupByCategory((g) => !g)}
+        onBudgets={openBudgetEditor}
+        onReopenMonth={() => {
+          if (!activeMonth) return;
+          void budget.reopenMonth(activeMonth.id);
+          fdb.reopenMonth();
+        }}
+        onCloseMonth={() => {
+          if (!activeMonth) return;
+          void budget.closeMonth(activeMonth.id);
+          fdb.closeMonth();
+        }}
+        onGuide={() => setShowGuide(true)}
+        onToggleTheme={toggle}
+        onToggleSound={toggleSound}
+        onExport={() => void exportJSON()}
+        onImport={(e) => void importJSON(e)}
+      />
+    )}
+
+    {showPhotoModal && activeMonth && (
+      <PhotoExpenseModal
+        month={activeMonth}
+        onSave={handlePhotoSave}
+        onClose={() => setShowPhotoModal(false)}
+      />
+    )}
+
+    <GuideModal
+      open={showGuide}
+      onClose={() => setShowGuide(false)}
+      type="budget"
+    />
+
+    <GuideModal
+      open={showSavingsGuide}
+      onClose={() => setShowSavingsGuide(false)}
+      type="savings"
+    />
+
+    {confirmAmount && (
+      <div className="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4">
+        <form
+          onSubmit={confirmEstimatedAmount}
+          className="w-full max-w-sm glass-card rounded-3xl p-4 space-y-3"
+        >
+          <div className="font-bold text-neutral-900 dark:text-neutral-100">Confirmar gasto</div>
+
+          {/* Contexto completo del gasto por confirmar */}
+          <div className="glass rounded-xl p-3 space-y-1 text-xs">
+            <div className="flex justify-between">
+              <span className="text-neutral-500 dark:text-neutral-400">Categoría</span>
+              <span className="font-semibold text-neutral-900 dark:text-neutral-100">
+                {CATEGORY_LABELS[confirmAmount.category]}
+              </span>
+            </div>
+            {confirmAmount.estimatedArs != null && (
+              <div className="flex justify-between">
+                <span className="text-neutral-500 dark:text-neutral-400">Estimado</span>
+                <span className="font-semibold text-neutral-900 dark:text-neutral-100">
+                  {fmtARS(confirmAmount.estimatedArs)}
+                </span>
+              </div>
+            )}
+            {confirmAmount.amountUsd > 0 && (
+              <div className="flex justify-between">
+                <span className="text-neutral-500 dark:text-neutral-400">Componente USD</span>
+                <span className="font-semibold text-neutral-900 dark:text-neutral-100">
+                  {fmtUSD(confirmAmount.amountUsd)} a {fmtARS(confirmAmount.usdRate)}
+                </span>
+              </div>
+            )}
+            <div className="flex justify-between pt-1 border-t border-neutral-200 dark:border-neutral-700">
+              <span className="text-neutral-500 dark:text-neutral-400">Total estimado</span>
+              <span className="font-bold text-neutral-900 dark:text-neutral-100">
+                {fmtARS(getExpenseTotal(confirmAmount), 0)}
+              </span>
+            </div>
+          </div>
+
+          <p className="text-sm text-neutral-600 dark:text-neutral-400">
+            <span className="font-semibold">{confirmAmount.name}</span> estaba "por confirmar".
+            Confirmá el monto real para marcarlo como pagado.
+          </p>
+          <div>
+            <label className="block text-[11px] text-neutral-500 font-medium mb-1 dark:text-neutral-400">
+              Monto real (ARS)
+            </label>
+            <MoneyInput
+              symbol="$"
+              autoFocus
+              value={confirmAmountValue}
+              onChange={(v) => setConfirmAmountValue(v)}
+              placeholder="0"
+            />
+          </div>
+          <div className="flex gap-2 pt-1">
+            <button
+              type="submit"
+              className="flex-1 px-3 py-2 text-sm font-semibold rounded-full btn-aura transition"
+            >
+              Confirmar y marcar pagado
+            </button>
             <button
               type="button"
-              onClick={() => setShowSavingsGuide(true)}
-              aria-label="Guía de ahorro"
-              title="Guía de ahorro"
-              className="w-full px-3 py-2.5 text-xs font-semibold glass rounded-full hover:opacity-80 transition"
+              onClick={() => setConfirmAmount(null)}
+              className="px-3 py-2 text-sm font-medium glass rounded-full hover:opacity-80 transition"
             >
-              ❓ Guía de ahorro
+              Cancelar
             </button>
           </div>
-        </>
-      )}
+        </form>
+      </div>
+    )}
 
-      {showPhotoModal && activeMonth && (
-        <PhotoExpenseModal
-          month={activeMonth}
-          onSave={handlePhotoSave}
-          onClose={() => setShowPhotoModal(false)}
-        />
-      )}
+    {confirmDelete && (
+      <div className="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="w-full max-w-sm glass-card rounded-3xl p-4 space-y-3">
+          <div className="font-bold text-neutral-900 dark:text-neutral-100">¿Eliminar gasto?</div>
+          <p className="text-sm text-neutral-600 dark:text-neutral-400">
+            Se borrará <span className="font-semibold">{confirmDelete.name}</span>. Vas a poder
+            deshacerlo por unos segundos después de confirmar.
+          </p>
+          <div className="flex gap-2 pt-1">
+            <button
+              type="button"
+              onClick={confirmExpenseDelete}
+              className="flex-1 px-3 py-2 text-sm font-semibold bg-red-500 text-white rounded-full hover:bg-red-600 transition"
+            >
+              Sí, borrar
+            </button>
+            <button
+              type="button"
+              onClick={() => setConfirmDelete(null)}
+              className="px-3 py-2 text-sm font-medium glass rounded-full hover:opacity-80 transition"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
 
-      <GuideModal
-        open={showGuide}
-        onClose={() => setShowGuide(false)}
-        type="budget"
-      />
+    {confirmDeleteMonth && (
+      <div className="modal-overlay fixed inset-0 z-[70] flex items-center justify-center p-4">
+        <div className="w-full max-w-sm glass-card rounded-3xl p-4 space-y-3">
+          <div className="font-bold text-red-600 dark:text-red-400">¿Eliminar mes?</div>
+          <p className="text-sm text-neutral-600 dark:text-neutral-400">
+            Se borrará <span className="font-semibold">{confirmDeleteMonth.label}</span> y TODOS
+            sus gastos. Esta acción no se puede deshacer.
+          </p>
+          <div className="flex gap-2 pt-1">
+            <button
+              type="button"
+              onClick={confirmMonthDelete}
+              className="flex-1 px-3 py-2 text-sm font-semibold bg-red-500 text-white rounded-full hover:bg-red-600 transition"
+            >
+              Sí, borrar mes
+            </button>
+            <button
+              type="button"
+              onClick={() => setConfirmDeleteMonth(null)}
+              className="px-3 py-2 text-sm font-medium glass rounded-full hover:opacity-80 transition"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
 
-      <GuideModal
-        open={showSavingsGuide}
-        onClose={() => setShowSavingsGuide(false)}
-        type="savings"
-      />
+    {editingBudgets && (
+      <div className="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4">
+        <form
+          onSubmit={saveBudgets}
+          className="w-full max-w-sm glass-card rounded-3xl p-4 space-y-3"
+        >
+          <div className="font-bold text-neutral-900 dark:text-neutral-100">Presupuestos del mes</div>
+          <p className="text-xs text-neutral-500 dark:text-neutral-400">
+            Definí un límite mensual por categoría (en ARS). Dejá vacío para no poner límite.
+          </p>
 
-      {confirmAmount && (
-        <div className="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4">
-          <form
-            onSubmit={confirmEstimatedAmount}
-            className="w-full max-w-sm glass-card rounded-3xl p-4 space-y-3"
-          >
-            <div className="font-bold text-neutral-900 dark:text-neutral-100">Confirmar gasto</div>
-
-            {/* Contexto completo del gasto por confirmar */}
-            <div className="glass rounded-xl p-3 space-y-1 text-xs">
-              <div className="flex justify-between">
-                <span className="text-neutral-500 dark:text-neutral-400">Categoría</span>
-                <span className="font-semibold text-neutral-900 dark:text-neutral-100">
-                  {CATEGORY_LABELS[confirmAmount.category]}
-                </span>
-              </div>
-              {confirmAmount.estimatedArs != null && (
-                <div className="flex justify-between">
-                  <span className="text-neutral-500 dark:text-neutral-400">Estimado</span>
-                  <span className="font-semibold text-neutral-900 dark:text-neutral-100">
-                    {fmtARS(confirmAmount.estimatedArs)}
-                  </span>
-                </div>
-              )}
-              {confirmAmount.amountUsd > 0 && (
-                <div className="flex justify-between">
-                  <span className="text-neutral-500 dark:text-neutral-400">Componente USD</span>
-                  <span className="font-semibold text-neutral-900 dark:text-neutral-100">
-                    {fmtUSD(confirmAmount.amountUsd)} a {fmtARS(confirmAmount.usdRate)}
-                  </span>
-                </div>
-              )}
-              <div className="flex justify-between pt-1 border-t border-neutral-200 dark:border-neutral-700">
-                <span className="text-neutral-500 dark:text-neutral-400">Total estimado</span>
-                <span className="font-bold text-neutral-900 dark:text-neutral-100">
-                  {fmtARS(getExpenseTotal(confirmAmount), 0)}
-                </span>
-              </div>
-            </div>
-
-            <p className="text-sm text-neutral-600 dark:text-neutral-400">
-              <span className="font-semibold">{confirmAmount.name}</span> estaba "por confirmar".
-              Confirmá el monto real para marcarlo como pagado.
-            </p>
-            <div>
+          {CATEGORY_ORDER.map((cat) => (
+            <div key={cat}>
               <label className="block text-[11px] text-neutral-500 font-medium mb-1 dark:text-neutral-400">
-                Monto real (ARS)
+                {CATEGORY_LABELS[cat]}
               </label>
               <MoneyInput
                 symbol="$"
-                autoFocus
-                value={confirmAmountValue}
-                onChange={(v) => setConfirmAmountValue(v)}
-                placeholder="0"
+                value={budgetInputs[cat] ?? ''}
+                onChange={(v) => setBudgetInputs({ ...budgetInputs, [cat]: v })}
+                placeholder="Sin límite"
               />
             </div>
-            <div className="flex gap-2 pt-1">
-              <button
-                type="submit"
-                className="flex-1 px-3 py-2 text-sm font-semibold rounded-full btn-aura transition"
-              >
-                Confirmar y marcar pagado
-              </button>
-              <button
-                type="button"
-                onClick={() => setConfirmAmount(null)}
-                className="px-3 py-2 text-sm font-medium glass rounded-full hover:opacity-80 transition"
-              >
-                Cancelar
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
+          ))}
 
-      {confirmDelete && (
-        <div className="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="w-full max-w-sm glass-card rounded-3xl p-4 space-y-3">
-            <div className="font-bold text-neutral-900 dark:text-neutral-100">¿Eliminar gasto?</div>
-            <p className="text-sm text-neutral-600 dark:text-neutral-400">
-              Se borrará <span className="font-semibold">{confirmDelete.name}</span>. Vas a poder
-              deshacerlo por unos segundos después de confirmar.
-            </p>
-            <div className="flex gap-2 pt-1">
-              <button
-                type="button"
-                onClick={confirmExpenseDelete}
-                className="flex-1 px-3 py-2 text-sm font-semibold bg-red-500 text-white rounded-full hover:bg-red-600 transition"
-              >
-                Sí, borrar
-              </button>
-              <button
-                type="button"
-                onClick={() => setConfirmDelete(null)}
-                className="px-3 py-2 text-sm font-medium glass rounded-full hover:opacity-80 transition"
-              >
-                Cancelar
-              </button>
-            </div>
+          <div className="flex gap-2 pt-1">
+            <button
+              type="submit"
+              className="flex-1 px-3 py-2 text-sm font-semibold rounded-full btn-aura transition"
+            >
+              Guardar presupuestos
+            </button>
+            <button
+              type="button"
+              onClick={() => setEditingBudgets(false)}
+              className="px-3 py-2 text-sm font-medium glass rounded-full hover:opacity-80 transition"
+            >
+              Cancelar
+            </button>
           </div>
-        </div>
-      )}
+        </form>
+      </div>
+    )}
 
-      {confirmDeleteMonth && (
-        <div className="modal-overlay fixed inset-0 z-[70] flex items-center justify-center p-4">
-          <div className="w-full max-w-sm glass-card rounded-3xl p-4 space-y-3">
-            <div className="font-bold text-red-600 dark:text-red-400">¿Eliminar mes?</div>
-            <p className="text-sm text-neutral-600 dark:text-neutral-400">
-              Se borrará <span className="font-semibold">{confirmDeleteMonth.label}</span> y TODOS
-              sus gastos. Esta acción no se puede deshacer.
-            </p>
-            <div className="flex gap-2 pt-1">
-              <button
-                type="button"
-                onClick={confirmMonthDelete}
-                className="flex-1 px-3 py-2 text-sm font-semibold bg-red-500 text-white rounded-full hover:bg-red-600 transition"
-              >
-                Sí, borrar mes
-              </button>
-              <button
-                type="button"
-                onClick={() => setConfirmDeleteMonth(null)}
-                className="px-3 py-2 text-sm font-medium glass rounded-full hover:opacity-80 transition"
-              >
-                Cancelar
-              </button>
-            </div>
+    {editingMonth && (
+      <div className="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4">
+        <form
+          onSubmit={saveMonth}
+          className="w-full max-w-sm glass-card rounded-3xl p-4 space-y-3"
+        >
+          <div className="flex justify-between items-center">
+            <div className="font-bold text-neutral-900 dark:text-neutral-100">Editar mes</div>
+            <button
+              type="button"
+              onClick={() => setConfirmDeleteMonth(editingMonth.month)}
+              className="px-2 py-1 text-[11px] font-medium text-red-600 glass rounded-full hover:opacity-80 transition dark:text-red-400"
+            >
+              🗑 Eliminar mes
+            </button>
           </div>
-        </div>
-      )}
-
-      {editingBudgets && (
-        <div className="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4">
-          <form
-            onSubmit={saveBudgets}
-            className="w-full max-w-sm glass-card rounded-3xl p-4 space-y-3"
-          >
-            <div className="font-bold text-neutral-900 dark:text-neutral-100">Presupuestos del mes</div>
-            <p className="text-xs text-neutral-500 dark:text-neutral-400">
-              Definí un límite mensual por categoría (en ARS). Dejá vacío para no poner límite.
-            </p>
-
-            {CATEGORY_ORDER.map((cat) => (
-              <div key={cat}>
-                <label className="block text-[11px] text-neutral-500 font-medium mb-1 dark:text-neutral-400">
-                  {CATEGORY_LABELS[cat]}
-                </label>
-                <MoneyInput
-                  symbol="$"
-                  value={budgetInputs[cat] ?? ''}
-                  onChange={(v) => setBudgetInputs({ ...budgetInputs, [cat]: v })}
-                  placeholder="Sin límite"
-                />
-              </div>
-            ))}
-
-            <div className="flex gap-2 pt-1">
-              <button
-                type="submit"
-                className="flex-1 px-3 py-2 text-sm font-semibold rounded-full btn-aura transition"
-              >
-                Guardar presupuestos
-              </button>
-              <button
-                type="button"
-                onClick={() => setEditingBudgets(false)}
-                className="px-3 py-2 text-sm font-medium glass rounded-full hover:opacity-80 transition"
-              >
-                Cancelar
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      {editingMonth && (
-        <div className="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4">
-          <form
-            onSubmit={saveMonth}
-            className="w-full max-w-sm glass-card rounded-3xl p-4 space-y-3"
-          >
-            <div className="flex justify-between items-center">
-              <div className="font-bold text-neutral-900 dark:text-neutral-100">Editar mes</div>
-              <button
-                type="button"
-                onClick={() => setConfirmDeleteMonth(editingMonth.month)}
-                className="px-2 py-1 text-[11px] font-medium text-red-600 glass rounded-full hover:opacity-80 transition dark:text-red-400"
-              >
-                🗑 Eliminar mes
-              </button>
-            </div>
-            <div>
-              <label className="block text-[11px] text-neutral-500 font-medium mb-1">Etiqueta</label>
-              <input
-                value={editingMonth.label}
-                onChange={(e) => setEditingMonth({ ...editingMonth, label: e.target.value })}
-                className="input-aura w-full px-3 py-2 text-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-[11px] text-neutral-500 font-medium mb-1 dark:text-neutral-400">
-                Ingreso (ARS)
-              </label>
-              <MoneyInput
-                symbol="$"
-                value={editingMonth.income}
-                onChange={(v) => setEditingMonth({ ...editingMonth, income: v })}
-                placeholder="0"
-              />
-            </div>
-            <div className="flex gap-2 pt-1">
-              <button
-                type="submit"
-                className="flex-1 px-3 py-2 text-sm font-semibold rounded-full btn-aura transition"
-              >
-                Guardar
-              </button>
-              <button
-                type="button"
-                onClick={() => setEditingMonth(null)}
-                className="px-3 py-2 text-sm font-medium glass rounded-full hover:opacity-80 transition"
-              >
-                Cancelar
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
-    </main>
+          <div>
+            <label className="block text-[11px] text-neutral-500 font-medium mb-1">Etiqueta</label>
+            <input
+              value={editingMonth.label}
+              onChange={(e) => setEditingMonth({ ...editingMonth, label: e.target.value })}
+              className="input-aura w-full px-3 py-2 text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-[11px] text-neutral-500 font-medium mb-1 dark:text-neutral-400">
+              Ingreso (ARS)
+            </label>
+            <MoneyInput
+              symbol="$"
+              value={editingMonth.income}
+              onChange={(v) => setEditingMonth({ ...editingMonth, income: v })}
+              placeholder="0"
+            />
+          </div>
+          <div className="flex gap-2 pt-1">
+            <button
+              type="submit"
+              className="flex-1 px-3 py-2 text-sm font-semibold rounded-full btn-aura transition"
+            >
+              Guardar
+            </button>
+            <button
+              type="button"
+              onClick={() => setEditingMonth(null)}
+              className="px-3 py-2 text-sm font-medium glass rounded-full hover:opacity-80 transition"
+            >
+              Cancelar
+            </button>
+          </div>
+        </form>
+      </div>
+    )}
+    </>
   );
 }

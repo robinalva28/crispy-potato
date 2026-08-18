@@ -77,7 +77,7 @@ export function MonthSelector({ months, activeMonthId, onSelect, onCreate }: Pro
           className="sticky left-0 z-10 shrink-0 px-3.5 py-2 text-xs font-bold rounded-full chip-active transition-all duration-300 ease-out whitespace-nowrap"
           style={{ boxShadow: '0 8px 20px -8px rgba(132,204,22,.6), 0 0 0 6px var(--glass-bg)' }}
         >
-          + Crear Mes
+          + Mes
         </button>
         {months.map((m) => (
           <button

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Opción A — "Aura" · Soft Glass</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  body { font-family: 'Inter', system-ui, sans-serif; }
+  ::selection { background: rgba(132,204,22,.25); }
+  .glass {
+    background: rgba(255,255,255,.62);
+    backdrop-filter: blur(24px) saturate(1.4);
+    -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  }
+  .glass-card {
+    background: rgba(255,255,255,.55);
+    backdrop-filter: blur(28px) saturate(1.5);
+    -webkit-backdrop-filter: blur(28px) saturate(1.5);
+    border: 1px solid rgba(255,255,255,.65);
+    box-shadow: 0 24px 60px -24px rgba(80,120,60,.25), 0 8px 24px -12px rgba(80,120,60,.12);
+  }
+  .soft-shadow { box-shadow: 0 12px 32px -12px rgba(80,120,60,.35); }
+  .chip-active {
+    background: linear-gradient(135deg, #65a30d, #84cc16);
+    box-shadow: 0 8px 20px -8px rgba(132,204,22,.6);
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, #65a30d, #84cc16);
+    box-shadow: 0 10px 24px -8px rgba(132,204,22,.55);
+  }
+  .btn-primary:hover { filter: brightness(1.05); transform: translateY(-1px); box-shadow: 0 14px 28px -8px rgba(132,204,22,.6); }
+  .pill { border-radius: 9999px; }
+</style>
+</head>
+<body class="min-h-screen text-neutral-800 antialiased"
+  style="background:
+    radial-gradient(1200px 500px at 85% -10%, rgba(167,139,250,.22), transparent 55%),
+    radial-gradient(900px 480px at -10% 15%, rgba(132,204,22,.20), transparent 55%),
+    radial-gradient(700px 500px at 50% 110%, rgba(14,165,233,.16), transparent 55%),
+    linear-gradient(160deg, #f8faf7 0%, #eef4ea 55%, #eceff8 100%);">
+
+  <div class="max-w-md mx-auto px-4 py-8">
+    <!-- Mini header de la app -->
+    <div class="flex items-center justify-between mb-5">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-2xl bg-gradient-to-br from-lime-500 to-emerald-500 shadow-lg shadow-lime-500/30 flex items-center justify-center text-white text-base">✦</div>
+        <div>
+          <div class="text-sm font-bold tracking-tight">Presupuesto</div>
+          <div class="text-[11px] text-neutral-500 font-medium">Agosto 2026</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="w-9 h-9 rounded-full glass border border-white/60 flex items-center justify-center text-base hover:scale-105 transition">🌙</button>
+        <button class="text-[11px] font-semibold text-neutral-600 glass border border-white/60 pill px-3 py-1.5 hover:bg-white/70 transition">✎ Editar</button>
+      </div>
+    </div>
+
+    <!-- Selector de meses (chips pill) -->
+    <div class="glass rounded-3xl p-2 mb-4 flex items-center gap-2 overflow-x-auto">
+      <button class="shrink-0 pill px-3.5 py-2 text-xs font-bold text-white chip-active">+ Crear Mes</button>
+      <button class="shrink-0 pill px-3.5 py-2 text-xs font-semibold bg-white/70 border border-white/50 text-neutral-700 hover:bg-white transition">Julio</button>
+      <button class="shrink-0 pill px-3.5 py-2 text-xs font-semibold bg-white/70 border border-white/50 text-neutral-700 hover:bg-white transition">Marzo</button>
+      <button class="shrink-0 pill px-3.5 py-2 text-xs font-semibold bg-white/70 border border-white/50 text-neutral-700 hover:bg-white transition">Febrero</button>
+    </div>
+
+    <!-- Tarjeta principal glass -->
+    <div class="glass-card rounded-[28px] overflow-hidden">
+
+      <!-- Header del mes -->
+      <div class="px-5 pt-5 pb-4">
+        <div class="flex items-center justify-between">
+          <h1 class="text-xl font-bold tracking-tight">AGOSTO 2026</h1>
+          <span class="text-[10px] font-bold uppercase tracking-widest text-amber-700 bg-amber-100/80 border border-amber-200/60 pill px-2.5 py-1">🔒 Cerrado</span>
+        </div>
+
+        <div class="mt-3 flex items-baseline gap-2">
+          <span class="text-xs text-neutral-500 font-medium">Ingreso</span>
+          <span class="text-lg font-bold tabular-nums tracking-tight">$ 2.500.000</span>
+        </div>
+        <div class="mt-0.5 flex items-baseline gap-2">
+          <span class="text-xs text-neutral-500 font-medium">Resto proy.</span>
+          <span class="text-sm font-bold tabular-nums text-lime-700">$ 418.500 · 17%</span>
+        </div>
+
+        <!-- Stats -->
+        <div class="mt-4 grid grid-cols-3 gap-2.5">
+          <div class="rounded-2xl bg-white/60 border border-white/60 px-3 py-2.5 text-center">
+            <div class="text-[10px] text-neutral-500 uppercase tracking-widest font-semibold">Confirmado</div>
+            <div class="text-sm font-extrabold tabular-nums mt-0.5">$ 1.896.000</div>
+          </div>
+          <div class="rounded-2xl bg-white/60 border border-white/60 px-3 py-2.5 text-center">
+            <div class="text-[10px] text-neutral-500 uppercase tracking-widest font-semibold">Proyectado</div>
+            <div class="text-sm font-extrabold tabular-nums mt-0.5">$ 2.081.500</div>
+          </div>
+          <div class="rounded-2xl bg-lime-50/80 border border-lime-200/50 px-3 py-2.5 text-center">
+            <div class="text-[10px] text-lime-700 uppercase tracking-widest font-semibold">Resto</div>
+            <div class="text-sm font-extrabold tabular-nums text-lime-800 mt-0.5">$ 418.500</div>
+          </div>
+        </div>
+
+        <!-- Pagado vs pendiente -->
+        <div class="mt-4 space-y-1.5">
+          <div class="flex justify-between text-xs">
+            <span class="font-semibold text-emerald-700">✅ Pagado</span>
+            <span class="font-bold tabular-nums text-neutral-700">$ 1.546.000</span>
+          </div>
+          <div class="flex justify-between text-xs">
+            <span class="font-semibold text-amber-600">⏳ Pendiente</span>
+            <span class="font-bold tabular-nums text-neutral-700">$ 535.500</span>
+          </div>
+          <div class="flex h-2 bg-white/70 rounded-full overflow-hidden border border-white/60">
+            <div class="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full" style="width:74%"></div>
+            <div class="h-full bg-gradient-to-r from-amber-400 to-amber-300 rounded-full" style="width:26%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Búsqueda -->
+      <div class="px-5 pb-3">
+        <div class="glass rounded-full px-4 py-2.5 flex items-center gap-2 border border-white/50">
+          <svg class="w-4 h-4 text-neutral-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z"/></svg>
+          <input type="search" placeholder="Buscar gasto…" class="w-full bg-transparent text-sm outline-none placeholder:text-neutral-400" />
+        </div>
+      </div>
+
+      <!-- Lista de gastos -->
+      <div class="px-3 pb-5 space-y-2">
+        <!-- Pagado -->
+        <div class="flex items-center gap-3 rounded-2xl bg-white/60 border border-white/60 px-3.5 py-3 hover:bg-white/80 transition cursor-pointer">
+          <div class="w-6 h-6 shrink-0 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-400 text-white flex items-center justify-center text-xs shadow-sm shadow-emerald-500/30">✓</div>
+          <div class="flex-1 min-w-0">
+            <div class="flex justify-between items-baseline gap-2">
+              <span class="text-sm font-semibold truncate">Alquiler</span>
+              <span class="text-sm font-bold tabular-nums">$ 680.000</span>
+            </div>
+            <div class="flex justify-between items-baseline gap-2">
+              <span class="text-[11px] text-neutral-400 truncate">05/08 · Vivienda</span>
+              <span class="text-[11px] text-neutral-400 tabular-nums">= $ 680.000</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-1 text-neutral-300">
+            <button class="hover:text-lime-500 transition text-sm">⧉</button>
+            <button class="hover:text-red-400 transition text-sm">✕</button>
+          </div>
+        </div>
+
+        <!-- Pendiente -->
+        <div class="flex items-center gap-3 rounded-2xl bg-amber-50/70 border border-amber-100/70 px-3.5 py-3 hover:bg-amber-50 transition cursor-pointer">
+          <div class="w-6 h-6 shrink-0 rounded-full border-2 border-neutral-300 bg-white/60"></div>
+          <div class="flex-1 min-w-0">
+            <div class="flex justify-between items-baseline gap-2">
+              <span class="text-sm font-semibold truncate text-neutral-600">Expensas</span>
+              <span class="text-sm font-bold tabular-nums text-neutral-600">$ 120.000</span>
+            </div>
+            <div class="flex justify-between items-baseline gap-2">
+              <span class="text-[11px] text-neutral-400 truncate">10/08 · <span class="text-amber-600 font-semibold">pendiente</span></span>
+              <span class="text-[11px] text-neutral-400 tabular-nums">= $ 120.000</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-1 text-neutral-300">
+            <button class="hover:text-lime-500 transition text-sm">⧉</button>
+            <button class="hover:text-red-400 transition text-sm">✕</button>
+          </div>
+        </div>
+
+        <!-- Por confirmar + USD -->
+        <div class="flex items-center gap-3 rounded-2xl bg-white/60 border border-white/60 px-3.5 py-3 hover:bg-white/80 transition cursor-pointer">
+          <div class="w-6 h-6 shrink-0 rounded-full border-2 border-dashed border-violet-400 bg-violet-50"></div>
+          <div class="flex-1 min-w-0">
+            <div class="flex justify-between items-baseline gap-2">
+              <span class="text-sm font-semibold truncate">Tarjeta Visa</span>
+              <span class="text-sm font-bold tabular-nums">~ $ 350.000</span>
+            </div>
+            <div class="flex justify-between items-baseline gap-2">
+              <span class="text-[11px] text-neutral-400 truncate">18/08 · <span class="text-violet-600 font-semibold">por confirmar</span></span>
+              <span class="text-[11px] text-neutral-400 tabular-nums">+ u$d 35,50 a $ 1.230 · = $ 393.665</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-1 text-neutral-300">
+            <button class="hover:text-lime-500 transition text-sm">⧉</button>
+            <button class="hover:text-red-400 transition text-sm">✕</button>
+          </div>
+        </div>
+
+        <!-- Pagado con USD -->
+        <div class="flex items-center gap-3 rounded-2xl bg-white/60 border border-white/60 px-3.5 py-3 hover:bg-white/80 transition cursor-pointer">
+          <div class="w-6 h-6 shrink-0 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-400 text-white flex items-center justify-center text-xs shadow-sm shadow-emerald-500/30">✓</div>
+          <div class="flex-1 min-w-0">
+            <div class="flex justify-between items-baseline gap-2">
+              <span class="text-sm font-semibold truncate">Streaming (Netflix)</span>
+              <span class="text-sm font-bold tabular-nums">$ 0</span>
+            </div>
+            <div class="flex justify-between items-baseline gap-2">
+              <span class="text-[11px] text-neutral-400 truncate">02/08 · <span class="text-neutral-400">Servicios</span></span>
+              <span class="text-[11px] text-neutral-400 tabular-nums">+ u$d 12,99 a $ 1.230 · = $ 15.978</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-1 text-neutral-300">
+            <button class="hover:text-lime-500 transition text-sm">⧉</button>
+            <button class="hover:text-red-400 transition text-sm">✕</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Acciones -->
+      <div class="px-5 pb-5 space-y-2.5">
+        <div class="grid grid-cols-2 gap-2.5">
+          <button class="rounded-full px-4 py-2.5 text-xs font-semibold text-neutral-600 glass border border-white/60 hover:bg-white/70 transition">☰ Ver lista completa</button>
+          <button class="rounded-full px-4 py-2.5 text-xs font-semibold text-neutral-600 glass border border-white/60 hover:bg-white/70 transition">⚙ Presupuestos</button>
+        </div>
+        <button class="w-full rounded-full px-4 py-3 text-sm font-bold text-white btn-primary transition">+ Agregar Gasto</button>
+        <button class="w-full rounded-full px-4 py-3 text-sm font-bold text-white bg-gradient-to-br from-violet-500 to-fuchsia-500 shadow-lg shadow-violet-500/30 hover:brightness-105 transition">📷 Foto de apuntes</button>
+        <button class="w-full rounded-full px-4 py-3 text-sm font-semibold text-neutral-600 glass border border-white/60 hover:bg-white/70 transition">🔒 Cerrar mes</button>
+
+        <div class="flex items-center justify-center gap-2 !mt-4">
+          <button class="pill px-3.5 py-1.5 text-[11px] font-semibold text-neutral-500 glass border border-white/50 hover:bg-white/70 transition">❓ Guía</button>
+          <button class="pill px-3.5 py-1.5 text-[11px] font-semibold text-neutral-500 glass border border-white/50 hover:bg-white/70 transition">🔊 Sonidos</button>
+          <button class="pill px-3.5 py-1.5 text-[11px] font-semibold text-neutral-500 glass border border-white/50 hover:bg-white/70 transition">Exportar JSON</button>
+          <button class="pill px-3.5 py-1.5 text-[11px] font-semibold text-neutral-500 glass border border-white/50 hover:bg-white/70 transition">Importar JSON</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Nota de la maqueta -->
+    <p class="text-center text-[10px] text-neutral-400 mt-5 font-medium">Opción A · "Aura" — Soft Glass — Maqueta estática, no funcional</p>
+  </div>
+</body>
+</html>
