@@ -161,7 +161,7 @@
     background: var(--surface);
   }
   .dark .exp-card {
-    background: rgba(255, 255, 255, 0.09);
+    background: rgba(255, 255, 255, 0.07);
   }
 
   /* Chip de estado del gasto (estilo preview rediseno-gasto-review,
