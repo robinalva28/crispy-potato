@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Button } from './ui/Button.tsx';
 
 type GuideType = 'budget' | 'savings';
 
@@ -98,14 +99,14 @@ export function GuideModal({ open, onClose, type = 'budget' }: Props) {
 
         {/* Controles */}
         <div className="px-5 pb-5 flex items-center justify-between gap-2">
-          <button
-            type="button"
+          <Button
+            variant="ghost"
             onClick={() => setStep((s) => Math.max(0, s - 1))}
             disabled={step === 0}
-            className="px-3 py-2 text-sm font-medium glass rounded-full disabled:opacity-30 hover:opacity-80 transition"
+            className="disabled:opacity-30"
           >
             ← Atrás
-          </button>
+          </Button>
 
           {/* Dots */}
           <div className="flex items-center gap-1.5">
@@ -123,21 +124,15 @@ export function GuideModal({ open, onClose, type = 'budget' }: Props) {
           </div>
 
           {step < steps.length - 1 ? (
-            <button
-              type="button"
+            <Button
               onClick={() => setStep((s) => Math.min(steps.length - 1, s + 1))}
-              className="px-3 py-2 text-sm font-semibold rounded-full btn-aura transition"
             >
               Siguiente →
-            </button>
+            </Button>
           ) : (
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-3 py-2 text-sm font-semibold rounded-full btn-aura transition"
-            >
+            <Button onClick={onClose}>
               ¡Listo!
-            </button>
+            </Button>
           )}
         </div>
       </div>

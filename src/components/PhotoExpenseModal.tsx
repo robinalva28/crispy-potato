@@ -5,6 +5,7 @@ import { CATEGORY_LABELS, fmtARS } from '../utils/money.ts';
 import { parseLocalNumber, formatInputNumber } from '../utils/format.ts';
 import { canUsePhoto } from '../utils/monthUtils.ts';
 import { MoneyInput } from './MoneyInput.tsx';
+import { Button } from './ui/Button.tsx';
 
 interface Props {
   month: Month;
@@ -150,14 +151,16 @@ export function PhotoExpenseModal({ month, onSave, onClose }: Props) {
               onChange={handleFile}
               className="hidden"
             />
-            <button
-              type="button"
+            <Button
+              variant="violet"
+              size="lg"
+              fullWidth
               onClick={() => fileRef.current?.click()}
               disabled={!canUsePhoto(month)}
-              className="w-full px-3 py-3 text-sm font-bold rounded-full btn-violet transition disabled:opacity-40 disabled:cursor-not-allowed"
+              className="disabled:opacity-40 disabled:cursor-not-allowed"
             >
               📷 Tomar foto de los apuntes
-            </button>
+            </Button>
           </div>
         )}
 
@@ -282,13 +285,13 @@ export function PhotoExpenseModal({ month, onSave, onClose }: Props) {
             </div>
 
             <div className="flex items-center justify-between text-sm">
-              <button
-                type="button"
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={addEmptyRow}
-                className="text-xs font-semibold glass rounded-full px-3 py-1.5 hover:opacity-80 transition"
               >
                 ➕ Agregar fila
-              </button>
+              </Button>
               <span className="opacity-70">
                 Total: <span className="font-bold tabular-nums">{fmtARS(total, 0)}</span>
               </span>
@@ -300,25 +303,24 @@ export function PhotoExpenseModal({ month, onSave, onClose }: Props) {
                   Cargá la cotización de cada gasto en USD para poder guardar.
                 </p>
               )}
-              <button
-                type="button"
+              <Button
                 onClick={handleSave}
                 disabled={saving || hasMissingRate}
                 title={hasMissingRate ? 'Cargá las cotizaciones de USD faltantes' : undefined}
-                className="flex-1 px-3 py-2.5 text-sm font-bold rounded-full btn-aura transition disabled:opacity-40"
+                fullWidth
+                className="disabled:opacity-40"
               >
                 {saving ? 'Guardando…' : 'Guardar gastos'}
-              </button>
-              <button
-                type="button"
+              </Button>
+              <Button
+                variant="ghost"
                 onClick={() => {
                   setPhase('capture');
                   setDrafts([]);
                 }}
-                className="px-3 py-2.5 text-sm font-medium glass rounded-full hover:opacity-80 transition"
               >
                 Otra foto
-              </button>
+              </Button>
             </div>
           </div>
         )}

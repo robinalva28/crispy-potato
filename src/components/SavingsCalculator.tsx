@@ -3,6 +3,7 @@ import type { Expense, Month, SavingsGoal } from '../types.ts';
 import { projectSavings, monthlySavingsHistory } from '../utils/savings.ts';
 import { fmtARS } from '../utils/money.ts';
 import { SavingsChart } from './SavingsChart.tsx';
+import { Button } from './ui/Button.tsx';
 
 interface Props {
   goals: SavingsGoal[];
@@ -32,13 +33,9 @@ export function SavingsCalculator({ goals, months, expenses, onAdd, onEdit, onDe
           <br />
           Creá uno para proyectar, por ejemplo, cuánto podés juntar para tu auto.
         </p>
-        <button
-          type="button"
-          onClick={onAdd}
-          className="px-5 py-2.5 text-sm font-bold rounded-full btn-aura transition"
-        >
+        <Button size="lg" onClick={onAdd}>
           + Nuevo segmento
-        </button>
+        </Button>
       </div>
     );
   }
@@ -124,32 +121,20 @@ export function SavingsCalculator({ goals, months, expenses, onAdd, onEdit, onDe
 
             {/* Acciones */}
             <div className="mt-3 flex gap-2">
-              <button
-                type="button"
-                onClick={() => onEdit(goal)}
-                className="flex-1 px-3 py-2 text-xs font-semibold glass rounded-full hover:opacity-80 transition"
-              >
+              <Button variant="ghost" size="sm" fullWidth onClick={() => onEdit(goal)}>
                 ✎ Editar
-              </button>
-              <button
-                type="button"
-                onClick={() => goal.id && setConfirmDelete(goal)}
-                className="flex-1 px-3 py-2 text-xs font-semibold text-red-600 glass rounded-full hover:opacity-80 transition dark:text-red-400"
-              >
+              </Button>
+              <Button variant="dangerGhost" size="sm" fullWidth onClick={() => goal.id && setConfirmDelete(goal)}>
                 🗑 Eliminar
-              </button>
+              </Button>
             </div>
           </div>
         );
       })}
 
-      <button
-        type="button"
-        onClick={onAdd}
-        className="w-full px-3 py-3 text-sm font-bold rounded-full btn-aura transition"
-      >
+      <Button fullWidth size="lg" onClick={onAdd}>
         + Nuevo segmento
-      </button>
+      </Button>
 
       {/* Confirmación borrado */}
       {confirmDelete && (
@@ -160,23 +145,19 @@ export function SavingsCalculator({ goals, months, expenses, onAdd, onEdit, onDe
               Se borrará el segmento <span className="font-semibold">{confirmDelete.name}</span> y sus ingresos extra.
             </p>
             <div className="flex gap-2 pt-1">
-              <button
-                type="button"
+              <Button
+                variant="danger"
+                fullWidth
                 onClick={() => {
                   if (confirmDelete.id) onDelete(confirmDelete.id);
                   setConfirmDelete(null);
                 }}
-                className="flex-1 px-3 py-2 text-sm font-semibold bg-red-500 text-white rounded-full hover:bg-red-600 transition"
               >
                 Sí, borrar
-              </button>
-              <button
-                type="button"
-                onClick={() => setConfirmDelete(null)}
-                className="px-3 py-2 text-sm font-medium glass rounded-full hover:opacity-80 transition"
-              >
+              </Button>
+              <Button variant="ghost" onClick={() => setConfirmDelete(null)}>
                 Cancelar
-              </button>
+              </Button>
             </div>
           </div>
         </div>

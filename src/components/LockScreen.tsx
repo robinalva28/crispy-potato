@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Button } from './ui/Button.tsx';
 
 interface Props {
   hasPin: boolean;
@@ -77,12 +78,14 @@ export function LockScreen({ hasPin, onUnlock, onSetPin }: Props) {
 
         {error && <p className="text-sm text-red-400">{error}</p>}
 
-        <button
+        <Button
           type="submit"
-          className="w-full max-w-[220px] px-4 py-3 text-sm font-bold rounded-full btn-aura transition"
+          size="lg"
+          fullWidth
+          className="max-w-[220px]"
         >
           {hasPin ? 'Desbloquear' : 'Crear PIN y entrar'}
-        </button>
+        </Button>
       </form>
     </div>
   );

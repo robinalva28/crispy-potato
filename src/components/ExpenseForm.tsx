@@ -2,6 +2,8 @@ import { useRef, useState } from 'react';
 import type { Category, Expense } from '../types.ts';
 import { parseLocalNumber, formatInputNumber } from '../utils/format.ts';
 import { MoneyInput } from './MoneyInput.tsx';
+import { InputBase, SelectBase } from './ui/InputBase.tsx';
+import { Button } from './ui/Button.tsx';
 import { extractInvoice } from '../utils/invoiceExtract.ts';
 import { inferCategory } from '../utils/photoExtract.ts';
 
@@ -132,7 +134,6 @@ export function ExpenseForm({ initial, onSave, onCancel, onGetLastUsdRate }: Pro
     });
   }
 
-  const inputCls = 'input-aura w-full px-3 py-2 text-sm';
 
   return (
     <form
@@ -160,8 +161,7 @@ export function ExpenseForm({ initial, onSave, onCancel, onGetLastUsdRate }: Pro
 
       <div>
         <label className="block text-[11px] text-neutral-500 font-medium mb-1 dark:text-neutral-400">Nombre *</label>
-        <input
-          className={inputCls}
+        <InputBase
           value={form.name}
           onChange={(e) => set('name', e.target.value)}
           required
@@ -171,15 +171,14 @@ export function ExpenseForm({ initial, onSave, onCancel, onGetLastUsdRate }: Pro
 
       <div>
         <label className="block text-[11px] text-neutral-500 font-medium mb-1 dark:text-neutral-400">Categoría</label>
-        <select
-          className={inputCls}
+        <SelectBase
           value={form.category}
           onChange={(e) => set('category', e.target.value as Category)}
         >
           {CATEGORIES.map((c) => (
             <option key={c} value={c}>{c}</option>
           ))}
-        </select>
+        </SelectBase>
       </div>
 
       <div className="grid grid-cols-2 gap-2">
@@ -213,9 +212,8 @@ export function ExpenseForm({ initial, onSave, onCancel, onGetLastUsdRate }: Pro
       <div className="grid grid-cols-2 gap-2 items-end">
         <div>
           <label className="block text-[11px] text-neutral-500 font-medium mb-1 dark:text-neutral-400">Vencimiento</label>
-          <input
+          <InputBase
             type="date"
-            className={inputCls}
             value={form.dueDate}
             onChange={(e) => set('dueDate', e.target.value)}
           />
@@ -236,16 +234,16 @@ export function ExpenseForm({ initial, onSave, onCancel, onGetLastUsdRate }: Pro
             onChange={handleScan}
             className="hidden"
           />
-          <button
-            type="button"
+          <Button
+            variant="violet"
+            className="w-8 h-8 !min-h-[44px] rounded-full text-lg disabled:opacity-40"
             onClick={() => fileRef.current?.click()}
             disabled={scanning}
             title="Escanear factura"
             aria-label="Escanear factura"
-            className="w-8 h-8 rounded-full text-lg bg-violet-100 hover:bg-violet-200 text-violet-700 dark:bg-violet-900/40 dark:hover:bg-violet-900/60 dark:text-violet-300 transition disabled:opacity-40"
           >
             📷
-          </button>
+          </Button>
         </label>
       </div>
       {scanError && (
@@ -256,8 +254,7 @@ export function ExpenseForm({ initial, onSave, onCancel, onGetLastUsdRate }: Pro
 
       <div>
         <label className="block text-[11px] text-neutral-500 font-medium mb-1 dark:text-neutral-400">Notas</label>
-        <input
-          className={inputCls}
+        <InputBase
           value={form.notes}
           onChange={(e) => set('notes', e.target.value)}
           placeholder="Opcional"
@@ -265,19 +262,12 @@ export function ExpenseForm({ initial, onSave, onCancel, onGetLastUsdRate }: Pro
       </div>
 
       <div className="flex gap-2 pt-1">
-        <button
-          type="submit"
-          className="flex-1 px-3 py-2.5 text-sm font-bold rounded-full btn-aura transition"
-        >
+        <Button type="submit" fullWidth>
           Guardar
-        </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          className="px-3 py-2.5 text-sm font-medium glass rounded-full hover:opacity-80 transition"
-        >
+        </Button>
+        <Button variant="ghost" onClick={onCancel}>
           Cancelar
-        </button>
+        </Button>
       </div>
     </form>
   );

@@ -2,6 +2,8 @@ import { useState } from 'react';
 import type { ExtraIncome, Month, Expense, SavingsGoal } from '../types.ts';
 import { projectSavings } from '../utils/savings.ts';
 import { fmtARS } from '../utils/money.ts';
+import { Button } from './ui/Button.tsx';
+import { InputBase, SelectBase } from './ui/InputBase.tsx';
 
 interface Props {
   initial: SavingsGoal | null;
@@ -70,7 +72,6 @@ export function SavingsGoalForm({ initial, months, expenses, onSave, onCancel }:
     onSave({ name: name.trim(), startMonth, endMonth, extraIncomes: extras });
   }
 
-  const inputCls = 'input-aura w-full px-3 py-2 text-sm';
   const labelCls = 'block text-[11px] text-neutral-500 font-medium mb-1 dark:text-neutral-400';
 
   return (
@@ -81,8 +82,7 @@ export function SavingsGoalForm({ initial, months, expenses, onSave, onCancel }:
 
       <div>
         <label className={labelCls}>Nombre del segmento *</label>
-        <input
-          className={inputCls}
+        <InputBase
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Ej: Auto, Vacaciones, Fondo emergencia"
@@ -93,19 +93,19 @@ export function SavingsGoalForm({ initial, months, expenses, onSave, onCancel }:
       <div className="grid grid-cols-2 gap-2">
         <div>
           <label className={labelCls}>Desde</label>
-          <select className={inputCls} value={startMonth} onChange={(e) => setStartMonth(e.target.value)}>
+          <SelectBase value={startMonth} onChange={(e) => setStartMonth(e.target.value)}>
             {MONTH_OPTIONS.map((m) => (
               <option key={m} value={m}>{m}</option>
             ))}
-          </select>
+          </SelectBase>
         </div>
         <div>
           <label className={labelCls}>Hasta</label>
-          <select className={inputCls} value={endMonth} onChange={(e) => setEndMonth(e.target.value)}>
+          <SelectBase value={endMonth} onChange={(e) => setEndMonth(e.target.value)}>
             {MONTH_OPTIONS.map((m) => (
               <option key={m} value={m}>{m}</option>
             ))}
-          </select>
+          </SelectBase>
         </div>
       </div>
 
@@ -136,32 +136,30 @@ export function SavingsGoalForm({ initial, months, expenses, onSave, onCancel }:
           ))}
         </div>
         <div className="grid grid-cols-[1fr_1fr_auto] gap-2 items-end">
-          <input
-            className={inputCls}
+          <InputBase
             value={extraLabel}
             onChange={(e) => setExtraLabel(e.target.value)}
             placeholder="Bono fin de año"
           />
-          <input
-            className={inputCls}
+          <InputBase
             value={extraAmount}
             onChange={(e) => setExtraAmount(e.target.value)}
             placeholder="1.500.000"
             inputMode="decimal"
           />
           <div className="flex gap-1">
-            <select className={inputCls} value={extraMonth} onChange={(e) => setExtraMonth(e.target.value)}>
+            <SelectBase value={extraMonth} onChange={(e) => setExtraMonth(e.target.value)}>
               {MONTH_OPTIONS.map((m) => (
                 <option key={m} value={m}>{m}</option>
               ))}
-            </select>
-            <button
-              type="button"
+            </SelectBase>
+            <Button
               onClick={addExtra}
-              className="px-3 py-2 text-sm font-bold rounded-full btn-aura transition shrink-0"
+              className="shrink-0"
+              aria-label="Agregar ingreso extra"
             >
               +
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -177,20 +175,17 @@ export function SavingsGoalForm({ initial, months, expenses, onSave, onCancel }:
       )}
 
       <div className="flex gap-2 pt-1">
-        <button
+        <Button
           type="submit"
           disabled={!name.trim() || startMonth > endMonth}
-          className="flex-1 px-3 py-2.5 text-sm font-bold rounded-full btn-aura transition disabled:opacity-40"
+          fullWidth
+          className="disabled:opacity-40"
         >
           Guardar
-        </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          className="px-3 py-2.5 text-sm font-medium glass rounded-full hover:opacity-80 transition"
-        >
+        </Button>
+        <Button variant="ghost" onClick={onCancel}>
           Cancelar
-        </button>
+        </Button>
       </div>
     </form>
   );

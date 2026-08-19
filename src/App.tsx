@@ -14,6 +14,8 @@ import { BottomNav } from './components/BottomNav.tsx';
 import { ViewMenu } from './components/ViewMenu.tsx';
 import { MoreSheet } from './components/MoreSheet.tsx';
 import { ExpenseContextMenu, type ExpenseRect } from './components/ExpenseContextMenu.tsx';
+import { Modal } from './components/ui/Modal.tsx';
+import { Button } from './components/ui/Button.tsx';
 import type { ExpenseDraft } from './utils/photoExtract.ts';
 import { canUsePhoto } from './utils/monthUtils.ts';
 import { GuideModal } from './components/GuideModal.tsx';
@@ -782,11 +784,8 @@ export default function App() {
     />
 
     {confirmAmount && (
-      <div className="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4">
-        <form
-          onSubmit={confirmEstimatedAmount}
-          className="w-full max-w-sm glass-card rounded-3xl p-4 space-y-3"
-        >
+      <Modal open onClose={() => setConfirmAmount(null)}>
+        <form onSubmit={confirmEstimatedAmount} className="space-y-3">
           <div className="font-bold text-neutral-900 dark:text-neutral-100">Confirmar gasto</div>
 
           {/* Contexto completo del gasto por confirmar */}
@@ -838,86 +837,55 @@ export default function App() {
             />
           </div>
           <div className="flex gap-2 pt-1">
-            <button
-              type="submit"
-              className="flex-1 px-3 py-2 text-sm font-semibold rounded-full btn-aura transition"
-            >
+            <Button type="submit" fullWidth>
               Confirmar y marcar pagado
-            </button>
-            <button
-              type="button"
-              onClick={() => setConfirmAmount(null)}
-              className="px-3 py-2 text-sm font-medium glass rounded-full hover:opacity-80 transition"
-            >
+            </Button>
+            <Button variant="ghost" onClick={() => setConfirmAmount(null)}>
               Cancelar
-            </button>
+            </Button>
           </div>
         </form>
-      </div>
+      </Modal>
     )}
 
     {confirmDelete && (
-      <div className="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="w-full max-w-sm glass-card rounded-3xl p-4 space-y-3">
-          <div className="font-bold text-neutral-900 dark:text-neutral-100">¿Eliminar gasto?</div>
-          <p className="text-sm text-neutral-600 dark:text-neutral-400">
-            Se borrará <span className="font-semibold">{confirmDelete.name}</span>. Vas a poder
-            deshacerlo por unos segundos después de confirmar.
-          </p>
-          <div className="flex gap-2 pt-1">
-            <button
-              type="button"
-              onClick={confirmExpenseDelete}
-              className="flex-1 px-3 py-2 text-sm font-semibold bg-red-500 text-white rounded-full hover:bg-red-600 transition"
-            >
-              Sí, borrar
-            </button>
-            <button
-              type="button"
-              onClick={() => setConfirmDelete(null)}
-              className="px-3 py-2 text-sm font-medium glass rounded-full hover:opacity-80 transition"
-            >
-              Cancelar
-            </button>
-          </div>
+      <Modal open onClose={() => setConfirmDelete(null)} title="¿Eliminar gasto?">
+        <p className="text-sm text-neutral-600 dark:text-neutral-400">
+          Se borrará <span className="font-semibold">{confirmDelete.name}</span>. Vas a poder
+          deshacerlo por unos segundos después de confirmar.
+        </p>
+        <div className="flex gap-2 pt-1">
+          <Button variant="danger" fullWidth onClick={confirmExpenseDelete}>
+            Sí, borrar
+          </Button>
+          <Button variant="ghost" onClick={() => setConfirmDelete(null)}>
+            Cancelar
+          </Button>
         </div>
-      </div>
+      </Modal>
     )}
 
     {confirmDeleteMonth && (
-      <div className="modal-overlay fixed inset-0 z-[70] flex items-center justify-center p-4">
-        <div className="w-full max-w-sm glass-card rounded-3xl p-4 space-y-3">
-          <div className="font-bold text-red-600 dark:text-red-400">¿Eliminar mes?</div>
-          <p className="text-sm text-neutral-600 dark:text-neutral-400">
-            Se borrará <span className="font-semibold">{confirmDeleteMonth.label}</span> y TODOS
-            sus gastos. Esta acción no se puede deshacer.
-          </p>
-          <div className="flex gap-2 pt-1">
-            <button
-              type="button"
-              onClick={confirmMonthDelete}
-              className="flex-1 px-3 py-2 text-sm font-semibold bg-red-500 text-white rounded-full hover:bg-red-600 transition"
-            >
-              Sí, borrar mes
-            </button>
-            <button
-              type="button"
-              onClick={() => setConfirmDeleteMonth(null)}
-              className="px-3 py-2 text-sm font-medium glass rounded-full hover:opacity-80 transition"
-            >
-              Cancelar
-            </button>
-          </div>
+      <Modal open onClose={() => setConfirmDeleteMonth(null)}>
+        <div className="font-bold text-red-600 dark:text-red-400">¿Eliminar mes?</div>
+        <p className="text-sm text-neutral-600 dark:text-neutral-400">
+          Se borrará <span className="font-semibold">{confirmDeleteMonth.label}</span> y TODOS
+          sus gastos. Esta acción no se puede deshacer.
+        </p>
+        <div className="flex gap-2 pt-1">
+          <Button variant="danger" fullWidth onClick={confirmMonthDelete}>
+            Sí, borrar mes
+          </Button>
+          <Button variant="ghost" onClick={() => setConfirmDeleteMonth(null)}>
+            Cancelar
+          </Button>
         </div>
-      </div>
+      </Modal>
     )}
 
     {editingBudgets && (
-      <div className="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4">
-        <form
-          onSubmit={saveBudgets}
-          className="w-full max-w-sm glass-card rounded-3xl p-4 space-y-3"
-        >
+      <Modal open onClose={() => setEditingBudgets(false)}>
+        <form onSubmit={saveBudgets} className="space-y-3">
           <div className="font-bold text-neutral-900 dark:text-neutral-100">Presupuestos del mes</div>
           <p className="text-xs text-neutral-500 dark:text-neutral-400">
             Definí un límite mensual por categoría (en ARS). Dejá vacío para no poner límite.
@@ -938,39 +906,29 @@ export default function App() {
           ))}
 
           <div className="flex gap-2 pt-1">
-            <button
-              type="submit"
-              className="flex-1 px-3 py-2 text-sm font-semibold rounded-full btn-aura transition"
-            >
+            <Button type="submit" fullWidth>
               Guardar presupuestos
-            </button>
-            <button
-              type="button"
-              onClick={() => setEditingBudgets(false)}
-              className="px-3 py-2 text-sm font-medium glass rounded-full hover:opacity-80 transition"
-            >
+            </Button>
+            <Button variant="ghost" onClick={() => setEditingBudgets(false)}>
               Cancelar
-            </button>
+            </Button>
           </div>
         </form>
-      </div>
+      </Modal>
     )}
 
     {editingMonth && (
-      <div className="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4">
-        <form
-          onSubmit={saveMonth}
-          className="w-full max-w-sm glass-card rounded-3xl p-4 space-y-3"
-        >
+      <Modal open onClose={() => setEditingMonth(null)}>
+        <form onSubmit={saveMonth} className="space-y-3">
           <div className="flex justify-between items-center">
             <div className="font-bold text-neutral-900 dark:text-neutral-100">Editar mes</div>
-            <button
-              type="button"
+            <Button
+              variant="dangerGhost"
+              size="sm"
               onClick={() => setConfirmDeleteMonth(editingMonth.month)}
-              className="px-2 py-1 text-[11px] font-medium text-red-600 glass rounded-full hover:opacity-80 transition dark:text-red-400"
             >
               🗑 Eliminar mes
-            </button>
+            </Button>
           </div>
           <div>
             <label className="block text-[11px] text-neutral-500 font-medium mb-1">Etiqueta</label>
@@ -992,22 +950,15 @@ export default function App() {
             />
           </div>
           <div className="flex gap-2 pt-1">
-            <button
-              type="submit"
-              className="flex-1 px-3 py-2 text-sm font-semibold rounded-full btn-aura transition"
-            >
+            <Button type="submit" fullWidth>
               Guardar
-            </button>
-            <button
-              type="button"
-              onClick={() => setEditingMonth(null)}
-              className="px-3 py-2 text-sm font-medium glass rounded-full hover:opacity-80 transition"
-            >
+            </Button>
+            <Button variant="ghost" onClick={() => setEditingMonth(null)}>
               Cancelar
-            </button>
+            </Button>
           </div>
         </form>
-      </div>
+      </Modal>
     )}
     </>
   );
