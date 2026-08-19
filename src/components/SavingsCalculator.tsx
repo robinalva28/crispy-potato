@@ -55,8 +55,7 @@ export function SavingsCalculator({ goals, months, expenses, onAdd, onEdit, onDe
           <div key={goal.id} className="glass-card rounded-3xl p-4">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg"
-                     style={{ background: 'linear-gradient(135deg, rgba(132,204,22,.16), rgba(16,185,129,.12))', border: '1px solid rgba(132,204,22,.25)' }}>
+                <div className="soft-lime w-10 h-10 rounded-xl flex items-center justify-center text-lg">
                   🎯
                 </div>
                 <div>
@@ -67,7 +66,7 @@ export function SavingsCalculator({ goals, months, expenses, onAdd, onEdit, onDe
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-lg font-bold tabular-nums" style={{ color: '#4d7c0f' }}>
+                <div className="text-lg font-bold tabular-nums text-olive">
                   {fmtARS(proj.total, 0)}
                 </div>
                 <div className="text-[10px] opacity-50 uppercase">proyectado</div>

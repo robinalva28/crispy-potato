@@ -190,8 +190,7 @@ export function PhotoExpenseModal({ month, onSave, onClose }: Props) {
                 <div key={i} className="space-y-2 glass rounded-2xl p-3">
                   {/* Fila superior: número + nombre + eliminar */}
                   <div className="flex items-center gap-2">
-                    <span className="shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white"
-                         style={{ background: 'linear-gradient(135deg,#65a30d,#84cc16)' }}>
+                    <span className="grad-lime shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white">
                       {i + 1}
                     </span>
                     <input

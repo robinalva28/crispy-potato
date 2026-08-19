@@ -40,10 +40,10 @@ export function ExpenseContextMenu({ expense, rect, onEdit, onDuplicate, onDelet
       >
         <div className={`flex items-center gap-3 px-3.5 py-3 ${isPending ? 'opacity-70' : ''}`}>
           <div
-            className="w-6 h-6 shrink-0 rounded-full flex items-center justify-center text-[11px] leading-none"
+            className={`w-6 h-6 shrink-0 rounded-full flex items-center justify-center text-[11px] leading-none ${expense.paid ? 'grad-emerald text-white' : ''}`}
             style={
               expense.paid
-                ? { background: 'linear-gradient(135deg,#10b981,#34d399)', color: '#fff' }
+                ? undefined
                 : isEstimated
                   ? { border: '2px dashed #a78bfa' }
                   : { border: '2px solid rgba(251,191,36,.6)' }

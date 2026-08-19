@@ -110,6 +110,28 @@
     background: rgba(0, 0, 0, 0.7);
   }
 
+  /* ===== Tokens de acento Aura (limpieza de estilos) =====
+     Reemplazan los gradientes/colores hardcodeados en JSX. */
+  .grad-lime {
+    background: linear-gradient(135deg, #65a30d, #84cc16);
+  }
+  .grad-lime-strong {
+    background: linear-gradient(135deg, #65a30d, #84cc16 55%, #10b981);
+  }
+  .grad-violet {
+    background: linear-gradient(135deg, #8b5cf6, #d946ef);
+  }
+  .grad-emerald {
+    background: linear-gradient(135deg, #10b981, #34d399);
+  }
+  .soft-lime {
+    background: linear-gradient(135deg, rgba(132, 204, 22, 0.16), rgba(16, 185, 129, 0.12));
+    border: 1px solid rgba(132, 204, 22, 0.25);
+  }
+  .text-olive {
+    color: #4d7c0f;
+  }
+
   /* Chip de mes activo + botón "Crear Mes" */
   .chip-active {
     background: linear-gradient(135deg, #65a30d, #84cc16);

@@ -42,10 +42,8 @@ export function LockScreen({ hasPin, onUnlock, onSetPin }: Props) {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6">
-      <div
-        className="w-16 h-16 mb-4 rounded-3xl flex items-center justify-center text-3xl text-white shadow-lg"
-        style={{ background: 'linear-gradient(135deg,#65a30d,#84cc16 55%,#10b981)', boxShadow: '0 12px 32px -8px rgba(132,204,22,.5)' }}
-      >
+      <div className="grad-lime-strong w-16 h-16 mb-4 rounded-3xl flex items-center justify-center text-3xl text-white shadow-lg"
+           style={{ boxShadow: '0 12px 32px -8px rgba(132,204,22,.5)' }}>
         🔒
       </div>
       <h1 className="text-xl font-bold mb-1">Presupuesto Mensual</h1>

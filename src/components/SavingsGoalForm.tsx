@@ -167,10 +167,9 @@ export function SavingsGoalForm({ initial, months, expenses, onSave, onCancel }:
       </div>
 
       {/* Preview */}
-      <div className="rounded-2xl px-3 py-2.5 flex items-center justify-between"
-           style={{ background: 'linear-gradient(135deg, rgba(132,204,22,.16), rgba(16,185,129,.12))', border: '1px solid rgba(132,204,22,.25)' }}>
-        <span className="text-[11px] font-semibold uppercase" style={{ color: '#4d7c0f' }}>Ahorro proyectado</span>
-        <span className="text-sm font-bold tabular-nums" style={{ color: '#4d7c0f' }}>{fmtARS(totalPreview(), 0)}</span>
+      <div className="soft-lime rounded-2xl px-3 py-2.5 flex items-center justify-between">
+        <span className="text-[11px] font-semibold uppercase text-olive">Ahorro proyectado</span>
+        <span className="text-sm font-bold tabular-nums text-olive">{fmtARS(totalPreview(), 0)}</span>
       </div>
 
       {startMonth > endMonth && (

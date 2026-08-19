@@ -422,12 +422,9 @@ export default function App() {
               <div className="text-[9px] uppercase tracking-widest font-semibold opacity-50">Proyectado</div>
               <div className="text-[11px] font-extrabold tabular-nums mt-0.5">{fmtARS(projected, 0)}</div>
             </div>
-            <div
-              className="rounded-2xl px-2 py-2 text-center"
-              style={{ background: 'linear-gradient(135deg, rgba(132,204,22,.14), rgba(16,185,129,.10))', border: '1px solid rgba(132,204,22,.22)' }}
-            >
-              <div className="text-[9px] uppercase tracking-widest font-semibold" style={{ color: '#4d7c0f' }}>Resto</div>
-              <div className="text-[11px] font-extrabold tabular-nums mt-0.5" style={{ color: '#4d7c0f' }}>{fmtARS(rest, 0)}</div>
+            <div className="soft-lime rounded-2xl px-2 py-2 text-center">
+              <div className="text-[9px] uppercase tracking-widest font-semibold text-olive">Resto</div>
+              <div className="text-[11px] font-extrabold tabular-nums mt-0.5 text-olive">{fmtARS(rest, 0)}</div>
             </div>
           </div>
         )}
@@ -675,11 +672,11 @@ export default function App() {
     <div className="fab-shell">
       <div className={`sd ${fabOpen ? 'open' : ''}`}>
         <button type="button" className="si" onClick={() => { setFabOpen(false); if (activeMonth?.status === 'abierto') { setView('budget'); setEditing({ expense: null, adding: true }); } }}>
-          <span className="ico" style={{ background: 'linear-gradient(135deg,#65a30d,#84cc16)' }}>➕</span>
+          <span className="ico grad-lime">➕</span>
           Agregar Gasto
         </button>
         <button type="button" className="si" onClick={() => { setFabOpen(false); if (activeMonth) { setView('budget'); setShowPhotoModal(true); } }}>
-          <span className="ico" style={{ background: 'linear-gradient(135deg,#8b5cf6,#d946ef)' }}>📷</span>
+          <span className="ico grad-violet">📷</span>
           Foto de apuntes
         </button>
       </div>

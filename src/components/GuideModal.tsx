@@ -81,8 +81,7 @@ export function GuideModal({ open, onClose, type = 'budget' }: Props) {
     <div className="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="w-full max-w-sm glass-card rounded-3xl overflow-hidden">
         {/* Encabezado */}
-        <div className="px-5 pt-5 pb-3 text-white"
-             style={{ background: 'linear-gradient(135deg,#65a30d,#84cc16 55%,#10b981)' }}>
+        <div className="grad-lime-strong px-5 pt-5 pb-3 text-white">
           <div className="text-3xl mb-1">{current.icon}</div>
           <h2 className="text-lg font-bold">{current.title}</h2>
           <p className="text-[11px] mt-1 opacity-80">
