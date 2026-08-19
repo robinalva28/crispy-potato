@@ -64,11 +64,12 @@ export function ExpenseRow({ expense, onTogglePaid, onDelete, onEdit, onDuplicat
         <div className={`text-[13px] font-semibold truncate ${isPending ? 'opacity-60' : ''}`}>
           {expense.name}
         </div>
-        <div className="flex items-center gap-1 text-[10px] opacity-50 truncate">
+        <div className="flex items-center gap-1.5 text-[10px] opacity-50 truncate">
           {fmtDate(expense.dueDate)}
           {expense.dueDate && <span>·</span>}
-          {isEstimated && <span className="text-accent-violet font-semibold">por confirmar</span>}
-          {isPending && !isEstimated && <span className="text-accent-amber font-semibold">pendiente</span>}
+          {isEstimated && <span className="exp-tag exp-tag--est">Por confirmar</span>}
+          {isPending && !isEstimated && <span className="exp-tag exp-tag--pend">Pendiente</span>}
+          {!isPending && <span className="exp-tag exp-tag--paid">Pagado</span>}
         </div>
       </div>
 

@@ -104,6 +104,10 @@ export default function App() {
   const photoAllowed = canUsePhoto(activeMonth);
   const monthClosed = activeMonth?.status === 'cerrado';
   const overlayOpen = fabOpen || moreOpen || contextExpense != null;
+  // Hay gastos "por confirmar" (estimados) si algún gasto no tiene monto real
+  const hasEstimated = activeMonth
+    ? budget.monthExpenses.some((e) => e.amountArs == null)
+    : false;
 
   // Se calculan los totales del mes activo (stats fijas del header)
   const confirmed = activeMonth ? confirmedTotal(activeMonth.id, budget.monthExpenses) : 0;
@@ -146,10 +150,10 @@ export default function App() {
       const el = expenseFormRef.current;
       if (!el) return;
       const scroll = document.querySelector<HTMLElement>('.app-scroll');
-      // Las stats (.v4-stats) son el último elemento visual del header
-      // (semitransparentes con curva inferior). El form se posiciona debajo
-      // de SU bottom para que la línea superior quede totalmente visible.
-      const stats = document.querySelector<HTMLElement>('.v4-stats');
+      // Las stats condicionales (.hdr-cond-stats) son el último elemento visual
+      // del header (semitransparentes con curva inferior). El form se posiciona
+      // debajo de SU bottom para que la línea superior quede totalmente visible.
+      const stats = document.querySelector<HTMLElement>('.hdr-cond-stats');
       if (scroll && stats) {
         const statsBottom = stats.getBoundingClientRect().bottom;
         const elTop = el.getBoundingClientRect().top;
@@ -455,20 +459,43 @@ export default function App() {
         )}
 
         {view === 'budget' && activeMonth && (
-          <div className="v4-stats">
-            <div className="glass rounded-2xl px-2 py-2 text-center">
-              <div className="text-[9px] uppercase tracking-widest font-semibold opacity-50">Confirmado</div>
-              <div className="text-[11px] font-extrabold tabular-nums mt-0.5">{fmtARS(confirmed, 0)}</div>
+          <>
+            {/* Stats condicionales: solo muestran Confirmado/Proyectado cuando hay estimados.
+                Sin estimados → Gastado + Ingreso (sin ruido). */}
+            <div className="hdr-cond-stats">
+              {hasEstimated ? (
+                <>
+                  <span>Confirmado <b>{fmtARS(confirmed, 0)}</b></span>
+                  <span>+ estimados <b className="text-accent-amber">{fmtARS(projected - confirmed, 0)}</b></span>
+                  <span>→ Proyectado <b>{fmtARS(projected, 0)}</b></span>
+                </>
+              ) : (
+                <>
+                  <span>Gastado <b>{fmtARS(confirmed, 0)}</b></span>
+                  <span>·</span>
+                  <span>Ingreso <b>{fmtARS(activeMonth.income, 0)}</b></span>
+                </>
+              )}
             </div>
-            <div className="glass rounded-2xl px-2 py-2 text-center">
-              <div className="text-[9px] uppercase tracking-widest font-semibold opacity-50">Proyectado</div>
-              <div className="text-[11px] font-extrabold tabular-nums mt-0.5">{fmtARS(projected, 0)}</div>
-            </div>
-            <div className="soft-lime rounded-2xl px-2 py-2 text-center">
-              <div className="text-[9px] uppercase tracking-widest font-semibold text-olive">Resto</div>
-              <div className="text-[11px] font-extrabold tabular-nums mt-0.5 text-olive">{fmtARS(rest, 0)}</div>
-            </div>
-          </div>
+
+            {/* Barra de progreso Pagado/Pendiente: palabras completas, siempre visible */}
+            {projected > 0 && (
+              <div className="hdr-progress">
+                <span className="hdr-progress-sp"><Icon name="check" size={10} strokeWidth={3} ariaHidden /> Pagado {fmtARS(paid, 0)}</span>
+                <div className="hdr-progress-bar">
+                  <div
+                    className="hdr-progress-paid"
+                    style={{ width: `${Math.min((paid / projected) * 100, 100)}%` }}
+                  />
+                  <div
+                    className="hdr-progress-unpaid"
+                    style={{ width: `${Math.min((unpaid / projected) * 100, 100)}%` }}
+                  />
+                </div>
+                <span className="hdr-progress-unpaid-sp"><Icon name="clock" size={10} strokeWidth={3} ariaHidden /> Pendiente {fmtARS(unpaid, 0)}</span>
+              </div>
+            )}
+          </>
         )}
       </header>
 
@@ -478,35 +505,6 @@ export default function App() {
           <div className="px-3 pt-3 pb-4 space-y-2.5">
             {activeMonth && (
               <>
-                {/* ÚNICA info del mes dentro del scroll: barra Pagado vs Pendiente
-                    (el mes, el ✎ y los montos ya viven fijos en el header v4) */}
-                {projected > 0 && (
-                  <div className="px-1 pt-1 pb-1">
-                    <div className="flex items-center justify-between text-[11px] mb-1.5">
-                      <div className="flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-accent-emerald inline-block"></span>
-                        <span className="opacity-50 font-medium">Pagado</span>
-                        <span className="font-bold tabular-nums opacity-80">{fmtARS(paid, 0)}</span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-accent-amber inline-block"></span>
-                        <span className="opacity-50 font-medium">Pendiente</span>
-                        <span className="font-bold tabular-nums opacity-80">{fmtARS(unpaid, 0)}</span>
-                      </div>
-                    </div>
-                    <div className="flex h-1.5 rounded-full overflow-hidden bg-white/60 dark:bg-white/10">
-                      <div
-                        className="h-full bg-accent-emerald transition-all"
-                        style={{ width: `${Math.min((paid / projected) * 100, 100)}%` }}
-                      />
-                      <div
-                        className="h-full bg-accent-amber transition-all"
-                        style={{ width: `${Math.min((unpaid / projected) * 100, 100)}%` }}
-                      />
-                    </div>
-                  </div>
-                )}
-
                 <div ref={expenseFormRef}>
                   {activeMonth.status === 'abierto' && editing && editing.expense !== null && (
                     <ExpenseForm

@@ -164,6 +164,28 @@
     background: rgba(255, 255, 255, 0.09);
   }
 
+  /* Chip de estado del gasto (estilo preview rediseno-gasto-review,
+     variante A: fecha + tag pill con color de rol de la paleta). */
+  .exp-tag {
+    font-size: 9px;
+    font-weight: 700;
+    padding: 1px 7px;
+    border-radius: 9999px;
+    white-space: nowrap;
+  }
+  .exp-tag--paid {
+    color: var(--accent-emerald);
+    background: rgba(16, 185, 129, 0.12);
+  }
+  .exp-tag--pend {
+    color: var(--accent-amber);
+    background: rgba(251, 191, 36, 0.14);
+  }
+  .exp-tag--est {
+    color: var(--accent-violet);
+    background: rgba(167, 139, 250, 0.14);
+  }
+
   /* Tarjeta glass principal (hero, lista, modales) */
   .glass-card {
     background: var(--card);
@@ -213,6 +235,30 @@
     background: linear-gradient(135deg, #65a30d, #84cc16);
     box-shadow: 0 8px 20px -8px rgba(132, 204, 22, 0.6);
     color: #fff;
+  }
+
+  /* Línea discreta de meses (variante D del header): texto tapeable con
+     color según estado (AGENTS.md — paleta de roles). */
+  .month-link {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--muted);
+  }
+  .month-link:active {
+    background: var(--surface-strong);
+  }
+  /* Cerrado: gris (--muted) */
+  .month-link--closed {
+    color: var(--muted);
+    opacity: 0.75;
+  }
+  /* Abierto (no en curso): ámbar */
+  .month-link--open {
+    color: var(--accent-amber);
+  }
+  /* Abierto en curso: lime */
+  .month-link--current {
+    color: var(--accent-lime);
   }
 
   /* Botón primario Aura */
@@ -388,12 +434,70 @@
     background: transparent;
   }
 
-  /* Stats fijas del header */
-  .v4-stats {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.5rem;
-    padding-bottom: 14px;
+  /* Stats condicionales del header (variante D): una línea liviana.
+     Sin estimados → Gastado · Ingreso. Con estimados → Confirmado → Proyectado. */
+  .hdr-cond-stats {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--muted);
+    white-space: nowrap;
+    overflow-x: auto;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    padding-bottom: 8px;
+  }
+  .hdr-cond-stats::-webkit-scrollbar {
+    display: none;
+  }
+  .hdr-cond-stats b {
+    color: var(--txt);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Barra de progreso Pagado/Pendiente (palabras completas) */
+  .hdr-progress {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 10px;
+    font-weight: 700;
+    padding-bottom: 12px;
+    color: var(--muted);
+  }
+  .hdr-progress-sp,
+  .hdr-progress-unpaid-sp {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    white-space: nowrap;
+  }
+  .hdr-progress-sp {
+    color: var(--accent-emerald);
+  }
+  .hdr-progress-unpaid-sp {
+    color: var(--accent-amber);
+  }
+  .hdr-progress-bar {
+    display: flex;
+    flex: 1;
+    min-width: 40px;
+    height: 6px;
+    border-radius: 9999px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.1);
+  }
+  .hdr-progress-paid {
+    height: 100%;
+    background: var(--accent-emerald);
+    transition: width 0.3s ease;
+  }
+  .hdr-progress-unpaid {
+    height: 100%;
+    background: var(--accent-amber);
+    transition: width 0.3s ease;
   }
 
   /* Botón redondo glass 44×44 (✎) */

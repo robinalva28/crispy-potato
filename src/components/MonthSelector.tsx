@@ -79,22 +79,30 @@ export function MonthSelector({ months, activeMonthId, onSelect, onCreate }: Pro
         >
           + Mes
         </button>
-        {months.map((m) => (
-          <button
-            key={m.id}
-            type="button"
-            data-month-id={m.id}
-            onClick={() => onSelect(m.id)}
-            className={`shrink-0 min-h-[44px] px-4 text-xs font-semibold rounded-full transition ${
-              m.id === activeMonthId
-                ? 'chip-active'
-                : 'glass text-neutral-600 hover:opacity-80 dark:text-neutral-300'
-            }`}
-          >
-            {m.status === 'cerrado' && '🔒 '}
-            {m.label}
-          </button>
-        ))}
+        {months.map((m) => {
+          const isCurrent = m.id === currentMonthId();
+          const stateCls =
+            m.id === activeMonthId
+              ? 'chip-active'
+              : m.status === 'cerrado'
+                ? 'month-link month-link--closed'
+                : isCurrent
+                  ? 'month-link month-link--current'
+                  : 'month-link month-link--open';
+          return (
+            <button
+              key={m.id}
+              type="button"
+              data-month-id={m.id}
+              onClick={() => onSelect(m.id)}
+              className={`shrink-0 min-h-[44px] px-3 text-xs font-semibold rounded-full transition ${stateCls}`}
+              title={m.status === 'cerrado' ? `${m.label} (cerrado)` : m.label}
+            >
+              {m.status === 'cerrado' ? '🔒 ' : ''}
+              {m.label}
+            </button>
+          );
+        })}
       </div>
 
       {showModal && (
