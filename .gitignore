@@ -33,3 +33,6 @@ DECISIONS.md
 
 # Deploy directo del worker (local — wrangler.toml rompe Cloudflare Pages)
 wrangler.toml
+
+# IA
+.clinerules

@@ -60,6 +60,151 @@ interface Props {
 type SectionKey = 'basicos' | 'montos' | 'extras';
 type CurrencyMode = 'real' | 'estimate';
 
+/** Clases para los botones segmentados (igual que la Opción D).
+ *  variant 'success' → Pagado (gradiente esmeralda = éxito)
+ *  variant 'warning' → Pendiente (delineado ámbar = aviso)
+ *  default → divisas (gradiente lime) */
+function segButtonClass(on: boolean, variant: 'default' | 'success' | 'warning' = 'default') {
+  const activeCls =
+    variant === 'success'
+      ? 'grad-emerald text-white font-bold border-transparent'
+      : variant === 'warning'
+        ? 'bg-amber-500/[0.08] border-accent-amber text-accent-amber font-bold'
+        : 'grad-lime text-white font-bold border-transparent';
+  return `flex-1 min-h-[44px] px-2 rounded-full text-[13px] flex items-center justify-center gap-1.5 transition border ${
+    on
+      ? activeCls
+      : 'bg-[var(--surface)] border-[var(--border)] text-[var(--muted)] font-medium'
+  }`;
+}
+
+/** Clases para el mini toggle Monto/Estimado: activo con delineado lime y texto lime. */
+function miniSegClass(on: boolean) {
+  return `flex-1 min-h-[32px] px-2 rounded-full text-[11px] font-semibold flex items-center justify-center gap-1 transition border ${
+    on
+      ? 'bg-lime-500/[0.08] border-accent-lime text-accent-lime'
+      : 'bg-transparent border-transparent text-[var(--muted)]'
+  }`;
+}
+
+/**
+ * Wrapper colapsable con animación de altura suave.
+ * Mantiene los inputs montados (conserva valores y foco) y evita el
+ * salto brusco de scroll al alternar divisas.
+ */
+function Collapse({ open, children }: { open: boolean; children: React.ReactNode }) {
+  return (
+    <div
+      className={`grid transition-all duration-300 ease-out ${
+        open ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+      }`}
+    >
+      <div className="overflow-hidden min-h-0">{children}</div>
+    </div>
+  );
+}
+
+/** Sección acordeón: header clickeable + cuerpo colapsable. */
+function Section({
+  icon,
+  title,
+  open,
+  onToggle,
+  children,
+}: {
+  icon: 'tag' | 'wallet' | 'paperclip';
+  title: string;
+  open: boolean;
+  onToggle: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="mb-2.5">
+      <div
+        className={`rounded-2xl border overflow-hidden transition-colors ${
+          open ? 'border-accent-lime' : 'border-[var(--border)]'
+        }`}
+        style={{ background: 'var(--surface)' }}
+      >
+        <button
+          type="button"
+          onClick={onToggle}
+          className="flex items-center gap-2.5 w-full min-h-[52px] px-3"
+          aria-expanded={open}
+        >
+          <Icon name={icon} size={18} className="text-[var(--muted)] shrink-0" />
+          <span className="flex-1 text-left text-[13px] font-semibold text-[var(--txt)]">{title}</span>
+          <Icon
+            name="chevronDown"
+            size={16}
+            className={`shrink-0 transition-transform duration-200 ${
+              open ? 'rotate-180 text-accent-lime' : 'text-[var(--muted)]'
+            }`}
+            ariaHidden
+          />
+        </button>
+        {open && <div className="px-3 pb-3.5 pt-1">{children}</div>}
+      </div>
+    </div>
+  );
+}
+
+/** Bloque de divisa con toggle Monto/Estimado y su input condicional. */
+function CurrencyBlock({
+  enabled,
+  mode,
+  onMode,
+  realLabel,
+  estimateLabel,
+  estimateHint,
+  realInput,
+  estimateInput,
+  usd = false,
+}: {
+  enabled: boolean;
+  mode: CurrencyMode;
+  onMode: (m: CurrencyMode) => void;
+  realLabel: string;
+  estimateLabel: string;
+  estimateHint?: string;
+  realInput: React.ReactNode;
+  estimateInput: React.ReactNode;
+  usd?: boolean;
+}) {
+  if (!enabled) return null;
+  return (
+    <div className={usd ? 'pt-3' : ''}>
+      <div className="flex items-center justify-between gap-2 mb-1.5">
+        <label className="text-[11px] text-neutral-500 font-medium dark:text-neutral-400 m-0">
+          {mode === 'real' ? realLabel : estimateLabel}
+        </label>
+        <div className="flex p-0.5 rounded-full bg-[var(--surface)] border border-[var(--border)] w-fit">
+          <button
+            type="button"
+            className={miniSegClass(mode === 'real')}
+            onClick={(e) => { e.preventDefault(); onMode('real'); }}
+          >
+            Monto
+          </button>
+          <button
+            type="button"
+            className={miniSegClass(mode === 'estimate')}
+            onClick={(e) => { e.preventDefault(); onMode('estimate'); }}
+          >
+            Estimado
+          </button>
+        </div>
+      </div>
+      {mode === 'real' ? realInput : estimateInput}
+      {mode === 'estimate' && estimateHint && (
+        <div className="mt-1 text-[11px] text-accent-amber">
+          <Icon name="alert" size={11} className="inline-block mr-1 align-[-1px]" />{estimateHint}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function ExpenseForm({ initial, onSave, onCancel, onGetLastUsdRate }: Props) {
   const [form, setForm] = useState<FormState>(() => toForm(initial));
   const [scanning, setScanning] = useState(false);
@@ -184,151 +329,6 @@ export function ExpenseForm({ initial, onSave, onCancel, onGetLastUsdRate }: Pro
       paid: form.paid,
       notes: form.notes.trim(),
     });
-  }
-
-  /** Clases para los botones segmentados (igual que la Opción D).
-   *  variant 'success' → Pagado (gradiente esmeralda = éxito)
-   *  variant 'warning' → Pendiente (delineado ámbar = aviso)
-   *  default → divisas (gradiente lime) */
-  function segButtonClass(on: boolean, variant: 'default' | 'success' | 'warning' = 'default') {
-    const activeCls =
-      variant === 'success'
-        ? 'grad-emerald text-white font-bold border-transparent'
-        : variant === 'warning'
-          ? 'bg-amber-500/[0.08] border-accent-amber text-accent-amber font-bold'
-          : 'grad-lime text-white font-bold border-transparent';
-    return `flex-1 min-h-[44px] px-2 rounded-full text-[13px] flex items-center justify-center gap-1.5 transition border ${
-      on
-        ? activeCls
-        : 'bg-[var(--surface)] border-[var(--border)] text-[var(--muted)] font-medium'
-    }`;
-  }
-
-  /** Clases para el mini toggle Monto/Estimado: activo con delineado lime y texto lime. */
-  function miniSegClass(on: boolean) {
-    return `flex-1 min-h-[32px] px-2 rounded-full text-[11px] font-semibold flex items-center justify-center gap-1 transition border ${
-      on
-        ? 'bg-lime-500/[0.08] border-accent-lime text-accent-lime'
-        : 'bg-transparent border-transparent text-[var(--muted)]'
-    }`;
-  }
-
-  /**
-   * Wrapper colapsable con animación de altura suave.
-   * Mantiene los inputs montados (conserva valores y foco) y evita el
-   * salto brusco de scroll al alternar divisas.
-   */
-  function Collapse({ open, children }: { open: boolean; children: React.ReactNode }) {
-    return (
-      <div
-        className={`grid transition-all duration-300 ease-out ${
-          open ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
-        }`}
-      >
-        <div className="overflow-hidden min-h-0">{children}</div>
-      </div>
-    );
-  }
-
-  /** Sección acordeón: header clickeable + cuerpo colapsable. */
-  function Section({
-    icon,
-    title,
-    open,
-    onToggle,
-    children,
-  }: {
-    icon: 'tag' | 'wallet' | 'paperclip';
-    title: string;
-    open: boolean;
-    onToggle: () => void;
-    children: React.ReactNode;
-  }) {
-    return (
-      <div className="mb-2.5">
-        <div
-          className={`rounded-2xl border overflow-hidden transition-colors ${
-            open ? 'border-accent-lime' : 'border-[var(--border)]'
-          }`}
-          style={{ background: 'var(--surface)' }}
-        >
-          <button
-            type="button"
-            onClick={onToggle}
-            className="flex items-center gap-2.5 w-full min-h-[52px] px-3"
-            aria-expanded={open}
-          >
-            <Icon name={icon} size={18} className="text-[var(--muted)] shrink-0" />
-            <span className="flex-1 text-left text-[13px] font-semibold text-[var(--txt)]">{title}</span>
-            <Icon
-              name="chevronDown"
-              size={16}
-              className={`shrink-0 transition-transform duration-200 ${
-                open ? 'rotate-180 text-accent-lime' : 'text-[var(--muted)]'
-              }`}
-              ariaHidden
-            />
-          </button>
-          {open && <div className="px-3 pb-3.5 pt-1">{children}</div>}
-        </div>
-      </div>
-    );
-  }
-
-  /** Bloque de divisa con toggle Monto/Estimado y su input condicional. */
-  function CurrencyBlock({
-    enabled,
-    mode,
-    onMode,
-    realLabel,
-    estimateLabel,
-    estimateHint,
-    realInput,
-    estimateInput,
-    usd = false,
-  }: {
-    enabled: boolean;
-    mode: CurrencyMode;
-    onMode: (m: CurrencyMode) => void;
-    realLabel: string;
-    estimateLabel: string;
-    estimateHint?: string;
-    realInput: React.ReactNode;
-    estimateInput: React.ReactNode;
-    usd?: boolean;
-  }) {
-    if (!enabled) return null;
-    return (
-      <div className={usd ? 'pt-3' : ''}>
-        <div className="flex items-center justify-between gap-2 mb-1.5">
-          <label className="text-[11px] text-neutral-500 font-medium dark:text-neutral-400 m-0">
-            {mode === 'real' ? realLabel : estimateLabel}
-          </label>
-          <div className="flex p-0.5 rounded-full bg-[var(--surface)] border border-[var(--border)] w-fit">
-            <button
-              type="button"
-              className={miniSegClass(mode === 'real')}
-              onClick={(e) => { e.preventDefault(); onMode('real'); }}
-            >
-              Monto
-            </button>
-            <button
-              type="button"
-              className={miniSegClass(mode === 'estimate')}
-              onClick={(e) => { e.preventDefault(); onMode('estimate'); }}
-            >
-              Estimado
-            </button>
-          </div>
-        </div>
-        {mode === 'real' ? realInput : estimateInput}
-        {mode === 'estimate' && estimateHint && (
-          <div className="mt-1 text-[11px] text-accent-amber">
-            <Icon name="alert" size={11} className="inline-block mr-1 align-[-1px]" />{estimateHint}
-          </div>
-        )}
-      </div>
-    );
   }
 
   return (
