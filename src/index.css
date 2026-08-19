@@ -487,13 +487,31 @@
   .sheet.open {
     transform: translateY(0);
   }
+  /* Handle del sheet: zona táctil amplia para arrastrar hacia abajo (cierra) */
   .sheet-h {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 36px;
+    margin: 0 auto;
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .sheet-h:active {
+    cursor: grabbing;
+  }
+  .sheet-h-bar {
     width: 44px;
     height: 4px;
     border-radius: 9999px;
     background: var(--muted);
-    opacity: 0.4;
-    margin: 0 auto 6px;
+    opacity: 0.5;
+  }
+  /* Durante el arrastre se desactiva la transición para que el sheet siga al dedo */
+  .sheet.dragging {
+    transition: none;
   }
   .sheet-title {
     font-size: 14px;
