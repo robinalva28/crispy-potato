@@ -1,5 +1,6 @@
 import type { Expense } from '../types.ts';
 import { getExpenseTotal, fmtARS, fmtUSD, fmtDate } from '../utils/money.ts';
+import { Icon } from './ui/Icon.tsx';
 
 interface Props {
   expense: Expense;
@@ -42,13 +43,13 @@ export function ExpenseRow({ expense, onTogglePaid, onDelete, onEdit, onDuplicat
         }}
         className={`w-6 h-6 shrink-0 rounded-full flex items-center justify-center text-[11px] leading-none transition ${
           expense.paid
-            ? 'bg-gradient-to-br from-emerald-500 to-emerald-400 text-white shadow-sm shadow-emerald-500/30'
+            ? 'grad-emerald text-white shadow-sm'
             : isEstimated
-              ? 'border-2 border-dashed border-violet-400 bg-violet-100/30'
-              : 'border-2 border-amber-400/70 bg-amber-100/30'
+              ? 'border-2 border-dashed border-accent-violet bg-violet-100/30'
+              : 'border-2 border-accent-amber bg-amber-100/30'
         }`}
       >
-        {expense.paid && '✓'}
+        {expense.paid && <Icon name="check" size={12} strokeWidth={3} ariaHidden />}
       </button>
 
       <div className="flex-1 min-w-0">
@@ -65,10 +66,10 @@ export function ExpenseRow({ expense, onTogglePaid, onDelete, onEdit, onDuplicat
             {fmtDate(expense.dueDate)}
             {expense.dueDate ? ' · ' : ''}
             {isEstimated && (
-              <span className="text-violet-600 font-semibold dark:text-violet-400">por confirmar</span>
+              <span className="text-accent-violet font-semibold">por confirmar</span>
             )}
             {isPending && !isEstimated && (
-              <span className="text-amber-600 font-semibold dark:text-amber-400">pendiente</span>
+              <span className="text-accent-amber font-semibold">pendiente</span>
             )}
             {expense.notes && !isEstimated && (
               <span>{expense.notes}</span>
@@ -95,9 +96,9 @@ export function ExpenseRow({ expense, onTogglePaid, onDelete, onEdit, onDuplicat
             e.stopPropagation();
             onDuplicate(expense.id!);
           }}
-          className="text-neutral-300 hover:text-lime-500 text-sm transition dark:text-neutral-600 dark:hover:text-lime-400"
+          className="text-neutral-300 hover:text-accent-lime text-sm transition dark:text-neutral-600"
         >
-          ⧉
+          <Icon name="copy" size={18} ariaHidden />
         </button>
         <button
           type="button"
@@ -106,7 +107,7 @@ export function ExpenseRow({ expense, onTogglePaid, onDelete, onEdit, onDuplicat
             e.stopPropagation();
             onDelete(expense.id!);
           }}
-          className="text-neutral-300 hover:text-red-500 text-sm transition dark:text-neutral-600 dark:hover:text-red-400"
+          className="text-neutral-300 hover:text-accent-red text-sm transition dark:text-neutral-600"
         >
           ✕
         </button>

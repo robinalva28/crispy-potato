@@ -128,7 +128,7 @@ export function SavingsGoalForm({ initial, months, expenses, onSave, onCancel }:
                 type="button"
                 aria-label="Quitar ingreso extra"
                 onClick={() => setExtras((prev) => prev.filter((e) => e.id !== extra.id))}
-                className="text-neutral-300 hover:text-red-500 text-sm shrink-0 dark:text-neutral-600 dark:hover:text-red-400"
+                className="text-neutral-300 hover:text-accent-red text-sm shrink-0 dark:text-neutral-600"
               >
                 ✕
               </button>
@@ -171,7 +171,7 @@ export function SavingsGoalForm({ initial, months, expenses, onSave, onCancel }:
       </div>
 
       {startMonth > endMonth && (
-        <p className="text-xs text-red-500">"Desde" debe ser anterior o igual a "Hasta".</p>
+        <p className="text-xs text-accent-red">"Desde" debe ser anterior o igual a "Hasta".</p>
       )}
 
       <div className="flex gap-2 pt-1">

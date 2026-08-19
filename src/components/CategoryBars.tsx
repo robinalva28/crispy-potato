@@ -22,9 +22,9 @@ const CATEGORY_COLORS: Record<Category, string> = {
 };
 
 const STATUS_BAR: Record<string, string> = {
-  ok: 'bg-emerald-500',
-  warn: 'bg-amber-500',
-  over: 'bg-red-500',
+  ok: 'bg-accent-emerald',
+  warn: 'bg-accent-amber',
+  over: 'bg-accent-red',
 };
 
 export function CategoryBars({ totals, budgets }: Props) {
@@ -62,10 +62,10 @@ export function CategoryBars({ totals, budgets }: Props) {
                 <span
                   className={
                     budgetInfo.status === 'over'
-                      ? 'text-red-600 font-semibold dark:text-red-400'
+                      ? 'text-accent-red font-semibold'
                       : budgetInfo.status === 'warn'
-                        ? 'text-amber-600 font-medium dark:text-amber-400'
-                        : 'text-emerald-600 dark:text-emerald-400'
+                        ? 'text-accent-amber font-medium'
+                        : 'text-accent-emerald'
                   }
                 >
                   {budgetInfo.status === 'over' ? 'Excedido ' : ''}

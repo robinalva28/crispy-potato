@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Button } from './ui/Button.tsx';
+import { Icon } from './ui/Icon.tsx';
 
 interface Props {
   hasPin: boolean;
@@ -45,7 +46,7 @@ export function LockScreen({ hasPin, onUnlock, onSetPin }: Props) {
     <div className="min-h-screen flex flex-col items-center justify-center px-6">
       <div className="grad-lime-strong w-16 h-16 mb-4 rounded-3xl flex items-center justify-center text-3xl text-white shadow-lg"
            style={{ boxShadow: '0 12px 32px -8px rgba(132,204,22,.5)' }}>
-        🔒
+        <Icon name="lock" size={28} ariaHidden />
       </div>
       <h1 className="text-xl font-bold mb-1">Presupuesto Mensual</h1>
       <p className="text-sm opacity-50 mb-8">
@@ -76,7 +77,7 @@ export function LockScreen({ hasPin, onUnlock, onSetPin }: Props) {
           />
         )}
 
-        {error && <p className="text-sm text-red-400">{error}</p>}
+        {error && <p className="text-sm text-accent-red">{error}</p>}
 
         <Button
           type="submit"

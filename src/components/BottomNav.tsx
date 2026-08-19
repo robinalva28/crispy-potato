@@ -1,4 +1,5 @@
 import type { View } from '../types.ts';
+import { Icon, type IconName } from './ui/Icon.tsx';
 
 interface Props {
   view: View;
@@ -6,9 +7,9 @@ interface Props {
   onMore: () => void;
 }
 
-const VIEW_META: Record<View, { ico: string; label: string }> = {
-  budget: { ico: '📋', label: 'Presupuesto' },
-  savings: { ico: '💰', label: 'Ahorro' },
+const VIEW_META: Record<View, { icon: IconName; label: string }> = {
+  budget: { icon: 'clipboard', label: 'Presupuesto' },
+  savings: { icon: 'wallet', label: 'Ahorro' },
 };
 
 export function BottomNav({ view, onToggleView, onMore }: Props) {
@@ -17,11 +18,11 @@ export function BottomNav({ view, onToggleView, onMore }: Props) {
     <nav className="bbar">
       <div className="bi">
         <button type="button" className="ni on" onClick={onToggleView} title="Cambiar vista">
-          <span className="ico">{meta.ico}</span>
+          <Icon name={meta.icon} size={20} />
           <span>{meta.label}</span>
         </button>
         <button type="button" className="ni" onClick={onMore} title="Más opciones">
-          <span className="ico">⋯</span>
+          <Icon name="more" size={20} />
           <span>Más</span>
         </button>
       </div>

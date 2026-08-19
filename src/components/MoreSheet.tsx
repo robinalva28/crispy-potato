@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { Icon, type IconName } from './ui/Icon.tsx';
 
 interface Props {
   open: boolean;
@@ -84,43 +85,43 @@ export function MoreSheet({
       <div className="sheet-title">Más opciones</div>
 
       <button type="button" className="sh-item" onClick={() => { onGroupBy(); onClose(); }}>
-        <span className="ico">🗂</span>Agrupar por categoría
+        <span className="ico"><Icon name="clipboard" size={20} /></span>Agrupar por categoría
       </button>
       <button type="button" className="sh-item" onClick={() => { onBudgets(); onClose(); }}>
-        <span className="ico">⚙</span>Presupuestos por categoría
+        <span className="ico"><Icon name="settings" size={20} /></span>Presupuestos por categoría
       </button>
 
       {monthClosed ? (
         <button type="button" className="sh-item" onClick={() => { onReopenMonth(); onClose(); }}>
-          <span className="ico">🔓</span>Reabrir mes
+          <span className="ico"><Icon name="lockOpen" size={20} /></span>Reabrir mes
         </button>
       ) : (
         <button type="button" className="sh-item" onClick={() => { onCloseMonth(); onClose(); }}>
-          <span className="ico">🔒</span>Cerrar mes
+          <span className="ico"><Icon name="lock" size={20} /></span>Cerrar mes
         </button>
       )}
 
       <button type="button" className="sh-item" onClick={() => { onGuide(); onClose(); }}>
-        <span className="ico">❓</span>Guía de uso
+        <span className="ico"><Icon name="help" size={20} /></span>Guía de uso
       </button>
 
       <button type="button" className="sh-item" onClick={onToggleTheme}>
-        <span className="ico">{dark ? '☀️' : '🌙'}</span>
+        <span className="ico"><Icon name={dark ? 'sun' : 'moon'} size={20} /></span>
         {dark ? 'Modo claro' : 'Modo oscuro'}
         <span className="trailing">{dark ? 'Oscuro' : 'Claro'}</span>
       </button>
 
       <button type="button" className="sh-item" onClick={() => { onToggleSound(); onClose(); }}>
-        <span className="ico">🔊</span>Sonidos
+        <span className="ico"><Icon name="volume" size={20} /></span>Sonidos
         <span className="trailing">{soundEnabled ? 'Activados' : 'Silenciados'}</span>
       </button>
 
       <button type="button" className="sh-item" onClick={() => { onExport(); onClose(); }}>
-        <span className="ico">📤</span>Exportar datos
+        <span className="ico"><Icon name="upload" size={20} /></span>Exportar datos
       </button>
 
       <label className="sh-item cursor-pointer">
-        <span className="ico">📥</span>Importar datos
+        <span className="ico"><Icon name="download" size={20} /></span>Importar datos
         <span className="trailing" />
         <input type="file" accept="application/json" className="hidden" onChange={(e) => { onImport(e); onClose(); }} />
       </label>

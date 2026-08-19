@@ -13,9 +13,10 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 const VARIANTS: Record<Variant, string> = {
   primary: 'btn-aura transition',
   ghost: 'glass rounded-full hover:opacity-80 transition',
-  danger: 'bg-red-500 text-white rounded-full hover:bg-red-600 transition',
+  // Destructivo: usa el token dual de acento rojo (neón en dark, profundo en light)
+  danger: 'bg-accent-red text-white rounded-full hover:brightness-110 transition',
   violet: 'btn-violet transition',
-  dangerGhost: 'text-red-600 glass rounded-full hover:opacity-80 transition dark:text-red-400',
+  dangerGhost: 'text-accent-red glass rounded-full hover:opacity-80 transition',
 };
 
 const SIZES: Record<Size, string> = {

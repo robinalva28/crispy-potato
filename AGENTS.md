@@ -40,6 +40,21 @@ Todo en `src/index.css` en `:root` (claro) y `.dark` (oscuro):
 
 Compat: `--glass-bg/--glass-border/--glass-text/--glass-strong-bg` son alias históricos de `--bg/--border/--txt/--card`.
 
+### Paleta semántica por rol (mismo matiz, dual dark/light)
+
+Los **iconos** usan este sistema de roles mediante variables de acento (definidas en `index.css`):
+
+| Rol | Dark (neón) | Light (profundo) | Elementos |
+|---|---|---|---|
+| Vista activa / selección | `--accent-lime` `#84cc16` | `#4d7c0f` | bottom bar activa, fila activa del mini menú |
+| Inactivos | `--muted` `#6e7681` | `#6b7280` | "⋯ Más", items de menús/sheets sin selección |
+| Éxito / pagado | `--accent-emerald` `#34d399` | `#059669` | Check pagado, confirmaciones |
+| Aviso / por confirmar | `--accent-amber` `#fbbf24` | `#b45309` | AlertTriangle, pendiente/estimado |
+| Destructivo | `--accent-red` `#f87171` | `#dc2626` | Eliminar (trash / x) |
+| Acción especial (foto/IA) | `--accent-violet` `#a78bfa` | `#7c3aed` | Cámara, escáner |
+
+**Regla**: los iconos heredan color por `currentColor`/variables — **nunca** colorear con hex en el componente. Activos usan la variable de acento del rol; inactivos usan `--muted`.
+
 ### Regla de oro de colores
 **Nunca más hex literal o gradiente hardcodeado en JSX.** Si se repite un color, crear clase token en `src/index.css` (ver D23).
 
@@ -51,7 +66,18 @@ Compat: `--glass-bg/--glass-border/--glass-text/--glass-strong-bg` son alias his
 - `.soft-lime` — fondo lime suave + borde (panel "Resto"/"Ahorro proyectado").
 - `.text-olive` — `color:#4d7c0f` (textos de ahorro/resto).
 
-## 4. Componentes de UI reutilizables (IMPORTANTE — cómo usamos componentes)
+## 4. Iconografía — Lucide (IMPORTANTE)
+
+- **Librería**: `lucide-react` (npm, ESM con tree-shaking). Prohibido CDN en la app.
+- **Capa central**: `src/components/ui/Icon.tsx` — único lugar que importa iconos. Agrega cualquier icono nuevo:
+  1. Buscá el nombre en https://lucide.dev/icons
+  2. `import { MiIcono } from 'lucide-react';` (import nombrado → tree-shaking)
+  3. Registralo en el mapa `ICONS` con clave corta (`miIcono`)
+  4. Uso: `<Icon name="miIcono" size={20} strokeWidth={2} />`
+- **Paleta**: los iconos **heredan** `currentColor` — en la app se aplica el rol (activo = `var(--accent-lime)` etc., inactivo = `var(--muted)`) desde CSS, nunca hex en el JSX.
+- **Prompt para la IA**: "Agrega un icono para la acción [Acción] en el componente [Componente]" → proceso de 4 pasos de arriba, respetando tree-shaking y la paleta semántica.
+
+## 5. Componentes de UI reutilizables (IMPORTANTE — cómo usamos componentes)
 
 Existe una capa de **primitivas** en `src/components/ui/` que debe usarse **siempre** que un botón/input/modal se necesite más de una vez (ver D24):
 

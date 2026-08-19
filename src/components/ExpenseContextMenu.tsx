@@ -1,5 +1,6 @@
 import type { Expense } from '../types.ts';
 import { getExpenseTotal, fmtARS, fmtUSD, fmtDate } from '../utils/money.ts';
+import { Icon } from './ui/Icon.tsx';
 
 export interface ExpenseRect {
   top: number;
@@ -40,16 +41,16 @@ export function ExpenseContextMenu({ expense, rect, onEdit, onDuplicate, onDelet
       >
         <div className={`flex items-center gap-3 px-3.5 py-3 ${isPending ? 'opacity-70' : ''}`}>
           <div
-            className={`w-6 h-6 shrink-0 rounded-full flex items-center justify-center text-[11px] leading-none ${expense.paid ? 'grad-emerald text-white' : ''}`}
+            className={`w-6 h-6 shrink-0 rounded-full flex items-center justify-center ${expense.paid ? 'grad-emerald text-white' : ''}`}
             style={
               expense.paid
                 ? undefined
                 : isEstimated
-                  ? { border: '2px dashed #a78bfa' }
-                  : { border: '2px solid rgba(251,191,36,.6)' }
+                  ? { border: '2px dashed var(--accent-violet)' }
+                  : { border: '2px solid var(--accent-amber)' }
             }
           >
-            {expense.paid && '✓'}
+            {expense.paid && <Icon name="check" size={12} strokeWidth={3} ariaHidden />}
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex justify-between items-baseline gap-2">
@@ -77,13 +78,13 @@ export function ExpenseContextMenu({ expense, rect, onEdit, onDuplicate, onDelet
       <div className="exp-menu" style={{ top, left: menuLeft }}>
         <div className="exp-menu-title truncate">{expense.name}</div>
         <button type="button" className="em-item" onClick={onEdit}>
-          <span className="ico">✏️</span>Editar
+          <span className="ico"><Icon name="pencil" size={20} /></span>Editar
         </button>
         <button type="button" className="em-item" onClick={onDuplicate}>
-          <span className="ico">⧉</span>Clonar
+          <span className="ico"><Icon name="copy" size={20} /></span>Clonar
         </button>
         <button type="button" className="em-item danger" onClick={onDelete}>
-          <span className="ico">🗑</span>Eliminar
+          <span className="ico"><Icon name="trash" size={20} /></span>Eliminar
         </button>
       </div>
     </>

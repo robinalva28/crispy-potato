@@ -4,6 +4,7 @@ import { parseLocalNumber, formatInputNumber } from '../utils/format.ts';
 import { MoneyInput } from './MoneyInput.tsx';
 import { InputBase, SelectBase } from './ui/InputBase.tsx';
 import { Button } from './ui/Button.tsx';
+import { Icon } from './ui/Icon.tsx';
 import { extractInvoice } from '../utils/invoiceExtract.ts';
 import { inferCategory } from '../utils/photoExtract.ts';
 
@@ -138,19 +139,27 @@ export function ExpenseForm({ initial, onSave, onCancel, onGetLastUsdRate }: Pro
   return (
     <form
       onSubmit={handleSubmit}
-      className="relative px-4 py-3 space-y-3 rounded-2xl border-2 border-violet-400/40 bg-violet-500/[0.06] dark:border-violet-500/30 dark:bg-violet-500/[0.07]"
+      className="relative px-4 py-3 space-y-3 rounded-2xl border-2 border-accent-violet bg-violet-500/[0.06]"
     >
       <div className="flex items-center justify-between gap-2">
         <div className="font-semibold text-sm text-neutral-700 dark:text-neutral-200">
-          {initial ? '✏️ Editar gasto' : '➕ Agregar gasto'}
+          {initial ? (
+            <>
+              <Icon name="pencil" size={20} className="inline-block mr-1 align-[-2px]" />Editar gasto
+            </>
+          ) : (
+            <>
+              <Icon name="plus" size={20} className="inline-block mr-1 align-[-2px]" />Agregar gasto
+            </>
+          )}
         </div>
       </div>
 
       {/* Overlay de carga evidente mientras se escanea la factura */}
       {scanning && (
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2.5 rounded-2xl bg-white/75 dark:bg-neutral-900/75 backdrop-blur-sm">
-          <div className="w-11 h-11 rounded-full border-4 border-violet-200 border-t-violet-600 animate-spin dark:border-violet-900/50 dark:border-t-violet-400" />
-          <div className="text-sm font-semibold text-violet-700 dark:text-violet-300">
+          <div className="w-11 h-11 rounded-full border-4 border-violet-200 border-t-violet-600 animate-spin" />
+          <div className="text-sm font-semibold text-accent-violet">
             Escaneando factura…
           </div>
           <div className="text-[11px] text-neutral-500 dark:text-neutral-400">
@@ -190,7 +199,7 @@ export function ExpenseForm({ initial, onSave, onCancel, onGetLastUsdRate }: Pro
         </div>
         <div>
           <label className="block text-[11px] text-neutral-500 font-medium mb-1 dark:text-neutral-400">
-            Estimado ARS ($) {!form.amountArs && <span className="text-amber-600 dark:text-amber-400">(por confirmar)</span>}
+            Estimado ARS ($) {!form.amountArs && <span className="text-accent-amber">(por confirmar)</span>}
           </label>
           <MoneyInput symbol="$" value={form.estimatedArs} onChange={(v) => set('estimatedArs', v)} placeholder="80.000" />
         </div>
@@ -203,7 +212,7 @@ export function ExpenseForm({ initial, onSave, onCancel, onGetLastUsdRate }: Pro
         </div>
         <div>
           <label className="block text-[11px] text-neutral-500 font-medium mb-1 dark:text-neutral-400">
-            Cotización USD ($){hasUsd && <span className="text-amber-600 dark:text-amber-400"> (requerido)</span>}
+            Cotización USD ($){hasUsd && <span className="text-accent-amber"> (requerido)</span>}
           </label>
           <MoneyInput symbol="$" value={form.usdRate} onChange={(v) => set('usdRate', v)} placeholder="1.200" required={hasUsd} />
         </div>
@@ -242,13 +251,13 @@ export function ExpenseForm({ initial, onSave, onCancel, onGetLastUsdRate }: Pro
             title="Escanear factura"
             aria-label="Escanear factura"
           >
-            📷
+            <Icon name="camera" size={20} ariaHidden />
           </Button>
         </label>
       </div>
       {scanError && (
-        <p className="text-[11px] text-red-600 dark:text-red-400">
-          ⚠️ {scanError}
+        <p className="text-[11px] text-accent-red">
+          <Icon name="alert" size={14} className="inline-block mr-1 align-[-2px]" />{scanError}
         </p>
       )}
 

@@ -28,7 +28,7 @@ export function MoneyInput({
       <span
         className={`absolute left-2 top-1/2 -translate-y-1/2 text-sm font-medium pointer-events-none select-none transition-colors ${
           value
-            ? 'text-emerald-600 dark:text-emerald-400'
+            ? 'text-accent-emerald'
             : 'text-neutral-400 dark:text-neutral-500'
         }`}
       >

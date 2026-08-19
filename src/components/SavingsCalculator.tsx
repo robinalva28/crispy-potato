@@ -4,6 +4,7 @@ import { projectSavings, monthlySavingsHistory } from '../utils/savings.ts';
 import { fmtARS } from '../utils/money.ts';
 import { SavingsChart } from './SavingsChart.tsx';
 import { Button } from './ui/Button.tsx';
+import { Icon } from './ui/Icon.tsx';
 
 interface Props {
   goals: SavingsGoal[];
@@ -27,7 +28,7 @@ export function SavingsCalculator({ goals, months, expenses, onAdd, onEdit, onDe
   if (goals.length === 0) {
     return (
       <div className="px-4 py-10 text-center">
-        <div className="text-4xl mb-2">💰</div>
+        <div className="text-4xl mb-2 flex justify-center"><Icon name="wallet" size={40} /></div>
         <p className="text-sm opacity-60 mb-4">
           Todavía no tenés segmentos de ahorro proyectados.
           <br />
@@ -52,8 +53,8 @@ export function SavingsCalculator({ goals, months, expenses, onAdd, onEdit, onDe
           <div key={goal.id} className="glass-card rounded-3xl p-4">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <div className="soft-lime w-10 h-10 rounded-xl flex items-center justify-center text-lg">
-                  🎯
+                <div className="soft-lime w-10 h-10 rounded-xl flex items-center justify-center">
+                  <Icon name="target" size={22} />
                 </div>
                 <div>
                   <div className="font-bold text-neutral-900 dark:text-neutral-100">{goal.name}</div>
@@ -81,11 +82,11 @@ export function SavingsCalculator({ goals, months, expenses, onAdd, onEdit, onDe
                         <span className="text-[10px] opacity-40 italic">≈ estimado</span>
                       )}
                       {p.extras.length > 0 && (
-                        <span className="text-amber-600 dark:text-amber-400 font-medium">
+                        <span className="text-accent-amber font-medium">
                           +{p.extras.map((e) => e.label).join(', ')}
                         </span>
                       )}
-                      <span className={`font-semibold tabular-nums ${p.total < 0 ? 'text-red-500' : ''}`}>
+                      <span className={`font-semibold tabular-nums ${p.total < 0 ? 'text-accent-red' : ''}`}>
                         {fmtARS(p.total, 0)}
                       </span>
                     </span>
@@ -104,12 +105,12 @@ export function SavingsCalculator({ goals, months, expenses, onAdd, onEdit, onDe
                       {extra.label} · {monthLabel(extra.month)}
                     </span>
                     <span className="flex items-center gap-2">
-                      <span className="text-amber-700 dark:text-amber-400 font-semibold">{fmtARS(extra.amount, 0)}</span>
+                      <span className="text-accent-amber font-semibold">{fmtARS(extra.amount, 0)}</span>
                       <button
                         type="button"
                         aria-label="Quitar"
                         onClick={() => goal.id && onRemoveExtra(goal.id, extra.id)}
-                        className="text-neutral-300 hover:text-red-500 dark:text-neutral-600 dark:hover:text-red-400"
+                        className="text-neutral-300 hover:text-accent-red dark:text-neutral-600"
                       >
                         ✕
                       </button>
@@ -122,10 +123,10 @@ export function SavingsCalculator({ goals, months, expenses, onAdd, onEdit, onDe
             {/* Acciones */}
             <div className="mt-3 flex gap-2">
               <Button variant="ghost" size="sm" fullWidth onClick={() => onEdit(goal)}>
-                ✎ Editar
+                <Icon name="pencil" size={14} /> Editar
               </Button>
               <Button variant="dangerGhost" size="sm" fullWidth onClick={() => goal.id && setConfirmDelete(goal)}>
-                🗑 Eliminar
+                <Icon name="trash" size={14} /> Eliminar
               </Button>
             </div>
           </div>

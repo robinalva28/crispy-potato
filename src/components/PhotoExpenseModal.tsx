@@ -6,6 +6,7 @@ import { parseLocalNumber, formatInputNumber } from '../utils/format.ts';
 import { canUsePhoto } from '../utils/monthUtils.ts';
 import { MoneyInput } from './MoneyInput.tsx';
 import { Button } from './ui/Button.tsx';
+import { Icon } from './ui/Icon.tsx';
 
 interface Props {
   month: Month;
@@ -120,7 +121,7 @@ export function PhotoExpenseModal({ month, onSave, onClose }: Props) {
       <div className="w-full max-w-lg glass-card rounded-3xl p-4 space-y-3">
         <div className="flex items-center justify-between">
           <div className="font-bold text-neutral-900 dark:text-neutral-100">
-            📷 Foto de apuntes — {month.label}
+            <Icon name="camera" size={18} className="inline-block mr-1 align-[-2px]" />Foto de apuntes — {month.label}
           </div>
           <button
             type="button"
@@ -132,8 +133,8 @@ export function PhotoExpenseModal({ month, onSave, onClose }: Props) {
         </div>
 
         {error && (
-          <div className="text-xs text-red-600 glass rounded-xl px-3 py-2 dark:text-red-400">
-            ⚠️ {error}
+          <div className="text-xs text-accent-red glass rounded-xl px-3 py-2">
+            <Icon name="alert" size={14} className="inline-block mr-1 align-[-2px]" />{error}
           </div>
         )}
 
@@ -159,7 +160,7 @@ export function PhotoExpenseModal({ month, onSave, onClose }: Props) {
               disabled={!canUsePhoto(month)}
               className="disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              📷 Tomar foto de los apuntes
+              <Icon name="camera" size={18} /> Tomar foto de los apuntes
             </Button>
           </div>
         )}
@@ -167,8 +168,8 @@ export function PhotoExpenseModal({ month, onSave, onClose }: Props) {
         {phase === 'loading' && (
           <div className="py-10 text-center">
             <div className="flex items-center justify-center gap-3">
-              <div className="w-9 h-9 rounded-full border-4 border-violet-200 border-t-violet-600 animate-spin dark:border-violet-900/50 dark:border-t-violet-400" />
-              <div className="text-sm font-bold text-violet-700 dark:text-violet-300">
+              <div className="w-9 h-9 rounded-full border-4 border-violet-200 border-t-violet-600 animate-spin" />
+              <div className="text-sm font-bold text-accent-violet">
                 Leyendo tus apuntes…
               </div>
             </div>
@@ -206,7 +207,7 @@ export function PhotoExpenseModal({ month, onSave, onClose }: Props) {
                       type="button"
                       onClick={() => removeDraft(i)}
                       aria-label="Eliminar fila"
-                      className="shrink-0 w-8 h-8 rounded-full glass text-neutral-400 hover:text-red-500 hover:opacity-80 transition dark:text-neutral-500 dark:hover:text-red-400"
+                      className="shrink-0 w-8 h-8 rounded-full glass text-neutral-400 hover:text-accent-red hover:opacity-80 transition dark:text-neutral-500"
                     >
                       ✕
                     </button>
@@ -260,7 +261,7 @@ export function PhotoExpenseModal({ month, onSave, onClose }: Props) {
                   {/* Cotización USD (obligatoria si hay USD — el modelo NO la adivina) */}
                   {(parseText(usdTexts[i]) ?? 0) > 0 && (
                     <div>
-                      <label className="block text-[10px] uppercase tracking-wide text-amber-600 font-semibold mb-0.5 dark:text-amber-400">
+                      <label className="block text-[10px] uppercase tracking-wide text-accent-amber font-semibold mb-0.5">
                         Cotización USD ($ por 1 USD) *
                       </label>
                       <MoneyInput
@@ -274,7 +275,7 @@ export function PhotoExpenseModal({ month, onSave, onClose }: Props) {
                         required={(parseText(usdTexts[i]) ?? 0) > 0}
                       />
                       {(parseText(rateTexts[i]) ?? 0) <= 0 && (parseText(usdTexts[i]) ?? 0) > 0 && (
-                        <p className="text-[10px] text-amber-600 dark:text-amber-400 mt-0.5">
+                        <p className="text-[10px] text-accent-amber mt-0.5">
                           Ingresá la cotización para calcular el total en pesos
                         </p>
                       )}
@@ -290,7 +291,7 @@ export function PhotoExpenseModal({ month, onSave, onClose }: Props) {
                 size="sm"
                 onClick={addEmptyRow}
               >
-                ➕ Agregar fila
+                <Icon name="plus" size={14} /> Agregar fila
               </Button>
               <span className="opacity-70">
                 Total: <span className="font-bold tabular-nums">{fmtARS(total, 0)}</span>
@@ -299,7 +300,7 @@ export function PhotoExpenseModal({ month, onSave, onClose }: Props) {
 
             <div className="flex gap-2 pt-1">
               {hasMissingRate && (
-                <p className="text-[11px] text-amber-600 dark:text-amber-400 col-span-2">
+                <p className="text-[11px] text-accent-amber col-span-2">
                   Cargá la cotización de cada gasto en USD para poder guardar.
                 </p>
               )}

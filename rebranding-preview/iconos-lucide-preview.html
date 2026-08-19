@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Preview — Iconos Lucide (dark/light)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{color-scheme:dark}
+:root{
+  --bg:rgba(26,28,31,.78);--card:rgba(26,28,31,.78);--border:rgba(255,255,255,.1);
+  --txt:rgba(230,235,230,.92);--muted:#6e7681;--surface:rgba(255,255,255,.06);
+  --panel:rgba(24,27,31,.97);
+  /* Acentos Aura — modo oscuro (tonos neón claros) */
+  --lime:#84cc16;--violet:#a78bfa;--emerald:#34d399;--amber:#fbbf24;--red:#f87171;
+}
+html.light{color-scheme:light;
+  --bg:rgba(255,255,255,.82);--card:rgba(255,255,255,.78);--border:rgba(0,0,0,.08);
+  --txt:#20241f;--muted:#6b7280;--surface:rgba(0,0,0,.03);
+  --panel:rgba(255,255,255,.97);
+  /* Acentos Aura — modo claro (tonos más profundos para contraste) */
+  --lime:#4d7c0f;--violet:#7c3aed;--emerald:#059669;--amber:#b45309;--red:#dc2626;
+}
+body{font-family:'Inter',sans-serif;color:var(--txt);min-height:100dvh;background:radial-gradient(1200px 500px at 85% -10%,rgba(139,92,246,.16),transparent 55%),radial-gradient(900px 480px at -10% 15%,rgba(101,163,13,.14),transparent 55%),radial-gradient(700px 500px at 50% 110%,rgba(14,165,233,.10),transparent 55%),linear-gradient(165deg,#0c0d0f,#111312 55%,#0e1116);background-attachment:fixed;transition:background .3s}
+html.light body{background:radial-gradient(1200px 500px at 85% -10%,rgba(167,139,250,.22),transparent 55%),radial-gradient(900px 480px at -10% 15%,rgba(132,204,22,.20),transparent 55%),radial-gradient(700px 500px at 50% 110%,rgba(14,165,233,.16),transparent 55%),linear-gradient(160deg,#f8faf7,#eef4ea 55%,#eceff8)}
+button{font-family:inherit;border:none;background:none;color:inherit;cursor:pointer}
+.wrap{max-width:30rem;margin:0 auto;padding:20px 16px calc(24px + env(safe-area-inset-bottom))}
+.toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.toolbar h1{font-size:15px;font-weight:800}
+.seg{display:flex;gap:6px;background:var(--panel);border:1px solid var(--border);border-radius:99px;padding:4px}
+.seg button{min-height:40px;padding:0 16px;border-radius:99px;font-size:12px;font-weight:700;color:var(--muted)}
+.seg button.on{background:linear-gradient(135deg,#65a30d,#84cc16);color:#fff}
+.card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:16px;margin-bottom:14px;backdrop-filter:blur(24px) saturate(1.4)}
+.card h2{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700;margin-bottom:12px}
+/* bottom bar real */
+.bbar{display:flex;align-items:center;justify-content:space-between;min-height:60px;padding:0 12px;background:var(--panel);border:1px solid var(--border);border-radius:24px 24px 0 0}
+.ni{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:64px;min-height:52px;justify-content:center;font-size:10px;font-weight:600;color:var(--muted)}
+.ni.on{color:var(--lime)}
+.fab{width:60px;height:60px;border-radius:99px;background:linear-gradient(135deg,#65a30d,#84cc16);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 24px -8px rgba(132,204,22,.55);border:3px solid var(--card)}
+/* mini menu */
+.vmenu{display:flex;flex-direction:column;gap:2px;padding:6px;background:var(--panel);border:1px solid var(--border);border-radius:18px}
+.vm{display:flex;align-items:center;gap:12px;min-height:52px;padding:0 14px;border-radius:14px;font-size:14px;font-weight:600}
+.vm.on{color:var(--lime);background:rgba(132,204,22,.12)}
+/* sheet items */
+.sitems{display:flex;flex-direction:column;gap:2px;background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:6px}
+.si{display:flex;align-items:center;gap:14px;min-height:52px;padding:0 12px;border-radius:14px;font-size:14px;font-weight:500;width:100%;text-align:left}
+.si .ico{width:36px;height:36px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:var(--surface);flex-shrink:0;color:var(--muted)}
+/* speed dial */
+.sd{display:flex;flex-direction:column;align-items:center;gap:10px}
+.sd .pill{display:flex;align-items:center;gap:10px;min-height:48px;padding:6px 18px 6px 6px;background:var(--panel);border:1px solid var(--border);border-radius:99px;font-size:13px;font-weight:600}
+.sd .pill .ico{width:36px;height:36px;border-radius:99px;display:flex;align-items:center;justify-content:center;color:#fff}
+/* head actions */
+.hdr{display:flex;align-items:center;justify-content:space-between;min-height:44px;padding:0 8px;gap:8px}
+.icon-btn{width:44px;height:44px;border-radius:99px;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--muted)}
+/* modal buttons */
+.mbtns{display:flex;gap:8px}
+.btn{flex:1;min-height:48px;border-radius:99px;display:flex;align-items:center;justify-content:center;gap:6px;font-size:14px;font-weight:700}
+.btn.primary{background:linear-gradient(135deg,#65a30d,#84cc16);color:#fff}
+.btn.danger{background:var(--red);color:#fff}
+.btn.ghost{background:var(--surface);border:1px solid var(--border);color:var(--muted);font-weight:600}
+/* recomendación por elemento */
+.items{display:flex;flex-direction:column;gap:12px}
+.row{display:flex;align-items:center;gap:12px}
+.row .lbl{width:100px;font-size:12px;color:var(--muted);font-weight:600;flex-shrink:0}
+.swc{display:flex;gap:10px;flex-wrap:wrap}
+.idx{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:600;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 12px}
+.c-lime{color:var(--lime)} .c-violet{color:var(--violet)} .c-emerald{color:var(--emerald)} .c-amber{color:var(--amber)} .c-neutral{color:var(--muted)} .c-red{color:var(--red)}
+.hint{font-size:11px;color:var(--muted);margin-top:10px;line-height:1.5}
+/* color chips */
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.chip{display:flex;flex-direction:column;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 4px;font-size:10px;color:var(--muted)}
+.chip .ic{display:flex;align-items:center;justify-content:center;width:100%}
+.sw{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.sw .ch{display:flex;flex-direction:column;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 18px;font-size:10px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="toolbar">
+    <h1>🔍 Iconos Lucide — preview</h1>
+    <div class="seg" id="seg">
+      <button class="on" onclick="setDark(false)">🌙 Dark</button>
+      <button onclick="setDark(true)">☀️ Light</button>
+    </div>
+  </div>
+
+  <!-- Bottom bar real -->
+  <div class="card">
+    <h2>Bottom bar (real)</h2>
+    <div class="bbar">
+      <button class="ni on"><i data-lucide="clipboard" style="width:18px;height:18px;color:var(--lime)"></i><span>Presupuesto</span></button>
+      <button class="fab"><i data-lucide="plus" style="width:28px;height:28px"></i></button>
+      <button class="ni"><i data-lucide="more-horizontal" style="width:18px;height:18px"></i><span>Más</span></button>
+    </div>
+  </div>
+
+  <!-- Mini menú vista -->
+  <div class="card">
+    <h2>Mini menú de vista</h2>
+    <div class="vmenu">
+      <button class="vm on"><i data-lucide="clipboard" style="width:18px;height:18px;color:var(--lime)"></i>Presupuesto</button>
+      <button class="vm"><i data-lucide="wallet" style="width:18px;height:18px"></i>Ahorro</button>
+    </div>
+  </div>
+
+  <!-- Bottom sheet items -->
+  <div class="card">
+    <h2>Bottom sheet "Más" (items)</h2>
+    <div class="sitems">
+      <button class="si"><span class="ico"><i data-lucide="clipboard" style="width:18px;height:18px"></i></span>Agrupar por categoría</button>
+      <button class="si"><span class="ico"><i data-lucide="settings" style="width:18px;height:18px"></i></span>Presupuestos por categoría</button>
+      <button class="si"><span class="ico"><i data-lucide="lock-open" style="width:18px;height:18px"></i></span>Reabrir mes<span style="margin-left:auto;font-size:12px;color:var(--muted)">Neutral</span></button>
+      <button class="si"><span class="ico"><i data-lucide="moon" style="width:18px;height:18px"></i></span>Modo oscuro<span style="margin-left:auto;font-size:12px;color:var(--muted)">Oscuro</span></button>
+      <button class="si"><span class="ico"><i data-lucide="upload" style="width:18px;height:18px"></i></span>Exportar datos</button>
+    </div>
+  </div>
+
+  <!-- Speed dial -->
+  <div class="card">
+    <h2>Speed dial (FAB)</h2>
+    <div class="sd">
+      <button class="pill"><span class="ico" style="background:linear-gradient(135deg,#65a30d,#84cc16)"><i data-lucide="plus" style="width:18px;height:18px"></i></span>Agregar Gasto</button>
+      <button class="pill"><span class="ico" style="background:linear-gradient(135deg,#8b5cf6,#d946ef)"><i data-lucide="camera" style="width:18px;height:18px"></i></span>Foto de apuntes</button>
+    </div>
+  </div>
+
+  <!-- Header + modal -->
+  <div class="card">
+    <h2>Header (✎) y botones de modal</h2>
+    <div class="hdr">
+      <span style="font-weight:700;font-size:14px">Julio 2026 · Presupuesto</span>
+      <button class="icon-btn"><i data-lucide="pencil" style="width:18px;height:18px;color:var(--muted)"></i></button>
+    </div>
+    <div style="height:12px"></div>
+    <div class="mbtns">
+      <button class="btn danger"><i data-lucide="trash-2" style="width:16px;height:16px"></i>Eliminar mes</button>
+      <button class="btn primary"><i data-lucide="check" style="width:16px;height:16px"></i>Guardar</button>
+    </div>
+  </div>
+
+  <!-- Recomendación por elemento -->
+  <div class="card">
+    <h2>Recomendación por elemento (dark ⇄ light)</h2>
+    <div class="items">
+      <div class="row"><span class="lbl">Vista activa</span><div class="swc"><div class="idx c-lime"><i data-lucide="clipboard" style="width:20px;height:20px"></i>Lime</div><div class="idx c-lime"><i data-lucide="wallet" style="width:20px;height:20px"></i>Lime</div></div></div>
+      <div class="row"><span class="lbl">Inactivos</span><div class="swc"><div class="idx c-neutral"><i data-lucide="clipboard" style="width:20px;height:20px"></i>Neutral</div><div class="idx c-neutral"><i data-lucide="more-horizontal" style="width:20px;height:20px"></i>Neutral</div></div></div>
+      <div class="row"><span class="lbl">Éxito / pagado</span><div class="swc"><div class="idx c-emerald"><i data-lucide="check" style="width:20px;height:20px"></i>Esmeralda</div><div class="idx c-emerald"><i data-lucide="check-circle-2" style="width:20px;height:20px"></i>Esmeralda</div></div></div>
+      <div class="row"><span class="lbl">Aviso / estimado</span><div class="swc"><div class="idx c-amber"><i data-lucide="alert-triangle" style="width:20px;height:20px"></i>Ámbar</div><div class="idx c-amber"><i data-lucide="clock" style="width:20px;height:20px"></i>Ámbar</div></div></div>
+      <div class="row"><span class="lbl">Destructivo</span><div class="swc"><div class="idx c-red"><i data-lucide="trash-2" style="width:20px;height:20px"></i>Rojo</div><div class="idx c-red"><i data-lucide="x" style="width:20px;height:20px"></i>Rojo</div></div></div>
+      <div class="row"><span class="lbl">Acción foto/IA</span><div class="swc"><div class="idx c-violet"><i data-lucide="camera" style="width:20px;height:20px"></i>Violeta</div><div class="idx c-violet"><i data-lucide="scan-line" style="width:20px;height:20px"></i>Violeta</div></div></div>
+    </div>
+    <p class="hint">Mismo matiz semántico en ambos temas: en <b>dark</b> se usan tonos neón claros (verde lima #84cc16, violeta #a78bfa, esmeralda #34d399, ámbar #fbbf24, rojo #f87171) y en <b>light</b> versiones más profundas (lime #4d7c0f, violeta #7c3aed, esmeralda #059669, ámbar #b45309, rojo #dc2626) para mantener contraste y accesibilidad sobre fondos claros.</p>
+  </div>
+
+  <!-- Iteración de colores en widgets simple -->
+  <div class="card">
+    <h2>Iteración de colores (chips)</h2>
+    <div class="grid">
+      <div class="chip"><span class="ic c-neutral"><i data-lucide="clipboard" style="width:22px;height:22px"></i></span>Neutral</div>
+      <div class="chip"><span class="ic c-lime"><i data-lucide="clipboard" style="width:22px;height:22px"></i></span>Lime</div>
+      <div class="chip"><span class="ic c-violet"><i data-lucide="clipboard" style="width:22px;height:22px"></i></span>Violeta</div>
+      <div class="chip"><span class="ic c-emerald"><i data-lucide="clipboard" style="width:22px;height:22px"></i></span>Esmeralda</div>
+      <div class="chip"><span class="ic c-amber"><i data-lucide="clipboard" style="width:22px;height:22px"></i></span>Ámbar</div>
+    </div>
+    <div style="height:12px"></div>
+    <div class="sw">
+      <div class="ch"><span class="ic c-lime"><i data-lucide="plus" style="width:26px;height:26px"></i></span>Plus lime</div>
+      <div class="ch"><span class="ic c-violet"><i data-lucide="camera" style="width:26px;height:26px"></i></span>Cam violeta</div>
+      <div class="ch"><span class="ic c-emerald"><i data-lucide="check" style="width:26px;height:26px"></i></span>Check esm</div>
+      <div class="ch"><span class="ic c-amber"><i data-lucide="alert-triangle" style="width:26px;height:26px"></i></span>Alert ámbar</div>
+    </div>
+  </div>
+
+  <p style="font-size:11px;color:var(--muted);text-align:center">
+    Íconos vía <code>lucide.createIcons()</code> — catálogo: lucide.dev/icons
+  </p>
+</div>
+<script>
+function setDark(light){
+  document.documentElement.classList.toggle('light', light);
+  document.querySelectorAll('#seg button').forEach((b,i)=>b.classList.toggle('on', (i===0)!==light));
+  lucide.createIcons();
+}
+lucide.createIcons();
+</script>
+</body>
+</html>

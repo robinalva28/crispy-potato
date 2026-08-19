@@ -1,4 +1,5 @@
 import type { View } from '../types.ts';
+import { Icon, type IconName } from './ui/Icon.tsx';
 
 interface Props {
   open: boolean;
@@ -6,9 +7,9 @@ interface Props {
   onSelect: (view: View) => void;
 }
 
-const ITEMS: Array<{ view: View; ico: string; label: string }> = [
-  { view: 'budget', ico: '📋', label: 'Presupuesto' },
-  { view: 'savings', ico: '💰', label: 'Ahorro' },
+const ITEMS: Array<{ view: View; icon: IconName; label: string }> = [
+  { view: 'budget', icon: 'clipboard', label: 'Presupuesto' },
+  { view: 'savings', icon: 'wallet', label: 'Ahorro' },
 ];
 
 export function ViewMenu({ open, view, onSelect }: Props) {
@@ -21,7 +22,7 @@ export function ViewMenu({ open, view, onSelect }: Props) {
           className={`vm-item ${item.view === view ? 'on' : ''}`}
           onClick={() => onSelect(item.view)}
         >
-          <span className="ico">{item.ico}</span>
+          <Icon name={item.icon} size={20} />
           {item.label}
         </button>
       ))}

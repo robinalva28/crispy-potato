@@ -109,7 +109,7 @@ export function MonthSelector({ months, activeMonthId, onSelect, onCreate }: Pro
             </p>
 
             {errorMsg && (
-              <div className="text-xs text-red-600 glass rounded-xl px-3 py-2 dark:text-red-400">
+              <div className="text-xs text-accent-red glass rounded-xl px-3 py-2">
                 ⚠️ {errorMsg}
               </div>
             )}

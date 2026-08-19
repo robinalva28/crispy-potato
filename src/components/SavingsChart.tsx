@@ -42,7 +42,7 @@ export function SavingsChart({ history }: Props) {
                 className="group relative flex-1 flex justify-center"
               >
                 <div
-                  className={`w-full max-w-[28px] rounded-t ${positive ? 'bg-emerald-500' : 'bg-red-500'} opacity-80 group-hover:opacity-100 transition-opacity`}
+                className={`w-full max-w-[28px] rounded-t ${positive ? 'bg-accent-emerald' : 'bg-accent-red'} opacity-80 group-hover:opacity-100 transition-opacity`}
                   style={{ height: `${height}px`, alignSelf: positive ? 'flex-end' : 'flex-start', marginTop: positive ? undefined : 'auto' }}
                 />
                 <div className="absolute -bottom-5 text-[9px] opacity-40 truncate w-full text-center">
@@ -56,10 +56,10 @@ export function SavingsChart({ history }: Props) {
 
       <div className="mt-5 flex items-center justify-between text-[10px] opacity-50">
         <span className="flex items-center gap-1">
-          <span className="w-2 h-2 rounded-sm bg-emerald-500 inline-block" /> Ahorro
+          <span className="w-2 h-2 rounded-sm bg-accent-emerald inline-block" /> Ahorro
         </span>
         <span className="flex items-center gap-1">
-          <span className="w-2 h-2 rounded-sm bg-red-500 inline-block" /> En negativo
+          <span className="w-2 h-2 rounded-sm bg-accent-red inline-block" /> En negativo
         </span>
       </div>
     </div>

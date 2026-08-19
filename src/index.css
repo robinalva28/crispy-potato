@@ -2,6 +2,39 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Utility tokens de acento por rol — usan las variables duales dark/light.
+   Registradas con @utility para que funcionen con variants (hover:, etc.). */
+@utility text-accent-lime {
+  color: var(--accent-lime);
+}
+@utility text-accent-emerald {
+  color: var(--accent-emerald);
+}
+@utility text-accent-violet {
+  color: var(--accent-violet);
+}
+@utility text-accent-amber {
+  color: var(--accent-amber);
+}
+@utility text-accent-red {
+  color: var(--accent-red);
+}
+@utility bg-accent-red {
+  background-color: var(--accent-red);
+}
+@utility bg-accent-emerald {
+  background-color: var(--accent-emerald);
+}
+@utility bg-accent-amber {
+  background-color: var(--accent-amber);
+}
+@utility border-accent-violet {
+  border-color: var(--accent-violet);
+}
+@utility border-accent-amber {
+  border-color: var(--accent-amber);
+}
+
 /* ============================================================
    AURA — Rebranding UX/UI (Soft Glass + light/dark)
    ============================================================ */
@@ -26,10 +59,13 @@
   --glass-text: var(--txt);
   --glass-strong-bg: var(--card);
 
-  /* Acentos Aura */
-  --accent-lime: #84cc16;
+  /* Acentos Aura — modo claro (versiones profundas para contraste) */
+  --accent-lime: #4d7c0f;
   --accent-lime-dark: #65a30d;
-  --accent-emerald: #10b981;
+  --accent-emerald: #059669;
+  --accent-violet: #7c3aed;
+  --accent-amber: #b45309;
+  --accent-red: #dc2626;
 }
 
 .dark {
@@ -51,6 +87,14 @@
   --glass-border: var(--border);
   --glass-text: var(--txt);
   --glass-strong-bg: var(--card);
+
+  /* Acentos Aura — modo oscuro (tonos neón claros) */
+  --accent-lime: #84cc16;
+  --accent-lime-dark: #4d7c0f;
+  --accent-emerald: #34d399;
+  --accent-violet: #a78bfa;
+  --accent-amber: #fbbf24;
+  --accent-red: #f87171;
 }
 
 @layer base {
@@ -129,7 +173,7 @@
     border: 1px solid rgba(132, 204, 22, 0.25);
   }
   .text-olive {
-    color: #4d7c0f;
+    color: var(--accent-lime);
   }
 
   /* Chip de mes activo + botón "Crear Mes" */
@@ -308,7 +352,7 @@
     background: var(--panel);
     backdrop-filter: blur(24px) saturate(1.4);
     -webkit-backdrop-filter: blur(24px) saturate(1.4);
-    padding-top: calc(6px + 28px);
+    padding-top: 24px;
     padding-bottom: calc(8px + env(safe-area-inset-bottom));
     border-radius: 28px 28px 0 0; /* curvas ARRIBA, plano abajo hasta el piso */
     border-top: 1px solid var(--border);
@@ -318,6 +362,7 @@
   .bbar .bi {
     display: flex;
     align-items: center;
+    min-height: 60px;
     justify-content: space-between;
     padding: 0 12px;
   }
@@ -328,7 +373,7 @@
     justify-content: center;
     gap: 3px;
     min-width: 64px;
-    min-height: 48px;
+    min-height: 52px;
     border-radius: 12px;
     font-size: 10px;
     font-weight: 600;
@@ -336,7 +381,7 @@
     transition: color 0.3s;
   }
   .bbar .ni.on {
-    color: #84cc16;
+    color: var(--accent-lime);
   }
   .bbar .ni .ico {
     font-size: 18px;
@@ -361,11 +406,11 @@
   .fab-shell .fab {
     position: absolute;
     left: 50%;
-    bottom: 6px;
+    bottom: calc(10px + env(safe-area-inset-bottom));
     transform: translateX(-50%);
     pointer-events: auto;
-    width: 56px;
-    height: 56px;
+    width: 60px;
+    height: 60px;
     border-radius: 9999px;
     background: linear-gradient(135deg, #65a30d, #84cc16);
     box-shadow: 0 10px 24px -8px rgba(132, 204, 22, 0.55);
@@ -373,8 +418,10 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 26px;
+    font-size: 28px;
     font-weight: 700;
+    line-height: 1;
+    padding: 0;
     transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1), background 0.3s;
     border: 3px solid var(--card);
   }
@@ -388,7 +435,7 @@
   .fab-shell .sd {
     position: absolute;
     left: 50%;
-    bottom: 74px;
+    bottom: 76px;
     transform: translateX(-50%) translateY(10px) scale(0.9);
     transform-origin: bottom center;
     opacity: 0;
@@ -499,14 +546,14 @@
     font-size: 18px;
   }
   .vm-item.on {
-    color: #84cc16;
+    color: var(--accent-lime);
     background: rgba(132, 204, 22, 0.12);
   }
   .vm-item.on::after {
     content: '✓';
     margin-left: auto;
     font-size: 14px;
-    color: #84cc16;
+    color: var(--accent-lime);
   }
 
   /* Bottom sheet "Más" */
@@ -588,6 +635,7 @@
     justify-content: center;
     font-size: 17px;
     background: var(--surface);
+    color: var(--muted);
     flex-shrink: 0;
   }
   .sh-item .trailing {
@@ -668,7 +716,7 @@
     flex-shrink: 0;
   }
   .em-item.danger {
-    color: #ef4444;
+    color: var(--accent-red);
   }
   .em-item.danger .ico {
     background: rgba(239, 68, 68, 0.12);

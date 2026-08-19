@@ -16,6 +16,7 @@ import { MoreSheet } from './components/MoreSheet.tsx';
 import { ExpenseContextMenu, type ExpenseRect } from './components/ExpenseContextMenu.tsx';
 import { Modal } from './components/ui/Modal.tsx';
 import { Button } from './components/ui/Button.tsx';
+import { Icon } from './components/ui/Icon.tsx';
 import type { ExpenseDraft } from './utils/photoExtract.ts';
 import { canUsePhoto } from './utils/monthUtils.ts';
 import { GuideModal } from './components/GuideModal.tsx';
@@ -376,7 +377,7 @@ export default function App() {
           </div>
           <div className="flex items-center gap-2 shrink-0">
             {view === 'budget' && activeMonth && (
-              <div className="text-xs font-semibold tabular-nums text-lime-700 dark:text-lime-400 whitespace-nowrap">
+              <div className="text-xs font-semibold tabular-nums text-accent-lime whitespace-nowrap">
                 Resto {fmtARS(rest, 0)}
               </div>
             )}
@@ -395,7 +396,7 @@ export default function App() {
               aria-label="Editar mes"
               title="Editar mes"
             >
-              ✎
+              <Icon name="pencil" size={18} ariaHidden />
             </button>
           </div>
         </div>
@@ -444,23 +445,23 @@ export default function App() {
                   <div className="px-1 pt-1 pb-1">
                     <div className="flex items-center justify-between text-[11px] mb-1.5">
                       <div className="flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-accent-emerald inline-block"></span>
                         <span className="opacity-50 font-medium">Pagado</span>
                         <span className="font-bold tabular-nums opacity-80">{fmtARS(paid, 0)}</span>
                       </div>
                       <div className="flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block"></span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-accent-amber inline-block"></span>
                         <span className="opacity-50 font-medium">Pendiente</span>
                         <span className="font-bold tabular-nums opacity-80">{fmtARS(unpaid, 0)}</span>
                       </div>
                     </div>
                     <div className="flex h-1.5 rounded-full overflow-hidden bg-white/60 dark:bg-white/10">
                       <div
-                        className="h-full bg-emerald-500 transition-all"
+                        className="h-full bg-accent-emerald transition-all"
                         style={{ width: `${Math.min((paid / projected) * 100, 100)}%` }}
                       />
                       <div
-                        className="h-full bg-amber-400 transition-all"
+                        className="h-full bg-accent-amber transition-all"
                         style={{ width: `${Math.min((unpaid / projected) * 100, 100)}%` }}
                       />
                     </div>
@@ -495,7 +496,7 @@ export default function App() {
                 {budget.monthExpenses.length > 0 && (
                   <div className="app-scroll-sticky">
                     <div className="glass rounded-full px-4 py-2 flex items-center gap-2">
-                      <svg className="w-4 h-4 opacity-40 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z"/></svg>
+                      <Icon name="search" size={16} className="opacity-40 shrink-0" ariaHidden />
                       <input
                         type="search"
                         value={searchQuery}
@@ -595,7 +596,7 @@ export default function App() {
                     void budget.restoreLastDeleted();
                     fdb.undo();
                   }}
-                  className="text-sm font-semibold text-emerald-400 hover:text-emerald-300 dark:text-emerald-600 dark:hover:text-emerald-500"
+                  className="text-sm font-semibold text-accent-emerald"
                 >
                   Deshacer
                 </button>
@@ -647,7 +648,7 @@ export default function App() {
                 title="Guía de ahorro"
                 className="w-full px-3 py-2.5 text-xs font-semibold glass rounded-full hover:opacity-80 transition"
               >
-                ❓ Guía de ahorro
+                <Icon name="help" size={14} className="inline-block mr-1 align-[-2px]" />Guía de ahorro
               </button>
             </div>
           </div>
@@ -674,11 +675,11 @@ export default function App() {
     <div className="fab-shell">
       <div className={`sd ${fabOpen ? 'open' : ''}`}>
         <button type="button" className="si" onClick={() => { setFabOpen(false); if (activeMonth?.status === 'abierto') { setView('budget'); setEditing({ expense: null, adding: true }); } }}>
-          <span className="ico grad-lime">➕</span>
+          <span className="ico grad-lime"><Icon name="plus" size={18} ariaHidden /></span>
           Agregar Gasto
         </button>
         <button type="button" className="si" onClick={() => { setFabOpen(false); if (activeMonth) { setView('budget'); setShowPhotoModal(true); } }}>
-          <span className="ico grad-violet">📷</span>
+          <span className="ico grad-violet"><Icon name="camera" size={18} ariaHidden /></span>
           Foto de apuntes
         </button>
       </div>
@@ -867,7 +868,7 @@ export default function App() {
 
     {confirmDeleteMonth && (
       <Modal open onClose={() => setConfirmDeleteMonth(null)}>
-        <div className="font-bold text-red-600 dark:text-red-400">¿Eliminar mes?</div>
+        <div className="font-bold text-accent-red">¿Eliminar mes?</div>
         <p className="text-sm text-neutral-600 dark:text-neutral-400">
           Se borrará <span className="font-semibold">{confirmDeleteMonth.label}</span> y TODOS
           sus gastos. Esta acción no se puede deshacer.
@@ -927,7 +928,7 @@ export default function App() {
               size="sm"
               onClick={() => setConfirmDeleteMonth(editingMonth.month)}
             >
-              🗑 Eliminar mes
+              <Icon name="trash" size={14} className="inline-block mr-1 align-[-2px]" />Eliminar mes
             </Button>
           </div>
           <div>
