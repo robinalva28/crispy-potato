@@ -7,9 +7,11 @@ interface Props {
   onDelete: (id: number) => void;
   onEdit: (expense: Expense) => void;
   onDuplicate: (id: number) => void;
+  /** Abre el mini menú contextual de la fila (editar/clonar/eliminar). */
+  onContextMenu?: (expense: Expense, e: React.MouseEvent<HTMLElement>) => void;
 }
 
-export function ExpenseRow({ expense, onTogglePaid, onDelete, onEdit, onDuplicate }: Props) {
+export function ExpenseRow({ expense, onTogglePaid, onDelete, onEdit, onDuplicate, onContextMenu }: Props) {
   const isPending = !expense.paid;
   const isEstimated = expense.amountArs == null;
   const hasUsd = expense.amountUsd > 0;
@@ -23,7 +25,13 @@ export function ExpenseRow({ expense, onTogglePaid, onDelete, onEdit, onDuplicat
       className={`flex items-center gap-3 rounded-2xl glass px-3.5 py-3 cursor-pointer hover:opacity-90 transition ${
         isPending ? 'opacity-70' : ''
       }`}
-      onClick={() => onEdit(expense)}
+      onClick={(e) => {
+        if (onContextMenu) {
+          onContextMenu(expense, e);
+        } else {
+          onEdit(expense);
+        }
+      }}
     >
       <button
         type="button"

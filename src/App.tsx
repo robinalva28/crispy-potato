@@ -13,6 +13,7 @@ import { PhotoExpenseModal } from './components/PhotoExpenseModal.tsx';
 import { BottomNav } from './components/BottomNav.tsx';
 import { ViewMenu } from './components/ViewMenu.tsx';
 import { MoreSheet } from './components/MoreSheet.tsx';
+import { ExpenseContextMenu, type ExpenseRect } from './components/ExpenseContextMenu.tsx';
 import type { ExpenseDraft } from './utils/photoExtract.ts';
 import { canUsePhoto } from './utils/monthUtils.ts';
 import { GuideModal } from './components/GuideModal.tsx';
@@ -90,13 +91,15 @@ export default function App() {
   const [showPhotoModal, setShowPhotoModal] = useState(false);
   const [confirmDeleteMonth, setConfirmDeleteMonth] = useState<Month | null>(null);
   const expenseFormRef = useRef<HTMLDivElement | null>(null);
+  const [contextExpense, setContextExpense] = useState<Expense | null>(null);
+  const [contextRect, setContextRect] = useState<ExpenseRect | null>(null);
 
   const { activeMonth } = budget;
   const filteredExpenses = filterExpensesByText(budget.monthExpenses, searchQuery);
   const monthBudgets = activeMonth?.categoryBudgets ?? {};
   const photoAllowed = canUsePhoto(activeMonth);
   const monthClosed = activeMonth?.status === 'cerrado';
-  const overlayOpen = fabOpen || viewMenuOpen || moreOpen;
+  const overlayOpen = fabOpen || viewMenuOpen || moreOpen || contextExpense != null;
 
   // Se calculan los totales del mes activo (stats fijas del header)
   const confirmed = activeMonth ? confirmedTotal(activeMonth.id, budget.monthExpenses) : 0;
@@ -111,6 +114,8 @@ export default function App() {
     setFabOpen(false);
     setViewMenuOpen(false);
     setMoreOpen(false);
+    setContextExpense(null);
+    setContextRect(null);
   }
 
   // Guía de uso: aparece automáticamente la primera vez que se abre la app
@@ -519,6 +524,18 @@ export default function App() {
                         onEdit={(exp) => {
                           if (activeMonth.status === 'abierto') setEditing({ expense: exp, adding: false });
                         }}
+                        onContextMenu={
+                          activeMonth.status === 'abierto'
+                            ? (exp, e) => {
+                                const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                                setContextExpense(exp);
+                                setContextRect({ top: r.top, left: r.left, width: r.width, height: r.height });
+                                setFabOpen(false);
+                                setViewMenuOpen(false);
+                                setMoreOpen(false);
+                              }
+                            : undefined
+                        }
                       />
                     ))}
                   </div>
@@ -544,6 +561,18 @@ export default function App() {
                           onEdit={(exp) => {
                             if (activeMonth.status === 'abierto') setEditing({ expense: exp, adding: false });
                           }}
+                          onContextMenu={
+                            activeMonth.status === 'abierto'
+                              ? (exp, e) => {
+                                  const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                                  setContextExpense(exp);
+                                  setContextRect({ top: r.top, left: r.left, width: r.width, height: r.height });
+                                  setFabOpen(false);
+                                  setViewMenuOpen(false);
+                                  setMoreOpen(false);
+                                }
+                              : undefined
+                          }
                         />
                       );
                     })}
@@ -681,6 +710,31 @@ export default function App() {
         setViewMenuOpen(false);
       }}
     />
+
+    {/* Menú contextual de gasto: card fantasma nítida + acciones flotantes */}
+    {contextExpense && contextRect && activeMonth && activeMonth.status === 'abierto' && (
+      <ExpenseContextMenu
+        expense={contextExpense}
+        rect={contextRect}
+        onEdit={() => {
+          setContextExpense(null);
+          setContextRect(null);
+          setEditing({ expense: contextExpense, adding: false });
+        }}
+        onDuplicate={() => {
+          const id = contextExpense.id;
+          setContextExpense(null);
+          setContextRect(null);
+          if (id != null) void handleDuplicate(id);
+        }}
+        onDelete={() => {
+          const id = contextExpense.id;
+          setContextExpense(null);
+          setContextRect(null);
+          if (id != null) requestDelete(id);
+        }}
+      />
+    )}
 
     {/* Bottom sheet "Más" */}
     {activeMonth && view === 'budget' && (

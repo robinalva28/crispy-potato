@@ -11,9 +11,11 @@ interface Props {
   onDelete: (id: number) => void;
   onEdit: (expense: Expense) => void;
   onDuplicate: (id: number) => void;
+  /** Abre el mini menú contextual de una fila (editar/clonar/eliminar). */
+  onContextMenu?: (expense: Expense, e: React.MouseEvent<HTMLElement>) => void;
 }
 
-export function ExpenseGroup({ category, expenses, total, onTogglePaid, onDelete, onEdit, onDuplicate }: Props) {
+export function ExpenseGroup({ category, expenses, total, onTogglePaid, onDelete, onEdit, onDuplicate, onContextMenu }: Props) {
   return (
     <div className="space-y-1.5">
       <div className="px-3 py-1 flex items-center justify-between text-[11px] font-bold uppercase tracking-wide opacity-50">
@@ -28,6 +30,7 @@ export function ExpenseGroup({ category, expenses, total, onTogglePaid, onDelete
           onDelete={onDelete}
           onEdit={onEdit}
           onDuplicate={onDuplicate}
+          onContextMenu={onContextMenu}
         />
       ))}
     </div>
