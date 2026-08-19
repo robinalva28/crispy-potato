@@ -457,6 +457,11 @@
     font-variant-numeric: tabular-nums;
   }
 
+  /* Barra Pagado/Pendiente dentro del header (debajo de las stats) */
+  .hdr-progress {
+    padding-bottom: 12px;
+  }
+
   /* Botón redondo glass 44×44 (✎) */
   .icon-btn-v4 {
     width: 44px;

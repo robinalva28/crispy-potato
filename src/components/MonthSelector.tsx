@@ -5,6 +5,7 @@ import {
   monthLabelFromId,
   type NewMonthInput,
 } from '../hooks/useBudget.ts';
+import { Icon } from './ui/Icon.tsx';
 
 interface Props {
   months: Month[];
@@ -74,7 +75,7 @@ export function MonthSelector({ months, activeMonthId, onSelect, onCreate }: Pro
         <button
           type="button"
           onClick={openModal}
-          className="sticky left-0 z-10 shrink-0 min-h-[44px] px-4 text-xs font-bold rounded-full chip-active transition-all duration-300 ease-out whitespace-nowrap"
+          className="sticky left-0 z-10 shrink-0 min-h-[32px] px-3 text-[11px] font-bold rounded-full chip-active transition-all duration-300 ease-out whitespace-nowrap"
           style={{ boxShadow: '0 8px 20px -8px rgba(132,204,22,.6), 0 0 0 6px var(--glass-bg)' }}
         >
           + Mes
@@ -95,10 +96,12 @@ export function MonthSelector({ months, activeMonthId, onSelect, onCreate }: Pro
               type="button"
               data-month-id={m.id}
               onClick={() => onSelect(m.id)}
-              className={`shrink-0 min-h-[44px] px-3 text-xs font-semibold rounded-full transition ${stateCls}`}
+              className={`shrink-0 min-h-[32px] px-2.5 text-[11px] font-semibold rounded-full transition ${stateCls}`}
               title={m.status === 'cerrado' ? `${m.label} (cerrado)` : m.label}
             >
-              {m.status === 'cerrado' ? '🔒 ' : ''}
+              {m.status === 'cerrado' && (
+                <Icon name="lock" size={12} className="inline-block mr-1 align-[-1px]" />
+              )}
               {m.label}
             </button>
           );
