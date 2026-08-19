@@ -106,6 +106,18 @@
 }
 
 @layer base {
+  /* El documento NUNCA scrollea: la app ocupa exactamente el viewport.
+     El único scroll de la app pasa adentro de .app-scroll (la lista). */
+  html,
+  body,
+  #root {
+    height: 100%;
+    overflow: hidden;
+  }
+  body {
+    overscroll-behavior: none;
+  }
+
   /* Fondo Aura (modo claro): degradados radiales suaves */
   body {
     @apply antialiased text-neutral-800 dark:text-neutral-100;
@@ -309,7 +321,11 @@
      Las curvas van solo hacia ADENTRO en los extremos internos:
      header con curva abajo, bottom bar con curva arriba (estilo iPhone). */
   .app-shell {
+    /* 100% de la cadena html/body/#root: ocupa exactamente la pantalla,
+       sin depender de que dvh se calcule bien en cada navegador. */
+    height: 100vh;
     height: 100dvh;
+    max-height: 100vh;
     max-height: 100dvh;
     margin: 0 auto;
     border-radius: 0; /* sin curvas externas: plano en tope y piso */
