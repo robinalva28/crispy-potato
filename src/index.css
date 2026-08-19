@@ -333,12 +333,14 @@
      Las curvas van solo hacia ADENTRO en los extremos internos:
      header con curva abajo, bottom bar con curva arriba (estilo iPhone). */
   .app-shell {
-    /* 100% de la cadena html/body/#root: ocupa exactamente la pantalla,
-       sin depender de que dvh se calcule bien en cada navegador. */
+    /* 100% de la cadena html/body/#root: ocupa exactamente la pantalla.
+       Usamos lvh (large viewport) en vez de dvh para que el shell NUNCA
+       se encoja cuando se abre el teclado en Android: la bottom bar
+       queda fija en el fondo físico y no se corre hacia arriba. */
     height: 100vh;
-    height: 100dvh;
+    height: 100lvh;
     max-height: 100vh;
-    max-height: 100dvh;
+    max-height: 100lvh;
     margin: 0 auto;
     border-radius: 0; /* sin curvas externas: plano en tope y piso */
     border-bottom: none;
