@@ -24,7 +24,7 @@ export function ExpenseRow({ expense, onTogglePaid, onDelete, onEdit, onDuplicat
   return (
     <div
       data-expense-id={expense.id}
-      className={`relative flex items-center gap-3 rounded-2xl glass px-3.5 py-3 cursor-pointer hover:opacity-90 transition ${
+      className={`relative flex items-center gap-3 rounded-2xl glass px-3 py-1.5 min-h-[46px] cursor-pointer hover:opacity-90 transition ${
         isPending ? 'opacity-70' : ''
       }`}
       onClick={(e) => {
@@ -44,76 +44,44 @@ export function ExpenseRow({ expense, onTogglePaid, onDelete, onEdit, onDuplicat
           e.stopPropagation();
           onTogglePaid(expense.id!);
         }}
-        className={`w-6 h-6 shrink-0 rounded-full flex items-center justify-center text-[11px] leading-none transition ${
+        className={`w-[36px] h-[36px] shrink-0 rounded-full flex items-center justify-center transition ${
           expense.paid
             ? 'grad-emerald text-white shadow-sm'
             : isEstimated
-              ? 'border-2 border-dashed border-accent-violet bg-violet-100/30'
-              : 'border-2 border-accent-amber bg-amber-100/30'
+              ? 'border-2 border-dashed border-accent-violet bg-violet-100/30 text-accent-violet'
+              : 'border-2 border-accent-amber bg-amber-100/30 text-accent-amber'
         }`}
       >
-        {expense.paid && <Icon name="check" size={12} strokeWidth={3} ariaHidden />}
+        <Icon
+          name={expense.paid ? 'check' : isEstimated ? 'help' : 'clock'}
+          size={16}
+          strokeWidth={2.5}
+          ariaHidden
+        />
       </button>
 
       <div className="flex-1 min-w-0">
-        <div className="flex justify-between items-baseline gap-2">
-          <span className={`text-sm font-semibold truncate ${isPending ? 'opacity-60' : ''}`}>
-            {expense.name}
-          </span>
-          <span className={`font-bold whitespace-nowrap tabular-nums ${isPending ? 'opacity-60' : ''}`}>
-            {amountText}
-          </span>
+        <div className={`text-[13px] font-semibold truncate ${isPending ? 'opacity-60' : ''}`}>
+          {expense.name}
         </div>
-        <div className="flex justify-between items-baseline gap-2">
-          <span className="text-[11px] opacity-40 truncate">
-            {fmtDate(expense.dueDate)}
-            {expense.dueDate ? ' · ' : ''}
-            {isEstimated && (
-              <span className="text-accent-violet font-semibold">por confirmar</span>
-            )}
-            {isPending && !isEstimated && (
-              <span className="text-accent-amber font-semibold">pendiente</span>
-            )}
-            {expense.notes && !isEstimated && (
-              <span>{expense.notes}</span>
-            )}
-          </span>
-          <span className="text-[11px] opacity-40 whitespace-nowrap tabular-nums">
-            {hasUsd && (
-              <>
-                + {fmtUSD(expense.amountUsd)} a {fmtARS(expense.usdRate)}
-              </>
-            )}
-            {hasUsd && <span className="opacity-30 mx-1">·</span>}
-            <span className="opacity-60">= {fmtARS(total, 0)}</span>
-          </span>
+        <div className="flex items-center gap-1 text-[10px] opacity-50 truncate">
+          {fmtDate(expense.dueDate)}
+          {expense.dueDate && <span>·</span>}
+          {isEstimated && <span className="text-accent-violet font-semibold">por confirmar</span>}
+          {isPending && !isEstimated && <span className="text-accent-amber font-semibold">pendiente</span>}
         </div>
       </div>
 
-      <div className="flex items-center gap-1 shrink-0">
-        <button
-          type="button"
-          aria-label="Duplicar gasto"
-          title="Duplicar gasto"
-          onClick={(e) => {
-            e.stopPropagation();
-            onDuplicate(expense.id!);
-          }}
-          className="text-neutral-300 hover:text-accent-lime text-sm transition dark:text-neutral-600"
-        >
-          <Icon name="copy" size={18} ariaHidden />
-        </button>
-        <button
-          type="button"
-          aria-label="Borrar gasto"
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete(expense.id!);
-          }}
-          className="text-neutral-300 hover:text-accent-red text-sm transition dark:text-neutral-600"
-        >
-          ✕
-        </button>
+      {/* Monto principal + resumen (USD y total) apilados a la derecha */}
+      <div className="flex flex-col items-end gap-0.5 shrink-0">
+        <span className={`text-[13px] font-bold whitespace-nowrap tabular-nums ${isPending ? 'opacity-60' : ''}`}>
+          {amountText}
+        </span>
+        {hasUsd && (
+          <span className="text-[10px] opacity-50 whitespace-nowrap tabular-nums">
+            +{fmtUSD(expense.amountUsd)} · = {fmtARS(total, 0)}
+          </span>
+        )}
       </div>
     </div>
   );

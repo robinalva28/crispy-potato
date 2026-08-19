@@ -1,32 +1,52 @@
 import type { View } from '../types.ts';
-import { Icon, type IconName } from './ui/Icon.tsx';
+import { Icon } from './ui/Icon.tsx';
 
 interface Props {
   view: View;
-  onToggleView: () => void;
+  /** Acceso directo a la vista Presupuesto. */
+  onBudget: () => void;
   onMore: () => void;
+  /** Acceso directo a la vista Ahorro sin pasar por el mini menú. */
+  onSavings: () => void;
+  /** Hace scroll al buscador y lo enfoca. */
+  onSearch: () => void;
 }
 
-const VIEW_META: Record<View, { icon: IconName; label: string }> = {
-  budget: { icon: 'clipboard', label: 'Presupuesto' },
-  savings: { icon: 'wallet', label: 'Ahorro' },
-};
-
-export function BottomNav({ view, onToggleView, onMore }: Props) {
-  const meta = VIEW_META[view];
+export function BottomNav({ view, onBudget, onMore, onSavings, onSearch }: Props) {
   return (
     <nav className="bbar">
       <div className="bi">
-        <button type="button" className="ni on" onClick={onToggleView} title="Cambiar vista">
-          <Icon name={meta.icon} size={20} />
-          <span>{meta.label}</span>
-        </button>
-        {/* Slot central: espacio del FAB flotante + alineación simétrica */}
+        <div className="flex items-center justify-start gap-1 flex-1">
+          <button
+            type="button"
+            className={`ni ${view === 'budget' ? 'on' : ''}`}
+            onClick={onBudget}
+            title="Presupuesto"
+          >
+            <Icon name="clipboard" size={18} />
+            <span>Presupuesto</span>
+          </button>
+          <button
+            type="button"
+            className={`ni ${view === 'savings' ? 'on' : ''}`}
+            onClick={onSavings}
+            title="Ahorro"
+          >
+            <Icon name="wallet" size={18} />
+            <span>Ahorro</span>
+          </button>
+        </div>
         <div className="mid" aria-hidden />
-        <button type="button" className="ni" onClick={onMore} title="Más opciones">
-          <Icon name="more" size={20} />
-          <span>Más</span>
-        </button>
+        <div className="flex items-center justify-end gap-1 flex-1">
+          <button type="button" className="ni" onClick={onSearch} title="Buscar gasto">
+            <Icon name="search" size={18} />
+            <span>Buscar</span>
+          </button>
+          <button type="button" className="ni" onClick={onMore} title="Más opciones">
+            <Icon name="more" size={18} />
+            <span>Más</span>
+          </button>
+        </div>
       </div>
     </nav>
   );

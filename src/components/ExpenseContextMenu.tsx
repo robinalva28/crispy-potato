@@ -12,12 +12,15 @@ export interface ExpenseRect {
 interface Props {
   expense: Expense;
   rect: ExpenseRect;
+  /** Cierra el menú (tocar la card fantasma u otra zona). */
+  onClose: () => void;
+  onDetails: () => void;
   onEdit: () => void;
   onDuplicate: () => void;
   onDelete: () => void;
 }
 
-export function ExpenseContextMenu({ expense, rect, onEdit, onDuplicate, onDelete }: Props) {
+export function ExpenseContextMenu({ expense, rect, onClose, onDetails, onEdit, onDuplicate, onDelete }: Props) {
   const isPending = !expense.paid;
   const isEstimated = expense.amountArs == null;
   const hasUsd = expense.amountUsd > 0;
@@ -34,10 +37,12 @@ export function ExpenseContextMenu({ expense, rect, onEdit, onDuplicate, onDelet
 
   return (
     <>
-      {/* Card fantasma nítida (encima del scrim blurreado) */}
+      {/* Card fantasma nítida (encima del scrim blurreado).
+          Al tocar la card se cierra el menú: lo único operativo es el menú de acciones. */}
       <div
-        className="exp-ghost"
+        className="exp-ghost cursor-pointer"
         style={{ top: rect.top, left: rect.left, width: rect.width, height: rect.height }}
+        onClick={onClose}
       >
         <div className={`flex items-center gap-3 px-3.5 py-3 ${isPending ? 'opacity-70' : ''}`}>
           <div
@@ -53,13 +58,8 @@ export function ExpenseContextMenu({ expense, rect, onEdit, onDuplicate, onDelet
             {expense.paid && <Icon name="check" size={12} strokeWidth={3} ariaHidden />}
           </div>
           <div className="flex-1 min-w-0">
-            <div className="flex justify-between items-baseline gap-2">
-              <span className={`text-sm font-semibold truncate ${isPending ? 'opacity-60' : ''}`}>
-                {expense.name}
-              </span>
-              <span className={`font-bold whitespace-nowrap tabular-nums ${isPending ? 'opacity-60' : ''}`}>
-                {amountText}
-              </span>
+            <div className={`text-sm font-semibold truncate ${isPending ? 'opacity-60' : ''}`}>
+              {expense.name}
             </div>
             <div className="text-[11px] opacity-40 truncate">
               {fmtDate(expense.dueDate)}
@@ -67,9 +67,15 @@ export function ExpenseContextMenu({ expense, rect, onEdit, onDuplicate, onDelet
               {expense.notes}
             </div>
           </div>
-          <div className="text-[11px] opacity-40 whitespace-nowrap tabular-nums">
-            {hasUsd && <>+ {fmtUSD(expense.amountUsd)} a {fmtARS(expense.usdRate)} </>}
-            <span className="opacity-60">= {fmtARS(total, 0)}</span>
+          <div className="flex flex-col items-end gap-0.5 shrink-0">
+            <span className={`font-bold whitespace-nowrap tabular-nums ${isPending ? 'opacity-60' : ''}`}>
+              {amountText}
+            </span>
+            {hasUsd && (
+              <span className="text-[11px] opacity-40 whitespace-nowrap tabular-nums">
+                +{fmtUSD(expense.amountUsd)} · = {fmtARS(total, 0)}
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -77,6 +83,9 @@ export function ExpenseContextMenu({ expense, rect, onEdit, onDuplicate, onDelet
       {/* Menú flotante con las acciones */}
       <div className="exp-menu" style={{ top, left: menuLeft }}>
         <div className="exp-menu-title truncate">{expense.name}</div>
+        <button type="button" className="em-item" onClick={onDetails}>
+          <span className="ico"><Icon name="info" size={20} /></span>Detalles
+        </button>
         <button type="button" className="em-item" onClick={onEdit}>
           <span className="ico"><Icon name="pencil" size={20} /></span>Editar
         </button>

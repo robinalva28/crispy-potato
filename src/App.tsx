@@ -11,9 +11,9 @@ import { CategoryBars } from './components/CategoryBars.tsx';
 import { ExpenseForm } from './components/ExpenseForm.tsx';
 import { PhotoExpenseModal } from './components/PhotoExpenseModal.tsx';
 import { BottomNav } from './components/BottomNav.tsx';
-import { ViewMenu } from './components/ViewMenu.tsx';
 import { MoreSheet } from './components/MoreSheet.tsx';
 import { ExpenseContextMenu, type ExpenseRect } from './components/ExpenseContextMenu.tsx';
+import { ExpenseDetailModal } from './components/ExpenseDetailModal.tsx';
 import { Modal } from './components/ui/Modal.tsx';
 import { Button } from './components/ui/Button.tsx';
 import { Icon } from './components/ui/Icon.tsx';
@@ -76,7 +76,6 @@ export default function App() {
   }
   const [view, setView] = useState<View>('budget');
   const [fabOpen, setFabOpen] = useState(false);
-  const [viewMenuOpen, setViewMenuOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const [groupByCategory, setGroupByCategory] = useState(false);
   const [editing, setEditing] = useState<EditingState | null>(null);
@@ -97,13 +96,14 @@ export default function App() {
   const [focusExpenseId, setFocusExpenseId] = useState<number | null>(null);
   const [contextExpense, setContextExpense] = useState<Expense | null>(null);
   const [contextRect, setContextRect] = useState<ExpenseRect | null>(null);
+  const [detailExpense, setDetailExpense] = useState<Expense | null>(null);
 
   const { activeMonth } = budget;
   const filteredExpenses = filterExpensesByText(budget.monthExpenses, searchQuery);
   const monthBudgets = activeMonth?.categoryBudgets ?? {};
   const photoAllowed = canUsePhoto(activeMonth);
   const monthClosed = activeMonth?.status === 'cerrado';
-  const overlayOpen = fabOpen || viewMenuOpen || moreOpen || contextExpense != null;
+  const overlayOpen = fabOpen || moreOpen || contextExpense != null;
 
   // Se calculan los totales del mes activo (stats fijas del header)
   const confirmed = activeMonth ? confirmedTotal(activeMonth.id, budget.monthExpenses) : 0;
@@ -113,10 +113,9 @@ export default function App() {
   const unpaid = activeMonth ? unpaidTotal(activeMonth.id, budget.monthExpenses) : 0;
   const headerTitle = `${activeMonth ? `${activeMonth.label} · ` : ''}${view === 'budget' ? 'Presupuesto' : 'Ahorro'}`;
 
-  /** Cierra todos los paneles flotantes (speed dial, mini menú, sheet). */
+  /** Cierra todos los paneles flotantes (speed dial, sheet, menú contextual). */
   function closePanels() {
     setFabOpen(false);
-    setViewMenuOpen(false);
     setMoreOpen(false);
     setContextExpense(null);
     setContextRect(null);
@@ -571,7 +570,6 @@ export default function App() {
                                 setContextExpense(exp);
                                 setContextRect({ top: r.top, left: r.left, width: r.width, height: r.height });
                                 setFabOpen(false);
-                                setViewMenuOpen(false);
                                 setMoreOpen(false);
                               }
                             : undefined
@@ -608,7 +606,6 @@ export default function App() {
                                   setContextExpense(exp);
                                   setContextRect({ top: r.top, left: r.left, width: r.width, height: r.height });
                                   setFabOpen(false);
-                                  setViewMenuOpen(false);
                                   setMoreOpen(false);
                                 }
                               : undefined
@@ -695,18 +692,32 @@ export default function App() {
         )}
       </div>
 
-      {/* BOTTOM BAR v4: selector de vista · Más (el FAB vive fuera del main) */}
+      {/* BOTTOM BAR v4: acceso directo a vistas · Más (el FAB vive fuera del main) */}
       <BottomNav
         view={view}
-        onToggleView={() => {
+        onBudget={() => {
           setFabOpen(false);
           setMoreOpen(false);
-          setViewMenuOpen((v) => !v);
+          setView('budget');
         }}
         onMore={() => {
           setFabOpen(false);
-          setViewMenuOpen(false);
           setMoreOpen((v) => !v);
+        }}
+        onSavings={() => {
+          setFabOpen(false);
+          setMoreOpen(false);
+          setView('savings');
+        }}
+        onSearch={() => {
+          setFabOpen(false);
+          setMoreOpen(false);
+          setView('budget');
+          setTimeout(() => {
+            const input = document.querySelector<HTMLInputElement>('input[type="search"]');
+            input?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            input?.focus();
+          }, 60);
         }}
       />
     </main>
@@ -727,7 +738,6 @@ export default function App() {
         type="button"
         className={`fab ${fabOpen ? 'open' : ''}`}
         onClick={() => {
-          setViewMenuOpen(false);
           setMoreOpen(false);
           setFabOpen((v) => !v);
         }}
@@ -741,14 +751,9 @@ export default function App() {
     {/* Overlay unificado: cierra cualquier panel abierto */}
     <div className={`ov-v4 ${overlayOpen ? 'open' : ''}`} onClick={closePanels} />
 
-    {/* Mini menú de vista (flotante sobre la bottom bar) */}
-    <ViewMenu
-      open={viewMenuOpen}
-      view={view}
-      onSelect={(v) => {
-        setView(v);
-        setViewMenuOpen(false);
-      }}
+    <ExpenseDetailModal
+      expense={detailExpense}
+      onClose={() => setDetailExpense(null)}
     />
 
     {/* Menú contextual de gasto: card fantasma nítida + acciones flotantes */}
@@ -756,6 +761,12 @@ export default function App() {
       <ExpenseContextMenu
         expense={contextExpense}
         rect={contextRect}
+        onClose={closePanels}
+        onDetails={() => {
+          setDetailExpense(contextExpense);
+          setContextExpense(null);
+          setContextRect(null);
+        }}
         onEdit={() => {
           setContextExpense(null);
           setContextRect(null);
