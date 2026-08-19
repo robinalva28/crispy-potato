@@ -337,6 +337,49 @@
     box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.15);
   }
 
+  /* ===== Buscador (search-wrap/search-box) =====
+     Separado del header y de la lista con aire propio; al enfocar muestra
+     un contorno lime animado suave (glow "respirante"). Sin hex en JSX:
+     los colores del glow viven acá como tokens rgba lime. */
+  .search-wrap {
+    scroll-margin-top: 14px;
+    padding-bottom: 12px;
+  }
+  .search-box input {
+    scroll-margin-top: 14px;
+  }
+  .search-box {
+    border: 1px solid var(--border);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+  .search-box:focus-within {
+    animation: searchGlow 1.6s ease-in-out infinite alternate;
+  }
+  .search-box:focus-within input::placeholder {
+    opacity: 0.55;
+  }
+  .search-box:focus-within svg {
+    opacity: 0.75;
+    color: var(--accent-lime);
+  }
+  @keyframes searchGlow {
+    0% {
+      border-color: rgba(132, 204, 22, 0.35);
+      box-shadow: 0 0 0 3px rgba(132, 204, 22, 0.1), 0 0 16px rgba(132, 204, 22, 0.08);
+    }
+    100% {
+      border-color: rgba(132, 204, 22, 0.7);
+      box-shadow: 0 0 0 5px rgba(132, 204, 22, 0.18), 0 0 26px rgba(132, 204, 22, 0.16);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .search-box:focus-within {
+      animation: none;
+      border-color: rgba(132, 204, 22, 0.6);
+      box-shadow: 0 0 0 3px rgba(132, 204, 22, 0.18);
+    }
+  }
+
   /* Sticky header heredado (vista vieja, ya no se usa en el shell v4) */
   .sticky-wrap {
     position: sticky;
@@ -525,6 +568,20 @@
     font-weight: 600;
     color: var(--muted);
     transition: color 0.3s;
+    /* Compensa el peso óptico de los glyphs de Lucide: el viewBox de 24px
+       suele dejar ~1px de aire extra arriba del trazo visible. */
+    transform: translateY(-1px);
+  }
+  /* Elimina el espacio inline "fantasma" del SVG (baseline) y ajusta el
+     texto con line-height exacto: el bloque icono+texto queda centrado
+     verticalmente dentro del botón. */
+  .bbar .ni svg {
+    display: block;
+    flex-shrink: 0;
+  }
+  .bbar .ni span {
+    line-height: 1.1;
+    margin-top: 3px;
   }
   .bbar .ni.on {
     color: var(--accent-lime);
@@ -552,11 +609,11 @@
   .fab-shell .fab {
     position: absolute;
     left: 50%;
-    bottom: calc(10px + env(safe-area-inset-bottom));
+    bottom: calc(4px + env(safe-area-inset-bottom));
     transform: translateX(-50%);
     pointer-events: auto;
-    width: 64px;
-    height: 64px;
+    width: 72px;
+    height: 72px;
     border-radius: 9999px;
     background: linear-gradient(135deg, #65a30d, #84cc16);
     box-shadow: 0 10px 24px -8px rgba(132, 204, 22, 0.55);
@@ -564,7 +621,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 28px;
+    font-size: 32px;
     font-weight: 700;
     line-height: 1;
     padding: 0;
@@ -581,7 +638,7 @@
   .fab-shell .sd {
     position: absolute;
     left: 50%;
-    bottom: 76px;
+    bottom: 84px;
     transform: translateX(-50%) translateY(10px) scale(0.9);
     transform-origin: bottom center;
     opacity: 0;

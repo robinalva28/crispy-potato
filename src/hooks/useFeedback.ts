@@ -1,12 +1,15 @@
 /**
  * Hook de feedback háptico/sonoro.
- * Expone métodos por caso. El estado del toggle "Sonidos" lo controla App
- * (para que re-renderice al cambiar), y se persiste en localStorage.
+ * Los toggles "Sonidos" y "Vibraciones" son INDEPENDIENTES: los controla App
+ * (para que re-renderice al cambiar) y se persisten en localStorage por separado.
+ * - Sonidos: DESACTIVADOS por defecto (clave SOUND_KEY).
+ * - Vibraciones: ACTIVADAS por defecto (clave VIBRATION_KEY).
  */
 import { useCallback } from 'react';
-import { feedback as feedbackFn, type FeedbackType } from '../utils/feedback.ts';
+import { playSound, playVibration, type FeedbackType } from '../utils/feedback.ts';
 
 export const SOUND_KEY = 'pe-sound-enabled-v2';
+export const VIBRATION_KEY = 'pe-vibration-enabled';
 
 export function soundEnabledFromStorage(): boolean {
   try {
@@ -22,13 +25,25 @@ export function soundEnabledFromStorage(): boolean {
   }
 }
 
-export function useFeedback(soundEnabled: boolean) {
+export function vibrationEnabledFromStorage(): boolean {
+  try {
+    // La vibración arranca ACTIVADA por defecto en todos los dispositivos.
+    if (localStorage.getItem(VIBRATION_KEY) === null) {
+      localStorage.setItem(VIBRATION_KEY, '1');
+    }
+    return localStorage.getItem(VIBRATION_KEY) === '1';
+  } catch {
+    return true;
+  }
+}
+
+export function useFeedback(soundEnabled: boolean, vibrationEnabled: boolean) {
   const run = useCallback(
     (type: FeedbackType) => {
-      if (!soundEnabled) return;
-      feedbackFn(type);
+      if (soundEnabled) playSound(type);
+      if (vibrationEnabled) playVibration(type);
     },
-    [soundEnabled]
+    [soundEnabled, vibrationEnabled]
   );
 
   return {

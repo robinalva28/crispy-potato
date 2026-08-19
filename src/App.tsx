@@ -38,11 +38,13 @@ import {
   paidTotal,
   unpaidTotal,
 } from './utils/money.ts';
-import { feedback as playFeedback } from './utils/feedback.ts';
+import { playSound, playVibration } from './utils/feedback.ts';
 import {
   useFeedback,
   soundEnabledFromStorage,
+  vibrationEnabledFromStorage,
   SOUND_KEY,
+  VIBRATION_KEY,
 } from './hooks/useFeedback.ts';
 
 interface EditingState {
@@ -61,7 +63,8 @@ export default function App() {
   const savings = useSavings();
   const { dark, toggle } = useDarkMode();
   const [soundEnabled, setSoundEnabled] = useState(() => soundEnabledFromStorage());
-  const fdb = useFeedback(soundEnabled);
+  const [vibrationEnabled, setVibrationEnabled] = useState(() => vibrationEnabledFromStorage());
+  const fdb = useFeedback(soundEnabled, vibrationEnabled);
 
   function toggleSound() {
     const next = !soundEnabled;
@@ -72,7 +75,19 @@ export default function App() {
       // localStorage no disponible: ignorar
     }
     // Preview: al activar se escucha y se siente un sample de éxito
-    if (next) playFeedback('success');
+    if (next) playSound('success');
+  }
+
+  function toggleVibration() {
+    const next = !vibrationEnabled;
+    setVibrationEnabled(next);
+    try {
+      localStorage.setItem(VIBRATION_KEY, next ? '1' : '0');
+    } catch {
+      // localStorage no disponible: ignorar
+    }
+    // Preview: al activar se siente un sample háptico de éxito
+    if (next) playVibration('success');
   }
   const [view, setView] = useState<View>('budget');
   const [fabOpen, setFabOpen] = useState(false);
@@ -541,8 +556,8 @@ export default function App() {
                   </div>
                 )}
                 {budget.monthExpenses.length > 0 && (
-                  <div className="app-scroll-sticky">
-                    <div className="glass rounded-full px-4 py-2 flex items-center gap-2">
+                  <div className="app-scroll-sticky search-wrap">
+                    <div className="glass rounded-full px-4 py-2 flex items-center gap-2 search-box">
                       <Icon name="search" size={16} className="opacity-40 shrink-0" ariaHidden />
                       <input
                         type="search"
@@ -721,11 +736,22 @@ export default function App() {
           setFabOpen(false);
           setMoreOpen(false);
           setView('budget');
-          setTimeout(() => {
+          // Espera a que el input exista tras el cambio de vista (más robusto
+          // que un timeout fijo: si venimos de Ahorro el input se monta después).
+          let attempts = 0;
+          const findInput = () => {
             const input = document.querySelector<HTMLInputElement>('input[type="search"]');
-            input?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            input?.focus();
-          }, 60);
+            if (input) {
+              // Scroll hacia ARRIBA: el buscador queda justo debajo del header.
+              input.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              // El foco se difiere para que el teclado no corte el scroll suave.
+              setTimeout(() => input.focus(), 450);
+            } else if (attempts < 10) {
+              attempts += 1;
+              setTimeout(findInput, 50);
+            }
+          };
+          findInput();
         }}
       />
     </main>
@@ -752,7 +778,7 @@ export default function App() {
         aria-label={fabOpen ? 'Cerrar acciones' : 'Agregar'}
         title="Agregar"
       >
-        +
+        <Icon name="plus" size={36} strokeWidth={3} ariaHidden />
       </button>
     </div>
 
@@ -801,6 +827,7 @@ export default function App() {
         open={moreOpen}
         dark={dark}
         soundEnabled={soundEnabled}
+        vibrationEnabled={vibrationEnabled}
         monthClosed={monthClosed}
         onClose={() => setMoreOpen(false)}
         onGroupBy={() => setGroupByCategory((g) => !g)}
@@ -818,6 +845,7 @@ export default function App() {
         onGuide={() => setShowGuide(true)}
         onToggleTheme={toggle}
         onToggleSound={toggleSound}
+        onToggleVibration={toggleVibration}
         onExport={() => void exportJSON()}
         onImport={(e) => void importJSON(e)}
       />

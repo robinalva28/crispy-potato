@@ -158,10 +158,15 @@ function playTones(steps: ToneStep[]): void {
   }
 }
 
-/** Suena + vibra según el tipo de feedback. */
-export function feedback(type: FeedbackType): void {
+/** Reproduce SOLO el sonido (WebAudio) para el tipo de feedback. */
+export function playSound(type: FeedbackType): void {
   if (prefersReducedMotion()) return;
   playTones(TONES[type]);
+}
+
+/** Reproduce SOLO la vibración (Vibration API) para el tipo de feedback. */
+export function playVibration(type: FeedbackType): void {
+  if (prefersReducedMotion()) return;
   if ('vibrate' in navigator) {
     navigator.vibrate(VIBRATIONS[type]);
   }

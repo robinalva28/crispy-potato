@@ -5,6 +5,7 @@ interface Props {
   open: boolean;
   dark: boolean;
   soundEnabled: boolean;
+  vibrationEnabled: boolean;
   monthClosed: boolean;
   onClose: () => void;
   onGroupBy: () => void;
@@ -14,6 +15,7 @@ interface Props {
   onGuide: () => void;
   onToggleTheme: () => void;
   onToggleSound: () => void;
+  onToggleVibration: () => void;
   onExport: () => void;
   onImport: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
@@ -27,6 +29,7 @@ export function MoreSheet({
   open,
   dark,
   soundEnabled,
+  vibrationEnabled,
   monthClosed,
   onClose,
   onGroupBy,
@@ -36,6 +39,7 @@ export function MoreSheet({
   onGuide,
   onToggleTheme,
   onToggleSound,
+  onToggleVibration,
   onExport,
   onImport,
 }: Props) {
@@ -114,6 +118,11 @@ export function MoreSheet({
       <button type="button" className="sh-item" onClick={() => { onToggleSound(); onClose(); }}>
         <span className="ico"><Icon name="volume" size={20} /></span>Sonidos
         <span className="trailing">{soundEnabled ? 'Activados' : 'Silenciados'}</span>
+      </button>
+
+      <button type="button" className="sh-item" onClick={() => { onToggleVibration(); onClose(); }}>
+        <span className="ico"><Icon name="vibrate" size={20} /></span>Vibraciones
+        <span className="trailing">{vibrationEnabled ? 'Activadas' : 'Desactivadas'}</span>
       </button>
 
       <button type="button" className="sh-item" onClick={() => { onExport(); onClose(); }}>
