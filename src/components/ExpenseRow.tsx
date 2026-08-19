@@ -18,8 +18,8 @@ export function ExpenseRow({ expense, onTogglePaid, onDelete, onEdit, onDuplicat
   const hasUsd = expense.amountUsd > 0;
   const total = getExpenseTotal(expense);
   const amountText = isEstimated
-    ? `~${fmtARS(expense.estimatedArs ?? 0)}`
-    : fmtARS(expense.amountArs ?? 0);
+    ? `~${fmtARS(expense.estimatedArs ?? 0, 2)}`
+    : fmtARS(expense.amountArs ?? 0, 2);
 
   return (
     <div

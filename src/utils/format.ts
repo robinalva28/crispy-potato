@@ -49,55 +49,45 @@ export function formatInputNumber(value: number | null, decimals = 2): string {
 
 /**
  * Formatea el texto de un input de monto EN VIVO mientras se escribe (es-AR):
- * - Separa miles con "." automáticamente: "1000000" → "1.000.000"
- * - Acepta "." o "," como separador decimal: "5500.56" → "5.500,56"
- * - Mantiene el decimal en curso ("5,") y limita a 2 decimales.
+ * - El punto SIEMPRE separa miles (se ignora al reconstruir): "1000000" → "1.000.000"
+ * - La coma es el separador decimal: "5500,56" → "5.500,56"
+ * - Un punto final abre el decimal en curso: "5500." → "5.500,"
+ * - Limita los decimales a 2 dígitos.
  * - Devuelve string (no modifica números ya formateados con coma).
+ *
+ * NOTA: la regla "el punto siempre es miles" evita que al borrar dígitos de un
+ * miles incompleto (ej. "1.000" → "1.00") se reinterprete como decimal ("1,00")
+ * y el input se trabe sin poder reconstruir los miles.
  */
 export function formatInputString(raw: string): string {
   // Si no hay nada que formatear, devolver tal cual
   if (raw === '') return '';
 
-  // Normalizar: ambos separadores decimales ('.' o ',') pasan a cuenta propia
-  let hasDecimal = raw.includes(',');
-  let integerPart = '';
+  // La coma es el separador decimal; todo lo anterior es la parte entera
+  let integerRaw = raw;
   let decimalPart = '';
+  let forceDecimal = false;
 
-  if (hasDecimal) {
+  if (raw.includes(',')) {
     const parts = raw.split(',');
-    integerPart = parts[0].replace(/\./g, '');
-    decimalPart = parts[1];
-  } else {
-    // Sin coma: puntos pueden ser miles o un decimal suelto.
-    const dotCount = (raw.match(/\./g) || []).length;
-    if (dotCount > 0) {
-      const parts = raw.split('.');
-      // Si el patrón es de miles puro (1.234.567) → sin decimal
-      if (/^\d{1,3}(\.\d{3})+$/.test(raw)) {
-        integerPart = raw.replace(/\./g, '');
-        decimalPart = '';
-      } else {
-        // Caso decimal: la última parte después del último punto es decimal
-        integerPart = parts.slice(0, -1).join('').replace(/\./g, '');
-        decimalPart = parts[parts.length - 1];
-        hasDecimal = true;
-      }
-    } else {
-      integerPart = raw;
-      decimalPart = '';
-    }
+    integerRaw = parts[0];
+    decimalPart = parts[1] ?? '';
+    forceDecimal = true;
+  } else if (raw.endsWith('.')) {
+    // Punto final: el usuario está por escribir decimales
+    integerRaw = raw.slice(0, -1);
+    forceDecimal = true;
   }
 
-  // Limpiar caracteres no numéricos
-  integerPart = integerPart.replace(/\D/g, '');
+  // Los puntos de la parte entera SIEMPRE son miles → se descartan
+  const integerDigits = integerRaw.replace(/\./g, '').replace(/\D/g, '');
   decimalPart = decimalPart.replace(/\D/g, '').slice(0, 2);
 
   // Formatear miles con separador es-AR
-  const thousands = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  const thousands = integerDigits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 
-  // Armar el resultado
   let result = thousands;
-  if (hasDecimal || raw.endsWith(',') || raw.endsWith('.')) {
+  if (forceDecimal) {
     result += ',';
     if (decimalPart) result += decimalPart;
   }

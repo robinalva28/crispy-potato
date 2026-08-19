@@ -20,7 +20,7 @@ export function ExpenseDetailModal({ expense, onClose }: { expense: Expense | nu
   const hasUsd = expense.amountUsd > 0;
   const total = getExpenseTotal(expense);
   const status = isEstimated ? 'Por confirmar' : isPending ? 'Pendiente' : 'Pagado';
-  const ars = isEstimated ? `~${fmtARS(expense.estimatedArs ?? 0)}` : fmtARS(expense.amountArs ?? 0);
+  const ars = isEstimated ? `~${fmtARS(expense.estimatedArs ?? 0, 2)}` : fmtARS(expense.amountArs ?? 0, 2);
 
   return (
     <Modal open onClose={onClose} title="Detalle del gasto">

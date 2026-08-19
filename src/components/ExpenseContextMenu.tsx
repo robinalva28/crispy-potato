@@ -29,8 +29,8 @@ export function ExpenseContextMenu({ expense, rect, onClose, onDetails, onEdit, 
   const hasUsd = expense.amountUsd > 0;
   const total = getExpenseTotal(expense);
   const amountText = isEstimated
-    ? `~${fmtARS(expense.estimatedArs ?? 0)}`
-    : fmtARS(expense.amountArs ?? 0);
+    ? `~${fmtARS(expense.estimatedArs ?? 0, 2)}`
+    : fmtARS(expense.amountArs ?? 0, 2);
 
   // Mide la altura real del menú para posicionarlo sin que quede cortado
   useLayoutEffect(() => {
