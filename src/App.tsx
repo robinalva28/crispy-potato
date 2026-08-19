@@ -94,6 +94,7 @@ export default function App() {
   const [showPhotoModal, setShowPhotoModal] = useState(false);
   const [confirmDeleteMonth, setConfirmDeleteMonth] = useState<Month | null>(null);
   const expenseFormRef = useRef<HTMLDivElement | null>(null);
+  const [focusExpenseId, setFocusExpenseId] = useState<number | null>(null);
   const [contextExpense, setContextExpense] = useState<Expense | null>(null);
   const [contextRect, setContextRect] = useState<ExpenseRect | null>(null);
 
@@ -137,12 +138,39 @@ export default function App() {
     }
   }, [view]);
 
-  // Al abrir el formulario de gasto (agregar/editar), scrollea hasta él
+  // Al abrir el formulario de gasto (agregar/editar), lo posiciona JUSTO
+  // debajo del header fijo (v4-stats): ni tapado ni centrado.
   useEffect(() => {
-    if (editing) {
-      expenseFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    if (!editing) return;
+    // Espera a que el form esté montado y el layout sea estable antes de medir.
+    const timer = setTimeout(() => {
+      const el = expenseFormRef.current;
+      if (!el) return;
+      const scroll = document.querySelector<HTMLElement>('.app-scroll');
+      const header = document.querySelector<HTMLElement>('.v4-hdr');
+      if (scroll && header) {
+        const headerBottom = header.getBoundingClientRect().bottom;
+        const elTop = el.getBoundingClientRect().top;
+        const target = scroll.scrollTop + (elTop - headerBottom) + 16;
+        scroll.scrollTo({ top: Math.max(target, 0), behavior: 'smooth' });
+      } else {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 60);
+    return () => clearTimeout(timer);
   }, [editing]);
+
+  // Tras guardar/editar un gasto, scrollea hasta su fila en la lista
+  // (SOLO scroll por ahora; el efecto de recompensa se diseña aparte)
+  useEffect(() => {
+    if (focusExpenseId == null) return;
+    const timer = setTimeout(() => {
+      const row = document.querySelector<HTMLElement>(`[data-expense-id="${focusExpenseId}"]`);
+      row?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setFocusExpenseId(null);
+    }, 50);
+    return () => clearTimeout(timer);
+  }, [focusExpenseId]);
 
   // --- Export / Import ---
   /** Exporta TODO: meses, gastos y segmentos de ahorro (backup completo). */
@@ -199,9 +227,11 @@ export default function App() {
   async function saveExpense(data: Omit<Expense, 'id' | 'monthId'>) {
     if (editing?.expense) {
       await budget.updateExpense(editing.expense.id!, data);
+      setFocusExpenseId(editing.expense.id!);
       fdb.edit();
     } else {
-      await budget.addExpense(data);
+      const id = await budget.addExpense(data);
+      if (id != null) setFocusExpenseId(id);
       fdb.success();
     }
     setEditing(null);

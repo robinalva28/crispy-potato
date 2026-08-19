@@ -31,7 +31,7 @@ const EMPTY_FORM: FormState = {
   amountUsd: '',
   usdRate: '',
   dueDate: '',
-  paid: false,
+  paid: true,
   notes: '',
 };
 

@@ -23,6 +23,7 @@ export function ExpenseRow({ expense, onTogglePaid, onDelete, onEdit, onDuplicat
 
   return (
     <div
+      data-expense-id={expense.id}
       className={`flex items-center gap-3 rounded-2xl glass px-3.5 py-3 cursor-pointer hover:opacity-90 transition ${
         isPending ? 'opacity-70' : ''
       }`}
