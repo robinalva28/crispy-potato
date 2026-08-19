@@ -17,6 +17,8 @@
   --muted: #6b7280;
   --surface: rgba(0, 0, 0, 0.03);
   --surface-strong: rgba(0, 0, 0, 0.06);
+  /* Paneles superpuestos (mini menú, sheet, speed dial): más opacos */
+  --panel: rgba(255, 255, 255, 0.97);
 
   /* Compat con nombres históricos */
   --glass-bg: var(--bg);
@@ -41,6 +43,8 @@
   --muted: #6e7681;
   --surface: rgba(255, 255, 255, 0.06);
   --surface-strong: rgba(255, 255, 255, 0.1);
+  /* Paneles superpuestos (mini menú, sheet, speed dial): más opacos */
+  --panel: rgba(24, 27, 31, 0.97);
 
   /* Compat con nombres históricos */
   --glass-bg: var(--bg);
@@ -362,7 +366,7 @@
     gap: 10px;
     min-height: 48px;
     padding: 6px 18px 6px 6px;
-    background: var(--bg);
+    background: var(--panel);
     border: 1px solid var(--border);
     border-radius: 9999px;
     font-size: 13px;
@@ -415,7 +419,7 @@
     flex-direction: column;
     gap: 2px;
     padding: 6px;
-    background: var(--bg);
+    background: var(--panel);
     backdrop-filter: blur(28px) saturate(1.4);
     -webkit-backdrop-filter: blur(28px) saturate(1.4);
     border: 1px solid var(--border);
@@ -469,7 +473,7 @@
     bottom: 0;
     margin: 0 auto;
     max-width: 28rem;
-    background: var(--bg);
+    background: var(--panel);
     backdrop-filter: blur(28px) saturate(1.4);
     -webkit-backdrop-filter: blur(28px) saturate(1.4);
     border-top: 1px solid var(--border);
