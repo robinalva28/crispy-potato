@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { Icon } from './Icon.tsx';
 
 interface ModalProps {
   open: boolean;
@@ -22,9 +23,9 @@ export function Modal({ open, onClose, title, footer, children, maxWidth = 'max-
               type="button"
               onClick={onClose}
               aria-label="Cerrar"
-              className="w-7 h-7 rounded-full glass flex items-center justify-center text-sm hover:opacity-70 transition shrink-0"
+              className="w-7 h-7 rounded-full glass flex items-center justify-center hover:opacity-70 transition shrink-0"
             >
-              ✕
+              <Icon name="x" size={16} />
             </button>
           </div>
         )}

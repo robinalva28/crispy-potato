@@ -42,8 +42,8 @@ export function ExpenseDetailModal({ expense, onClose }: { expense: Expense | nu
         {expense.notes && <Row k="Notas" v={expense.notes} />}
       </div>
 
-      <Button variant="primary" fullWidth onClick={onClose}>
-        <Icon name="x" size={16} />Cerrar
+      <Button variant="ghost" fullWidth onClick={onClose}>
+        Cerrar
       </Button>
     </Modal>
   );

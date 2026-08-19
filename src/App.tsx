@@ -977,7 +977,11 @@ export default function App() {
             <Button
               variant="dangerGhost"
               size="sm"
-              onClick={() => setConfirmDeleteMonth(editingMonth.month)}
+              onClick={() => {
+                const m = editingMonth.month;
+                setEditingMonth(null);
+                setConfirmDeleteMonth(m);
+              }}
             >
               <Icon name="trash" size={14} className="inline-block mr-1 align-[-2px]" />Eliminar mes
             </Button>

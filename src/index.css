@@ -317,6 +317,7 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    position: relative;
   }
   .app-shell .app-scroll {
     flex: 1;
@@ -324,12 +325,10 @@
     overflow-y: auto;
     -ms-overflow-style: none;
     scrollbar-width: none;
-    /* Las curvas del header (abajo) y del bbar (arriba) se superponen al scroll:
-       padding adicional para que el contenido nunca entre en la zona curva. */
-    padding-top: calc(16px + 28px);
-    padding-bottom: calc(16px + 28px);
-    margin-top: -28px;
-    margin-bottom: -28px;
+    /* El header (curva abajo) y el bbar (curva arriba) están fuera del flujo
+       del scroll: el scroll ocupa solo el espacio libre entre ambos. */
+    padding-top: 16px;
+    padding-bottom: 16px;
   }
   .app-shell .app-scroll::-webkit-scrollbar {
     display: none;
@@ -346,7 +345,6 @@
     -webkit-backdrop-filter: blur(28px) saturate(1.5);
     border-radius: 0 0 28px 28px;
     border-bottom: none;
-    margin-bottom: -28px; /* superpone la curva inferior sobre el scroll */
     transition: background-color 0.35s, border-color 0.35s;
   }
   .v4-hdr .months-scroll {
@@ -398,7 +396,6 @@
     padding-bottom: calc(8px + env(safe-area-inset-bottom));
     border-radius: 28px 28px 0 0; /* curvas ARRIBA, plano abajo hasta el piso */
     border-top: 1px solid var(--border);
-    margin-top: -28px; /* superpone la curva superior sobre el scroll */
     transition: background-color 0.35s, border-color 0.35s;
   }
   .bbar .bi {
