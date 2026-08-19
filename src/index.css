@@ -131,13 +131,15 @@
     transition: background 0.3s ease;
   }
 
-  /* Fondo Aura (modo oscuro): misma composición, mucho más tenue */
+  /* Fondo Aura (modo oscuro): fondo más profundo (aprobado en review
+     aura-fondo-oscurecido.html) para que la bottom bar y las cards
+     se distingan claramente del fondo. */
   .dark body {
     background:
-      radial-gradient(1200px 500px at 85% -10%, rgba(139, 92, 246, 0.16), transparent 55%),
-      radial-gradient(900px 480px at -10% 15%, rgba(101, 163, 13, 0.14), transparent 55%),
-      radial-gradient(700px 500px at 50% 110%, rgba(14, 165, 233, 0.10), transparent 55%),
-      linear-gradient(165deg, #0c0d0f 0%, #111312 55%, #0e1116 100%);
+      radial-gradient(1200px 500px at 85% -10%, rgba(139, 92, 246, 0.14), transparent 55%),
+      radial-gradient(900px 480px at -10% 15%, rgba(101, 163, 13, 0.12), transparent 55%),
+      radial-gradient(700px 500px at 50% 110%, rgba(14, 165, 233, 0.09), transparent 55%),
+      linear-gradient(165deg, #050506 0%, #090b0a 55%, #080a0e 100%);
     background-attachment: fixed;
   }
 }
@@ -150,6 +152,16 @@
     -webkit-backdrop-filter: blur(24px) saturate(1.4);
     border: 1px solid var(--border);
     transition: background 0.3s ease, border-color 0.3s ease;
+  }
+
+  /* Card de gasto (ExpenseRow): en dark es levemente más clara que el resto
+     de las superficies para destacar la fila sobre el fondo profundo.
+     En claro mantiene el mismo fondo que las demás superficies (sin cambios). */
+  .exp-card {
+    background: var(--surface);
+  }
+  .dark .exp-card {
+    background: rgba(255, 255, 255, 0.09);
   }
 
   /* Tarjeta glass principal (hero, lista, modales) */

@@ -24,7 +24,7 @@ export function ExpenseRow({ expense, onTogglePaid, onDelete, onEdit, onDuplicat
   return (
     <div
       data-expense-id={expense.id}
-      className={`relative flex items-center gap-3 rounded-2xl glass px-3 py-1.5 min-h-[46px] cursor-pointer hover:opacity-90 transition ${
+      className={`relative flex items-center gap-3 rounded-2xl glass exp-card px-3 py-1.5 min-h-[46px] cursor-pointer hover:opacity-90 transition ${
         isPending ? 'opacity-70' : ''
       }`}
       onClick={(e) => {
@@ -48,8 +48,8 @@ export function ExpenseRow({ expense, onTogglePaid, onDelete, onEdit, onDuplicat
           expense.paid
             ? 'grad-emerald text-white shadow-sm'
             : isEstimated
-              ? 'border-2 border-dashed border-accent-violet bg-violet-100/30 text-accent-violet'
-              : 'border-2 border-accent-amber bg-amber-100/30 text-accent-amber'
+              ? 'border-2 border-dashed border-accent-violet bg-violet-100/30 dark:bg-violet-400/15 text-accent-violet'
+              : 'border-2 border-accent-amber bg-amber-100/30 dark:bg-amber-400/15 text-accent-amber'
         }`}
       >
         <Icon
