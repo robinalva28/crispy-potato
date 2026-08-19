@@ -13,7 +13,7 @@ interface ModalProps {
 export function Modal({ open, onClose, title, footer, children, maxWidth = 'max-w-sm' }: ModalProps) {
   if (!open) return null;
   return (
-    <div className="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="modal-overlay fixed inset-0 z-[80] flex items-center justify-center p-4">
       <div className={`w-full ${maxWidth} glass-card rounded-3xl p-4 space-y-3`}>
         {title != null && (
           <div className="flex items-center justify-between gap-2">

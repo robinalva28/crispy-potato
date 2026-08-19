@@ -79,7 +79,7 @@ export function GuideModal({ open, onClose, type = 'budget' }: Props) {
   const current = steps[step];
 
   return (
-    <div className="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="modal-overlay fixed inset-0 z-[80] flex items-center justify-center p-4">
       <div className="w-full max-w-sm glass-card rounded-3xl overflow-hidden">
         {/* Encabezado */}
         <div className="grad-lime-strong px-5 pt-5 pb-3 text-white">

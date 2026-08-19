@@ -26,7 +26,8 @@ describe('monthRange', () => {
 
 describe('monthlySavings', () => {
   it('ahorro = ingreso − gasto proyectado del mes', () => {
-    expect(monthlySavings(month, expenses)).toBeCloseTo(3055000, 2);
+    // seedDemo income = 1.500.000 → 1.500.000 - 945.000
+    expect(monthlySavings(month, expenses)).toBeCloseTo(555000, 2);
   });
 });
 
@@ -49,7 +50,8 @@ describe('monthlySavingsHistory', () => {
 describe('lastClosedSavings', () => {
   it('usa el resto del último mes cerrado como referencia', () => {
     const closed: Month = { ...month, status: 'cerrado' };
-    expect(lastClosedSavings([closed], expenses)).toBeCloseTo(3055000, 2);
+    // seedDemo income = 1.500.000 → resto 555.000
+    expect(lastClosedSavings([closed], expenses)).toBeCloseTo(555000, 2);
   });
 
   it('devuelve null si no hay meses cerrados', () => {
@@ -66,12 +68,13 @@ describe('projectSavings', () => {
       extraIncomes: [{ id: 'bono1', label: 'Bono', amount: 500000, month: '2026-07' }],
     };
     const proj = projectSavings(goal, months, expenses);
-    expect(proj.total).toBeCloseTo(3555000, 2); // 3.055.000 + 500.000
+    // seedDemo income = 1.500.000 → ahorro 555.000 + bono 500.000
+    expect(proj.total).toBeCloseTo(1055000, 2);
 
     const first: MonthProjection = proj.months[0];
-    expect(first.savings).toBeCloseTo(3055000, 2);
+    expect(first.savings).toBeCloseTo(555000, 2);
     expect(first.extras).toHaveLength(1);
-    expect(first.total).toBeCloseTo(3555000, 2);
+    expect(first.total).toBeCloseTo(1055000, 2);
   });
 
   it('meses futuros sin data usan el resto del último mes cerrado como referencia', () => {

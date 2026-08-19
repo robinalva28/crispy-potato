@@ -9,7 +9,7 @@ export const seedDemo: { month: Month; expenses: Expense[] } = {
   month: {
     id: '2026-07',
     label: 'Julio 2026',
-    income: 4000000,
+    income: 1500000,
     status: 'abierto',
   },
   expenses: [

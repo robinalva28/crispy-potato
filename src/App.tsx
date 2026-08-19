@@ -367,7 +367,7 @@ export default function App() {
 
   return (
     <>
-    <main className="max-w-md mx-auto my-4 glass-card rounded-[28px] app-shell">
+    <main className="max-w-md mx-auto glass-card app-shell">
       {/* HEADER FIJO v4: título + mes + resto + ✎ · chips de meses · stats */}
       <header className="v4-hdr px-4 pt-3">
         <div className="flex items-center justify-between gap-2 min-h-[44px]">

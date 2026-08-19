@@ -116,7 +116,7 @@ export function PhotoExpenseModal({ month, onSave, onClose }: Props) {
   const inputCls = 'input-aura w-full px-3 py-2 text-sm';
 
   return (
-    <div className="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="modal-overlay fixed inset-0 z-[80] flex items-center justify-center p-4">
       <div className="w-full max-w-lg glass-card rounded-3xl p-4 space-y-3">
         <div className="flex items-center justify-between">
           <div className="font-bold text-neutral-900 dark:text-neutral-100">

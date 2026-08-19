@@ -219,13 +219,18 @@
      V4 — App shell: card fija + header fijo + scroll interno + bottom bar
      ============================================================ */
 
-  /* App shell: card fija con header fijo, scroll interno y bottom bar */
+  /* App shell: ocupa TODO el viewport (tope y piso).
+     Las curvas van solo hacia ADENTRO en los extremos internos:
+     header con curva abajo, bottom bar con curva arriba (estilo iPhone). */
   .app-shell {
-    height: calc(100dvh - env(safe-area-inset-bottom));
-    min-height: initial;
+    height: 100dvh;
+    max-height: 100dvh;
+    margin: 0 auto;
+    border-radius: 0; /* sin curvas externas: plano en tope y piso */
+    border-bottom: none;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
   }
   .app-shell .app-scroll {
     flex: 1;
@@ -233,18 +238,29 @@
     overflow-y: auto;
     -ms-overflow-style: none;
     scrollbar-width: none;
+    /* Las curvas del header (abajo) y del bbar (arriba) se superponen al scroll:
+       padding adicional para que el contenido nunca entre en la zona curva. */
+    padding-top: calc(16px + 28px);
+    padding-bottom: calc(16px + 28px);
+    margin-top: -28px;
+    margin-bottom: -28px;
   }
   .app-shell .app-scroll::-webkit-scrollbar {
     display: none;
   }
 
-  /* Header v4: fijo, sin scroll, con blur de fondo (como el preview) */
+  /* Header v4: fijo al TOPE (plano arriba).
+     Su extremo hacia la lista (abajo) tiene CURVA → flota sobre el scroll. */
   .v4-hdr {
     flex-shrink: 0;
+    position: relative;
+    z-index: 5;
     background: var(--card);
     backdrop-filter: blur(28px) saturate(1.5);
     -webkit-backdrop-filter: blur(28px) saturate(1.5);
-    border-bottom: 1px solid var(--border);
+    border-radius: 0 0 28px 28px;
+    border-bottom: none;
+    margin-bottom: -28px; /* superpone la curva inferior sobre el scroll */
     transition: background-color 0.35s, border-color 0.35s;
   }
   .v4-hdr .months-scroll {
@@ -287,11 +303,16 @@
   .bbar {
     flex-shrink: 0;
     position: relative;
-    border-top: 1px solid var(--border);
-    background: var(--card);
-    padding-top: 6px;
+    z-index: 5;
+    /* Fondo casi opaco: el scroll apenas se percibe detrás (glass sutil). */
+    background: var(--panel);
+    backdrop-filter: blur(24px) saturate(1.4);
+    -webkit-backdrop-filter: blur(24px) saturate(1.4);
+    padding-top: calc(6px + 28px);
     padding-bottom: calc(8px + env(safe-area-inset-bottom));
-    z-index: 50;
+    border-radius: 28px 28px 0 0; /* curvas ARRIBA, plano abajo hasta el piso */
+    border-top: 1px solid var(--border);
+    margin-top: -28px; /* superpone la curva superior sobre el scroll */
     transition: background-color 0.35s, border-color 0.35s;
   }
   .bbar .bi {

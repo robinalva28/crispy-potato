@@ -58,7 +58,8 @@ describe('totales del mes', () => {
   });
 
   it('remaining = income - projected', () => {
-    expect(remaining(month, expenses)).toBeCloseTo(3055000, 2);
+    // seedDemo income = 1.500.000 → resto = 1.500.000 - 945.000
+    expect(remaining(month, expenses)).toBeCloseTo(555000, 2);
   });
 });
 
