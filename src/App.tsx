@@ -478,23 +478,6 @@ export default function App() {
               )}
             </div>
 
-            {/* Barra de progreso Pagado/Pendiente: palabras completas, siempre visible */}
-            {projected > 0 && (
-              <div className="hdr-progress">
-                <span className="hdr-progress-sp"><Icon name="check" size={10} strokeWidth={3} ariaHidden /> Pagado {fmtARS(paid, 0)}</span>
-                <div className="hdr-progress-bar">
-                  <div
-                    className="hdr-progress-paid"
-                    style={{ width: `${Math.min((paid / projected) * 100, 100)}%` }}
-                  />
-                  <div
-                    className="hdr-progress-unpaid"
-                    style={{ width: `${Math.min((unpaid / projected) * 100, 100)}%` }}
-                  />
-                </div>
-                <span className="hdr-progress-unpaid-sp"><Icon name="clock" size={10} strokeWidth={3} ariaHidden /> Pendiente {fmtARS(unpaid, 0)}</span>
-              </div>
-            )}
           </>
         )}
       </header>
@@ -502,9 +485,38 @@ export default function App() {
       {/* SCROLL interno: solo el contenido cambia según la vista */}
       <div className="app-scroll">
         {view === 'budget' && (
-          <div className="px-3 pt-3 pb-4 space-y-2.5">
+          <div className="px-3 pt-1 pb-1 space-y-2">
             {activeMonth && (
               <>
+                {/* Barra Pagado vs Pendiente: textos arriba + barra completa abajo
+                    (layout original, restaurado por revisión del usuario). */}
+                {projected > 0 && (
+                  <div className="px-1 pt-1 pb-1">
+                    <div className="flex items-center justify-between text-[11px] mb-1.5">
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-accent-emerald inline-block"></span>
+                        <span className="opacity-50 font-medium">Pagado</span>
+                        <span className="font-bold tabular-nums opacity-80">{fmtARS(paid, 0)}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-accent-amber inline-block"></span>
+                        <span className="opacity-50 font-medium">Pendiente</span>
+                        <span className="font-bold tabular-nums opacity-80">{fmtARS(unpaid, 0)}</span>
+                      </div>
+                    </div>
+                    <div className="flex h-1.5 rounded-full overflow-hidden bg-white/60 dark:bg-white/10">
+                      <div
+                        className="h-full bg-accent-emerald transition-all"
+                        style={{ width: `${Math.min((paid / projected) * 100, 100)}%` }}
+                      />
+                      <div
+                        className="h-full bg-accent-amber transition-all"
+                        style={{ width: `${Math.min((unpaid / projected) * 100, 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+
                 <div ref={expenseFormRef}>
                   {activeMonth.status === 'abierto' && editing && editing.expense !== null && (
                     <ExpenseForm

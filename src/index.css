@@ -403,8 +403,8 @@
     scrollbar-width: none;
     /* El header (curva abajo) y el bbar (curva arriba) están fuera del flujo
        del scroll: el scroll ocupa solo el espacio libre entre ambos. */
-    padding-top: 16px;
-    padding-bottom: 16px;
+    padding-top: 8px;
+    padding-bottom: 8px;
   }
   .app-shell .app-scroll::-webkit-scrollbar {
     display: none;
@@ -455,49 +455,6 @@
     color: var(--txt);
     font-weight: 700;
     font-variant-numeric: tabular-nums;
-  }
-
-  /* Barra de progreso Pagado/Pendiente (palabras completas) */
-  .hdr-progress {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 10px;
-    font-weight: 700;
-    padding-bottom: 12px;
-    color: var(--muted);
-  }
-  .hdr-progress-sp,
-  .hdr-progress-unpaid-sp {
-    display: inline-flex;
-    align-items: center;
-    gap: 3px;
-    white-space: nowrap;
-  }
-  .hdr-progress-sp {
-    color: var(--accent-emerald);
-  }
-  .hdr-progress-unpaid-sp {
-    color: var(--accent-amber);
-  }
-  .hdr-progress-bar {
-    display: flex;
-    flex: 1;
-    min-width: 40px;
-    height: 6px;
-    border-radius: 9999px;
-    overflow: hidden;
-    background: rgba(255, 255, 255, 0.1);
-  }
-  .hdr-progress-paid {
-    height: 100%;
-    background: var(--accent-emerald);
-    transition: width 0.3s ease;
-  }
-  .hdr-progress-unpaid {
-    height: 100%;
-    background: var(--accent-amber);
-    transition: width 0.3s ease;
   }
 
   /* Botón redondo glass 44×44 (✎) */

@@ -67,7 +67,7 @@ export function MonthSelector({ months, activeMonthId, onSelect, onCreate }: Pro
   }
 
   return (
-    <div className="px-3 py-2">
+    <div className="px-3 pt-1 pb-1">
       {/* Chips de meses: scroll horizontal suave, sin scroll vertical */}
       <div ref={scrollRef} className="months-scroll items-center">
         {/* Botón fijo a la izquierda: queda pegado al scrollear los meses */}
