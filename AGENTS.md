@@ -135,7 +135,7 @@ src/
     ExpenseRow.tsx      # fila de gasto (click → menú contextual en mes abierto)
     ExpenseGroup.tsx    # grupo por categoría (subtotal + filas)
     CategoryBars.tsx    # barras por categoría con semáforo
-    ExpenseForm.tsx     # formulario gasto (nombre/categoría/montos/fecha/pagado/notas + escáner)
+    ExpenseForm.tsx     # formulario gasto (nombre/categoría/montos/fecha/pagado/notas + escáner "Escanear")
     PhotoExpenseModal.tsx  # revisión de gastos detectados por foto
     GuideModal.tsx      # guía interactiva (primera vez + botón ❓)
     SavingsCalculator.tsx  # tarjetas de segmentos de ahorro
@@ -166,7 +166,7 @@ Completado:
 - Tests Vitest: **70 verdes**.
 
 Pendiente/iterable:
-- Implementar la **preview D del formulario de gastos** (acordeón + toggles + divisas multi) en `ExpenseForm.tsx` — la preview está en `rebranding-preview/formulario-opcion-d-combinada.html`.
+- Implementar la **preview D del formulario de gastos** (acordeón + toggles + divisas multi) en `ExpenseForm.tsx` — la preview ya está actualizada a los estándares actuales en `rebranding-preview/formulario-opcion-d-combinada.html` (iconos Lucide, paleta semántica dual dark/light, toggle de tema, hints ámbar, botón **Escanear** con icono `scan`).
 - PIN (lógica en `useLock.ts`/`LockScreen.tsx`, sin integrar).
 - Cifrado real con WebCrypto (opcional futuro).
 

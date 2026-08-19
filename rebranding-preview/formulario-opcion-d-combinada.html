@@ -1,53 +1,75 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="dark">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Opción D — Acordeón + toggles (formato real)</title>
+<title>Opción D — Form de gasto (acordeón + toggles + paleta actual)</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<script src="https://unpkg.com/lucide@latest"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{color-scheme:dark}
-:root{--bg:rgba(26,28,31,.78);--card:rgba(26,28,31,.78);--border:rgba(255,255,255,.1);--txt:rgba(230,235,230,.92);--muted:#6e7681;--surface:rgba(255,255,255,.06);--surface2:rgba(255,255,255,.1);--lime:#84cc16}
-body{font-family:'Inter',sans-serif;color:var(--txt);min-height:100dvh;background:radial-gradient(1200px 500px at 85% -10%,rgba(139,92,246,.16),transparent 55%),radial-gradient(900px 480px at -10% 15%,rgba(101,163,13,.14),transparent 55%),radial-gradient(700px 500px at 50% 110%,rgba(14,165,233,.10),transparent 55%),linear-gradient(165deg,#0c0d0f,#111312 55%,#0e1116);background-attachment:fixed}
+/* ===== Paleta semántica dual (dark = neón / light = profundo) — igual que la app ===== */
+:root{
+  --bg:rgba(255,255,255,.82);--card:rgba(255,255,255,.78);--border:rgba(0,0,0,.08);
+  --txt:#20241f;--muted:#6b7280;--surface:rgba(0,0,0,.03);--surface-strong:rgba(0,0,0,.06);
+  --panel:rgba(255,255,255,.97);
+  --accent-lime:#4d7c0f;--accent-emerald:#059669;--accent-violet:#7c3aed;--accent-amber:#b45309;--accent-red:#dc2626;
+}
+html.light body{background:radial-gradient(1200px 500px at 85% -10%,rgba(167,139,250,.22),transparent 55%),radial-gradient(900px 480px at -10% 15%,rgba(132,204,22,.20),transparent 55%),radial-gradient(700px 500px at 50% 110%,rgba(14,165,233,.16),transparent 55%),linear-gradient(160deg,#f8faf7,#eef4ea 55%,#eceff8)}
+html.dark{color-scheme:dark}
+html.dark{
+  --bg:rgba(26,28,31,.78);--card:rgba(26,28,31,.78);--border:rgba(255,255,255,.1);
+  --txt:rgba(230,235,230,.92);--muted:#6e7681;--surface:rgba(255,255,255,.06);--surface-strong:rgba(255,255,255,.1);
+  --panel:rgba(24,27,31,.97);
+  --accent-lime:#84cc16;--accent-emerald:#34d399;--accent-violet:#a78bfa;--accent-amber:#fbbf24;--accent-red:#f87171;
+}
+html.dark body{background:radial-gradient(1200px 500px at 85% -10%,rgba(139,92,246,.16),transparent 55%),radial-gradient(900px 480px at -10% 15%,rgba(101,163,13,.14),transparent 55%),radial-gradient(700px 500px at 50% 110%,rgba(14,165,233,.10),transparent 55%),linear-gradient(165deg,#0c0d0f,#111312 55%,#0e1116)}
+body{font-family:'Inter',sans-serif;color:var(--txt);min-height:100dvh;transition:background .3s}
 button{font-family:inherit;border:none;background:none;color:inherit;cursor:pointer;min-width:44px;min-height:44px}
-/* Card externa con formato del form actual: violeta suave + borde violeta */
-.form-card{max-width:28rem;margin:2rem auto;background:rgba(139,92,246,.06);border:2px solid rgba(139,92,246,.4);border-radius:16px;padding:16px 16px 18px;backdrop-filter:blur(28px) saturate(1.5);box-shadow:0 24px 60px -24px rgba(0,0,0,.6)}
-.form-title{font-size:14px;font-weight:600;color:rgba(230,235,230,.92);margin-bottom:12px}
-/* Acordeón (secciones glass internas) */
-.sect{background:var(--surface);border:1px solid var(--border);border-radius:16px;margin-bottom:10px;overflow:hidden}
-.sect.open{border-color:rgba(132,204,22,.4)}
+.wrap{max-width:30rem;margin:0 auto;padding:20px 16px calc(24px + env(safe-area-inset-bottom))}
+.toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;min-height:44px}
+.toolbar h1{font-size:15px;font-weight:800}
+.seg{display:flex;gap:6px;background:var(--panel);border:1px solid var(--border);border-radius:99px;padding:4px}
+.seg button{min-height:40px;padding:0 16px;border-radius:99px;font-size:12px;font-weight:700;color:var(--muted)}
+.seg button.on{background:linear-gradient(135deg,#65a30d,#84cc16);color:#fff}
+/* ===== Form card: sigue los estándares actuales (borde violeta de acción especial) ===== */
+.form-card{background:var(--card);border:2px solid var(--accent-violet);border-radius:20px;padding:16px 16px 18px;backdrop-filter:blur(28px) saturate(1.5);box-shadow:0 24px 60px -24px rgba(0,0,0,.45)}
+.form-title{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;margin-bottom:12px;color:var(--txt)}
+.form-title .ic{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:var(--surface);color:var(--accent-violet);flex-shrink:0}
+/* ===== Acordeón (secciones glass internas) ===== */
+.sect{background:var(--surface);border:1px solid var(--border);border-radius:16px;margin-bottom:10px;overflow:hidden;transition:border-color .2s}
+.sect.open{border-color:var(--accent-lime)}
 .sect-head{display:flex;align-items:center;gap:10px;min-height:52px;padding:0 12px;width:100%}
 .sect-head .tt{font-size:13px;font-weight:600;flex:1;text-align:left;color:var(--txt)}
-.sect-head .chev{font-size:12px;color:var(--muted);transition:transform .2s}
-.sect.open .chev{transform:rotate(180deg)}
+.sect-head .chev{color:var(--muted);transition:transform .2s}
+.sect.open .chev{transform:rotate(180deg);color:var(--accent-lime)}
 .sect-body{display:none;padding:12px 12px 14px}
 .sect.open .sect-body{display:block}
-/* Labels iguales al form real: text-[11px], sin uppercase */
+/* ===== Fields (igual al form real) ===== */
 label{display:block;font-size:11px;color:var(--muted);font-weight:500;margin-bottom:6px}
-/* Input base = input-aura del form real */
-.input-aura{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:12px;font-size:14px;color:var(--txt);outline:none;transition:border-color .2s,box-shadow .2s}
-.input-aura:focus{border-color:rgba(132,204,22,.6);box-shadow:0 0 0 3px rgba(132,204,22,.18)}
-.input-aura.normal{min-height:44px;padding:0 12px}
-/* MoneyInput real: símbolo adelante + input con padding según símbolo */
-.money{position:relative}
-.money .sym{position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:14px;font-weight:500;pointer-events:none;color:var(--muted);transition:color .2s}
-.money .sym.on{color:#34d399}
-.money input{min-height:44px;padding:0 12px}
-.money input.pl7{padding-left:26px}
-.money input.pl10{padding-left:40px}
+.input-aura{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:12px;font-size:14px;color:var(--txt);outline:none;min-height:44px;padding:0 12px;transition:border-color .2s,box-shadow .2s}
+.input-aura:focus{border-color:var(--accent-lime);box-shadow:0 0 0 3px rgba(132,204,22,.18)}
+select.input-aura{appearance:none;background-image:url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236e7681' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:34px}
 .field{margin-bottom:12px}
 .field:last-child{margin-bottom:0}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-/* Toggles estilo C */
-.seg{display:flex;gap:8px}
+/* ===== MoneyInput (símbolo adelante, esmeralda al escribir) ===== */
+.money{position:relative}
+.money .sym{position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:14px;font-weight:500;pointer-events:none;color:var(--muted)}
+.money .sym.on{color:var(--accent-emerald)}
+.money input{min-height:44px;padding:0 12px}
+.money input.pl7{padding-left:26px}
+.money input.pl10{padding-left:40px}
+/* ===== Toggles (estilo C, divisas multi) ===== */
+.segrow{display:flex;gap:8px}
 .segbtn{flex:1;min-height:44px;border-radius:99px;background:var(--surface);border:1px solid var(--border);font-size:13px;font-weight:500;color:var(--muted);display:flex;align-items:center;justify-content:center;gap:6px;transition:background .2s,border-color .2s,color .2s}
 .segbtn.on{background:linear-gradient(135deg,#65a30d,#84cc16);color:#fff;border:none;box-shadow:0 8px 20px -8px rgba(132,204,22,.6);font-weight:700}
+.segbtn.multi.on{background:linear-gradient(135deg,#65a30d,#84cc16);color:#fff;border:none;box-shadow:0 8px 20px -8px rgba(132,204,22,.6);font-weight:700}
 .segbtn.multi{min-height:44px;font-size:13px}
-.segbtn.multi.on{background:linear-gradient(135deg,#65a30d,#84cc16);color:#fff;border:none;font-weight:700}
 .divider{height:1px;background:var(--border);margin:12px 0}
-select.input-aura{appearance:none;min-height:44px;padding:0 12px;background-image:url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236e7681' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:34px}
-/* Botones footer */
+.hint{font-size:10px;color:var(--accent-amber);margin-top:4px}
+/* ===== Footer: Cancelar · Foto · Guardar ===== */
 .actions{display:flex;align-items:center;gap:8px;margin-top:14px}
 .btn{flex:1;min-height:48px;border-radius:99px;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px}
 .btn.primary{background:linear-gradient(135deg,#65a30d,#84cc16);color:#fff;box-shadow:0 10px 24px -8px rgba(132,204,22,.55);flex:1.6}
@@ -56,110 +78,130 @@ select.input-aura{appearance:none;min-height:44px;padding:0 12px;background-imag
 </style>
 </head>
 <body>
-<div class="form-card">
-  <div class="form-title">✏️ Editar gasto</div>
-
-  <!-- Sección 1: Datos básicos -->
-  <div class="sect open" onclick="toggle(this)">
-    <div class="sect-head">
-      <span class="tt">🏷️ Datos básicos</span><span class="chev">▾</span>
-    </div>
-    <div class="sect-body">
-      <div class="field">
-        <label>Nombre *</label>
-        <input class="input-aura normal" placeholder="Ej: Alquiler" />
-      </div>
-      <div class="field">
-        <label>Categoría</label>
-        <select class="input-aura">
-          <option value="vivienda">🏠 Vivienda</option>
-          <option value="servicios">💡 Servicios</option>
-          <option value="tarjetas">💳 Tarjetas</option>
-          <option value="eventos">🎉 Eventos</option>
-          <option value="salud">🏥 Salud</option>
-          <option value="impuestos">🧾 Impuestos</option>
-          <option value="otros">📦 Otros</option>
-        </select>
-      </div>
+<div class="wrap">
+  <div class="toolbar">
+    <h1>Form de gasto — opción D</h1>
+    <div class="seg" id="seg">
+      <button class="on" onclick="setDark(true)">🌙 Dark</button>
+      <button onclick="setDark(false)">☀️ Light</button>
     </div>
   </div>
 
-  <!-- Sección 2: Montos -->
-  <div class="sect open" onclick="toggle(this)">
-    <div class="sect-head">
-      <span class="tt">💰 Montos</span><span class="chev">▾</span>
-    </div>
-    <div class="sect-body">
+  <div class="form-card">
+    <div class="form-title"><span class="ic"><i data-lucide="pencil" style="width:18px;height:18px"></i></span>Editar gasto</div>
 
-      <div class="field">
-        <label>Estado</label>
-        <div class="seg">
-          <button class="segbtn on" onclick="seg(this)">✓ Pagado</button>
-          <button class="segbtn" onclick="seg(this)">⏳ Pendiente</button>
-        </div>
+    <!-- Sección 1: Datos básicos -->
+    <div class="sect open" onclick="toggle(this)">
+      <div class="sect-head">
+        <i data-lucide="tag" style="width:18px;height:18px;color:var(--muted)"></i>
+        <span class="tt">Datos básicos</span><i data-lucide="chevron-down" class="chev" style="width:16px;height:16px"></i>
       </div>
-
-      <div class="field">
-        <label>¿En qué cargás el gasto?</label>
-        <div class="seg">
-          <button class="segbtn multi on" onclick="divisa(this)">AR$ Pesos</button>
-          <button class="segbtn multi on" onclick="divisa(this)">u$d Dólares</button>
+      <div class="sect-body">
+        <div class="field">
+          <label>Nombre *</label>
+          <input class="input-aura" placeholder="Ej: Alquiler" />
         </div>
-      </div>
-
-      <div class="divider"></div>
-
-      <!-- ARS: 2 MoneyInput en fila, símbolo $ adelante (como el real) -->
-      <div id="cArs" class="row">
-        <div>
-          <label>Monto ARS ($)</label>
-          <div class="money"><span class="sym" id="symArs">$</span><input class="input-aura pl7" placeholder="688.000" data-sym="symArs" /></div>
-        </div>
-        <div>
-          <label>Estimado ARS ($)</label>
-          <div class="money"><span class="sym" id="symEst">$</span><input class="input-aura pl7" placeholder="80.000" data-sym="symEst" /></div>
-        </div>
-      </div>
-
-      <!-- USD: 2 MoneyInput en fila, símbolo u$d adelante (como el real) -->
-      <div id="cUsd" class="row" style="margin-top:12px">
-        <div>
-          <label>Monto USD (u$d)</label>
-          <div class="money"><span class="sym" id="symUsd">u$d</span><input class="input-aura pl10" placeholder="10,90" data-sym="symUsd" /></div>
-        </div>
-        <div>
-          <label>Cotización USD ($)</label>
-          <div class="money"><span class="sym" id="symRate">$</span><input class="input-aura pl7" placeholder="1.200" data-sym="symRate" /></div>
+        <div class="field">
+          <label>Categoría</label>
+          <select class="input-aura">
+            <option value="vivienda">Vivienda</option>
+            <option value="servicios">Servicios</option>
+            <option value="tarjetas">Tarjetas</option>
+            <option value="eventos">Eventos</option>
+            <option value="salud">Salud</option>
+            <option value="impuestos">Impuestos</option>
+            <option value="otros" selected>Otros</option>
+          </select>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Sección 3: Extras -->
-  <div class="sect" onclick="toggle(this)">
-    <div class="sect-head">
-      <span class="tt">📎 Extras</span><span class="chev">▾</span>
-    </div>
-    <div class="sect-body">
-      <div class="field">
-        <label>Vencimiento</label>
-        <input type="date" class="input-aura normal" />
+    <!-- Sección 2: Montos -->
+    <div class="sect open" onclick="toggle(this)">
+      <div class="sect-head">
+        <i data-lucide="wallet" style="width:18px;height:18px;color:var(--muted)"></i>
+        <span class="tt">Montos</span><i data-lucide="chevron-down" class="chev" style="width:16px;height:16px"></i>
       </div>
-      <div class="field">
-        <label>Notas</label>
-        <input class="input-aura normal" placeholder="Opcional" />
-      </div>
-    </div>
-  </div>
+      <div class="sect-body">
+        <div class="field">
+          <label>Estado</label>
+          <div class="segrow">
+            <button class="segbtn on" onclick="seg(this)"><i data-lucide="check" style="width:16px;height:16px"></i>Pagado</button>
+            <button class="segbtn" onclick="seg(this)"><i data-lucide="clock" style="width:16px;height:16px"></i>Pendiente</button>
+          </div>
+        </div>
 
-  <div class="actions">
-    <button class="btn ghost" onclick="alert('Cancelar')">Cancelar</button>
-    <button class="btn photo" onclick="alert('📷 Escanear factura')" title="Escanear factura">📷 Foto</button>
-    <button class="btn primary" onclick="alert('Guardado')">✓ Guardar</button>
+        <div class="field">
+          <label>¿En qué cargás el gasto?</label>
+          <div class="segrow">
+            <button class="segbtn multi on" onclick="divisa(this)">AR$ Pesos</button>
+            <button class="segbtn multi on" onclick="divisa(this)">u$d Dólares</button>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- ARS: 2 MoneyInput en fila, $ adelante (símbolo esmeralda al escribir) -->
+        <div id="cArs" class="row">
+          <div>
+            <label>Monto ARS ($)</label>
+            <div class="money"><span class="sym" id="symArs">$</span><input class="input-aura pl7" placeholder="688.000" data-sym="symArs" /></div>
+          </div>
+          <div>
+            <label>Estimado ARS ($)</label>
+            <div class="money"><span class="sym" id="symEst">$</span><input class="input-aura pl7" placeholder="80.000" data-sym="symEst" /></div>
+            <div class="hint"><i data-lucide="alert-triangle" style="width:11px;height:11px;display:inline-block"></i> si no cargás monto, queda por confirmar</div>
+          </div>
+        </div>
+
+        <!-- USD: 2 MoneyInput en fila, u$d adelante -->
+        <div id="cUsd" class="row" style="margin-top:12px">
+          <div>
+            <label>Monto USD (u$d)</label>
+            <div class="money"><span class="sym" id="symUsd">u$d</span><input class="input-aura pl10" placeholder="10,90" data-sym="symUsd" /></div>
+          </div>
+          <div>
+            <label>Cotización USD ($)</label>
+            <div class="money"><span class="sym" id="symRate">$</span><input class="input-aura pl7" placeholder="1.200" data-sym="symRate" /></div>
+            <div class="hint"><i data-lucide="alert-triangle" style="width:11px;height:11px;display:inline-block"></i> requerido si hay USD</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sección 3: Extras -->
+    <div class="sect" onclick="toggle(this)">
+      <div class="sect-head">
+        <i data-lucide="paperclip" style="width:18px;height:18px;color:var(--muted)"></i>
+        <span class="tt">Extras</span><i data-lucide="chevron-down" class="chev" style="width:16px;height:16px"></i>
+      </div>
+      <div class="sect-body">
+        <div class="field">
+          <label>Vencimiento</label>
+          <input type="date" class="input-aura" />
+        </div>
+        <div class="field">
+          <label>Notas</label>
+          <input class="input-aura" placeholder="Opcional" />
+        </div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn ghost" onclick="alert('Cancelar')">Cancelar</button>
+      <button class="btn photo" onclick="alert('📷 Escanear factura')" title="Escanear factura"><i data-lucide="scan" style="width:18px;height:18px"></i> Escanear</button>
+      <button class="btn primary" onclick="alert('Guardado')"><i data-lucide="check" style="width:16px;height:16px"></i> Guardar</button>
+    </div>
   </div>
 </div>
 
 <script>
+function setDark(dark){
+  document.documentElement.classList.toggle('dark', dark);
+  document.documentElement.classList.toggle('light', !dark);
+  document.querySelectorAll('#seg button').forEach((b,i)=>b.classList.toggle('on', (i===0)===dark));
+  lucide.createIcons();
+}
 function toggle(el){ el.classList.toggle('open'); }
 function seg(btn){
   btn.parentElement.querySelectorAll('.segbtn').forEach(b=>b.classList.remove('on'));
@@ -172,15 +214,15 @@ function divisa(btn){
   document.getElementById('cArs').style.display = onArs ? 'grid' : 'none';
   document.getElementById('cUsd').style.display = onUsd ? 'grid' : 'none';
 }
-// MoneyInput real: el símbolo se pone esmeralda cuando hay valor
+// MoneyInput real: símbolo esmeralda cuando hay valor
 document.querySelectorAll('.money input').forEach(inp=>{
   inp.addEventListener('input',()=>{
     document.getElementById(inp.dataset.sym).classList.toggle('on', inp.value !== '');
   });
 });
-// init
 document.getElementById('cArs').style.display='grid';
 document.getElementById('cUsd').style.display='grid';
+lucide.createIcons();
 </script>
 </body>
 </html>

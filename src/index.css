@@ -34,6 +34,12 @@
 @utility border-accent-amber {
   border-color: var(--accent-amber);
 }
+@utility border-accent-lime {
+  border-color: var(--accent-lime);
+}
+@utility border-accent-emerald {
+  border-color: var(--accent-emerald);
+}
 
 /* ============================================================
    AURA — Rebranding UX/UI (Soft Glass + light/dark)
@@ -223,6 +229,13 @@
     outline: none;
     border-color: rgba(132, 204, 22, 0.6);
     box-shadow: 0 0 0 3px rgba(132, 204, 22, 0.18);
+  }
+
+  /* Input en modo estimado / por confirmar: acento ámbar (aviso) */
+  .input-aura--estimate,
+  .input-aura--estimate:focus {
+    border-color: rgba(251, 191, 36, 0.55);
+    box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.15);
   }
 
   /* Sticky header heredado (vista vieja, ya no se usa en el shell v4) */

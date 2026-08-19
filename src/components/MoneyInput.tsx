@@ -7,6 +7,8 @@ interface MoneyInputProps {
   autoFocus?: boolean;
   required?: boolean;
   inputMode?: 'decimal';
+  /** Modo estimado / por confirmar: acento ámbar en símbolo y borde del input. */
+  estimate?: boolean;
 }
 
 /** Input de montos con símbolo ( $ o u$d ) integrado a la izquierda. */
@@ -19,6 +21,7 @@ export function MoneyInput({
   autoFocus,
   required,
   inputMode = 'decimal',
+  estimate = false,
 }: MoneyInputProps) {
   const baseCls = 'input-aura w-full px-3 py-2 text-sm';
   const symbolWidth = symbol === 'u$d' ? 'pl-10' : 'pl-7';
@@ -28,7 +31,9 @@ export function MoneyInput({
       <span
         className={`absolute left-2 top-1/2 -translate-y-1/2 text-sm font-medium pointer-events-none select-none transition-colors ${
           value
-            ? 'text-accent-emerald'
+            ? estimate
+              ? 'text-accent-amber'
+              : 'text-accent-emerald'
             : 'text-neutral-400 dark:text-neutral-500'
         }`}
       >
@@ -42,7 +47,7 @@ export function MoneyInput({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className={`${baseCls} ${symbolWidth} ${className}`}
+        className={`${baseCls} ${estimate ? 'input-aura--estimate' : ''} ${symbolWidth} ${className}`.trim()}
       />
     </div>
   );
