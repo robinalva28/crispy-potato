@@ -21,6 +21,8 @@ export function BottomNav({ view, onToggleView, onMore }: Props) {
           <Icon name={meta.icon} size={20} />
           <span>{meta.label}</span>
         </button>
+        {/* Slot central: espacio del FAB flotante + alineación simétrica */}
+        <div className="mid" aria-hidden />
         <button type="button" className="ni" onClick={onMore} title="Más opciones">
           <Icon name="more" size={20} />
           <span>Más</span>

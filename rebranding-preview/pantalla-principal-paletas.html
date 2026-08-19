@@ -1,0 +1,47 @@
+<!DOCTYPE html><html lang="es" class="dark"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Paletas dark</title></head><body>
+<style>
+*{margin:0;box-sizing:border-box}button{font-family:inherit;border:none;background:none;color:inherit;cursor:pointer;min-width:44px;min-height:44px}
+body{font-family:system-ui,sans-serif;min-height:100dvh;color:#e6ebe6;background:#0c0d0f}
+#sel{position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:9;display:flex;gap:4px;background:#14161a;border:1px solid #ffffff22;border-radius:99px;padding:4px}
+#sel button{padding:0 14px;min-height:32px;border-radius:99px;font-size:12px;font-weight:700;color:#a6adb8}#sel button.on{background:#84cc16;color:#fff}
+#app{max-width:28rem;margin:0 auto;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+#hdr{flex-shrink:0;padding:12px 16px 0;border-radius:0 0 28px 28px;margin-bottom:-28px;z-index:5;background:var(--c,#16181c);border-bottom:1px solid var(--b,#ffffff1a);padding-bottom:0;color:var(--t,#e6ebe6)}
+#hdr h1{font-size:15px;display:flex;justify-content:space-between;align-items:center;min-height:44px}#hdr .resto{color:var(--a,#84cc16);font-size:12px;font-weight:700}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:4px 0 10px}.chip{flex-shrink:0;padding:6px 14px;border-radius:99px;font-size:12px;font-weight:600;color:var(--m,#6e7681);background:var(--s,#ffffff10);border:1px solid var(--b,#ffffff1a)}.chip.on{background:linear-gradient(135deg,var(--g1,#65a30d),var(--g2,#84cc16));color:#fff}.chip.new{color:var(--a,#84cc16)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding-bottom:14px}.st{background:var(--s,#ffffff10);border:1px solid var(--b,#ffffff1a);border-radius:14px;padding:8px;text-align:center}.st .l{font-size:9px;text-transform:uppercase;opacity:.5;font-weight:700}.st .v{font-size:11px;font-weight:800;margin-top:3px}.st.resto{background:linear-gradient(135deg,var(--g2,#84cc16)22,var(--g3,#10b981)18);border-color:var(--a,#84cc16)60;color:var(--a,#84cc16)}
+.scroll{flex:1;min-height:0;overflow-y:auto;padding:calc(16px + 28px) 12px 20px;margin-top:-28px}
+.bar{display:flex;gap:12px;background:var(--s,#ffffff10);border:1px solid var(--b,#ffffff1a);border-radius:14px;padding:10px 12px;margin-bottom:12px}.bar .l{font-size:11px;color:var(--m,#6e7681)}.bar .tr{height:6px;border-radius:99px;background:#ffffff22;overflow:hidden;display:flex;margin-top:5px}.bar .p{background:var(--a2,#34d399)}.bar .e{background:var(--a4,#fbbf24)}
+.s{display:flex;align-items:center;gap:8px;background:var(--s,#ffffff10);border:1px solid var(--b,#ffffff1a);border-radius:99px;padding:10px 14px;margin-bottom:12px;color:var(--m,#6e7681);font-size:14px}
+.r{display:flex;align-items:center;gap:12px;background:var(--s,#ffffff10);border:1px solid var(--b,#ffffff1a);border-radius:16px;padding:14px;margin-bottom:10px}.r .dot{width:22px;height:22px;border-radius:99px;background:linear-gradient(135deg,var(--g1,#65a30d),var(--g3,#10b981));flex-shrink:0}.r .dot.p{background:transparent;border:2px solid var(--a4,#fbbf24)}.r .dot.e{background:transparent;border:2px dashed var(--a3,#a78bfa)}.r .mid{flex:1}.r .n{font-size:14px;font-weight:600}.r .sub{display:flex;justify-content:space-between;font-size:11px;opacity:.55;margin-top:2px}.r .amt{font-size:14px;font-weight:800}
+#bb{flex-shrink:0;margin-top:-28px;border-radius:28px 28px 0 0;background:var(--p,#181b1f);border-top:1px solid var(--b,#ffffff1a);padding:24px 12px calc(8px + env(safe-area-inset-bottom));display:flex;justify-content:space-around;z-index:5}.ni{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;font-weight:600;color:var(--m,#6e7681);min-width:64px}.ni.on{color:var(--a,#84cc16)}
+#fab{position:fixed;bottom:calc(18px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:60px;height:60px;border-radius:99px;background:linear-gradient(135deg,var(--gv1,#8b5cf6),var(--gv2,#d946ef));color:#fff;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:700;border:3px solid #14161a}
+/* Paletas */
+body[data-p="a"]{--c:#0c0d0f;--t:#e6ebe6;--m:#6e7681;--s:#ffffff10;--b:#ffffff1a;--p:#0e0f12;--g1:#65a30d;--g2:#84cc16;--g3:#10b981;--gv1:#8b5cf6;--gv2:#d946ef;--a:#84cc16;--a2:#34d399;--a3:#a78bfa;--a4:#fbbf24;background:radial-gradient(900px 480px at -10% 15%,#65a30d22,transparent 55%),linear-gradient(165deg,#0c0d0f,#111312)}
+/* Aura iterado: mismo acento lime, varía fondo + contraste paneles/menús */
+body[data-p="a2"]{--c:#0c0d0f;--t:#e8ede8;--m:#6e7681;--s:#ffffff0c;--b:#ffffff14;--p:#0e0f12;background:radial-gradient(900px 480px at -10% 15%,#65a30d1c,transparent 55%),linear-gradient(165deg,#050506,#0a0b0d)}
+body[data-p="a3"]{--s:#ffffff12;--b:#ffffff22;--p:#1d2026;background:radial-gradient(900px 480px at -10% 15%,#65a30d22,transparent 55%),linear-gradient(165deg,#0d0e10,#121416)}
+body[data-p="a4"]{--s:#ffffff16;--b:#ffffff2c;--p:#22262e;background:radial-gradient(900px 480px at -10% 15%,#65a30d22,transparent 55%),linear-gradient(165deg,#101114,#15171a)}
+body[data-p="a5"]{--s:#ffffff1c;--b:#ffffff3a;--p:#262a33;background:radial-gradient(900px 480px at -10% 15%,#65a30d22,transparent 55%),linear-gradient(165deg,#131417,#181a1d)}
+</style>
+<div id="sel"></div>
+<div id="app">
+<div id="hdr"><h1><span>Agosto 2026 · Presupuesto</span><span class="resto">Resto $890.000</span></h1>
+<div class="chips"><button class="chip">Ene</button><button class="chip">Feb</button><button class="chip on">Ago</button><button class="chip">Sep</button><button class="chip new">+ Crear Mes</button></div>
+<div class="stats"><div class="st"><div class="l">Confirmado</div><div class="v">$4.800.000</div></div><div class="st"><div class="l">Proyectado</div><div class="v">$5.100.000</div></div><div class="st resto"><div class="l">Resto</div><div class="v">$890.000</div></div></div></div>
+<div class="scroll">
+<div class="bar"><div class="tr" style="flex:1"><div class="p" style="width:67%"></div></div></div>
+<div class="s">🔍 Buscar gasto…</div>
+<div class="r"><div class="dot"></div><div class="mid"><div class="n">Alquiler</div><div class="sub"><span>15/07 · pagado</span><span>$688.000</span></div></div><div class="amt">$688.000</div></div>
+<div class="r"><div class="dot p"></div><div class="mid"><div class="n">Internet</div><div class="sub"><span>12/07 · pendiente</span><span>$52.000</span></div></div><div class="amt">$52.000</div></div>
+<div class="r"><div class="dot e"></div><div class="mid"><div class="n">Supermercado</div><div class="sub"><span>10/07 · por confirmar</span><span>~$320.000</span></div></div><div class="amt">$320.000</div></div>
+<div class="r"><div class="dot"></div><div class="mid"><div class="n">Servicios</div><div class="sub"><span>02/07 · pagado</span><span>$98.000</span></div></div><div class="amt">$98.000</div></div>
+</div>
+<div id="bb"><div class="ni on">Presupuesto</div><div class="ni">Ahorro</div><div class="ni">Más</div></div>
+</div>
+<div id="fab">+</div>
+<script>
+const P={a:'Aura actual',a2:'Aura bajo',a3:'Aura medio',a4:'Aura alto',a5:'Aura máx'};
+const s=document.getElementById('sel');
+Object.entries(P).forEach(([k,n])=>{const b=document.createElement('button');b.textContent=n;b.className=k==='a'?'on':'';b.onclick=()=>{document.body.dataset.p=k;document.getElementById('sel').querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on')};s.appendChild(b)});
+</script>
+</body></html>

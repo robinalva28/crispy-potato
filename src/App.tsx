@@ -777,7 +777,7 @@ export default function App() {
     )}
 
     {/* Bottom sheet "Más" */}
-    {activeMonth && view === 'budget' && (
+    {activeMonth && (
       <MoreSheet
         open={moreOpen}
         dark={dark}
