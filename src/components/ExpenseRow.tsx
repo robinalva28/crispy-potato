@@ -24,7 +24,7 @@ export function ExpenseRow({ expense, onTogglePaid, onDelete, onEdit, onDuplicat
   return (
     <div
       data-expense-id={expense.id}
-      className={`flex items-center gap-3 rounded-2xl glass px-3.5 py-3 cursor-pointer hover:opacity-90 transition ${
+      className={`relative flex items-center gap-3 rounded-2xl glass px-3.5 py-3 cursor-pointer hover:opacity-90 transition ${
         isPending ? 'opacity-70' : ''
       }`}
       onClick={(e) => {
@@ -35,6 +35,8 @@ export function ExpenseRow({ expense, onTogglePaid, onDelete, onEdit, onDuplicat
         }
       }}
     >
+      {/* Anillo del efecto de recompensa (Snap + anillo, opción C): invisible hasta que la fila recibe .effC-exp */}
+      <span className="exp-row-ring" aria-hidden />
       <button
         type="button"
         aria-label={expense.paid ? 'Marcar pendiente' : 'Marcar pagado'}

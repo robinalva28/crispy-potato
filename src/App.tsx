@@ -147,11 +147,14 @@ export default function App() {
       const el = expenseFormRef.current;
       if (!el) return;
       const scroll = document.querySelector<HTMLElement>('.app-scroll');
-      const header = document.querySelector<HTMLElement>('.v4-hdr');
-      if (scroll && header) {
-        const headerBottom = header.getBoundingClientRect().bottom;
+      // Las stats (.v4-stats) son el último elemento visual del header
+      // (semitransparentes con curva inferior). El form se posiciona debajo
+      // de SU bottom para que la línea superior quede totalmente visible.
+      const stats = document.querySelector<HTMLElement>('.v4-stats');
+      if (scroll && stats) {
+        const statsBottom = stats.getBoundingClientRect().bottom;
         const elTop = el.getBoundingClientRect().top;
-        const target = scroll.scrollTop + (elTop - headerBottom) + 16;
+        const target = scroll.scrollTop + (elTop - statsBottom) + 20;
         scroll.scrollTo({ top: Math.max(target, 0), behavior: 'smooth' });
       } else {
         el.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -160,13 +163,20 @@ export default function App() {
     return () => clearTimeout(timer);
   }, [editing]);
 
-  // Tras guardar/editar un gasto, scrollea hasta su fila en la lista
-  // (SOLO scroll por ahora; el efecto de recompensa se diseña aparte)
+  // Tras guardar/editar un gasto, scrollea hasta su fila y dispara el efecto
+  // de recompensa "Snap + anillo" (efecto elegido en el preview, opción C).
+  // El anillo (.exp-row-ring) vive en la fila; acá solo se agrega .effC-exp
+  // una vez que el scroll llegó, y se limpia al terminar las animaciones.
   useEffect(() => {
     if (focusExpenseId == null) return;
     const timer = setTimeout(() => {
       const row = document.querySelector<HTMLElement>(`[data-expense-id="${focusExpenseId}"]`);
       row?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // Espera que el scroll smooth termine antes de disparar el efecto
+      setTimeout(() => {
+        row?.classList.add('effC-exp');
+        setTimeout(() => row?.classList.remove('effC-exp'), 1400);
+      }, 450);
       setFocusExpenseId(null);
     }, 50);
     return () => clearTimeout(timer);

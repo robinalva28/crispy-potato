@@ -204,6 +204,33 @@
     transform: translateY(-1px);
   }
 
+  /* ===== Efecto de recompensa: "Snap + anillo" (opción C) =====
+     Se dispara sobre la fila del gasto recién guardado:
+     pop elástico + anillo lime expansivo. */
+  .effC-exp {
+    animation: rowSnap 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .exp-row-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 16px;
+    pointer-events: none;
+    border: 2px solid rgba(132, 204, 22, 0.8);
+    opacity: 0;
+  }
+  .effC-exp .exp-row-ring {
+    animation: ringExpand 0.8s ease-out forwards;
+  }
+  @keyframes rowSnap {
+    0% { transform: scale(0.92); opacity: 0.4; }
+    60% { transform: scale(1.02); opacity: 1; }
+    100% { transform: scale(1); }
+  }
+  @keyframes ringExpand {
+    0% { transform: scale(0.9); opacity: 0.9; }
+    100% { transform: scale(1.06); opacity: 0; }
+  }
+
   /* Botón violeta Aura (foto) */
   .btn-violet {
     background: linear-gradient(135deg, #8b5cf6, #d946ef);
