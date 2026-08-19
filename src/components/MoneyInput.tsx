@@ -1,3 +1,5 @@
+import { formatInputString } from '../utils/format.ts';
+
 interface MoneyInputProps {
   symbol: '$' | 'u$d';
   value: string;
@@ -45,7 +47,7 @@ export function MoneyInput({
         autoFocus={autoFocus}
         required={required}
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => onChange(formatInputString(e.target.value))}
         placeholder={placeholder}
         className={`${baseCls} ${estimate ? 'input-aura--estimate' : ''} ${symbolWidth} ${className}`.trim()}
       />

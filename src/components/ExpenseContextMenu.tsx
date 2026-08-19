@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef, useState } from 'react';
 import type { Expense } from '../types.ts';
 import { getExpenseTotal, fmtARS, fmtUSD, fmtDate } from '../utils/money.ts';
 import { Icon } from './ui/Icon.tsx';
@@ -21,6 +22,8 @@ interface Props {
 }
 
 export function ExpenseContextMenu({ expense, rect, onClose, onDetails, onEdit, onDuplicate, onDelete }: Props) {
+  const [menuHeight, setMenuHeight] = useState(230);
+  const menuRef = useRef<HTMLDivElement | null>(null);
   const isPending = !expense.paid;
   const isEstimated = expense.amountArs == null;
   const hasUsd = expense.amountUsd > 0;
@@ -29,11 +32,18 @@ export function ExpenseContextMenu({ expense, rect, onClose, onDetails, onEdit, 
     ? `~${fmtARS(expense.estimatedArs ?? 0)}`
     : fmtARS(expense.amountArs ?? 0);
 
-  // Menú: hacia abajo y pegado a la derecha de la card; si no entra, arriba
+  // Mide la altura real del menú para posicionarlo sin que quede cortado
+  useLayoutEffect(() => {
+    if (menuRef.current) {
+      setMenuHeight(menuRef.current.offsetHeight);
+    }
+  }, []);
+
+  // Menú: hacia abajo y pegado a la derecha de la card; si no entra abajo, arriba
   const menuTop = rect.top + rect.height + 10;
   const menuLeft = Math.max(12, rect.left + rect.width - 220);
-  const flipUp = menuTop + 190 > window.innerHeight;
-  const top = flipUp ? Math.max(12, rect.top - 190) : menuTop;
+  const flipUp = menuTop + menuHeight > window.innerHeight - 12;
+  const top = flipUp ? Math.max(12, window.innerHeight - menuHeight - 12) : menuTop;
 
   return (
     <>
@@ -81,7 +91,7 @@ export function ExpenseContextMenu({ expense, rect, onClose, onDetails, onEdit, 
       </div>
 
       {/* Menú flotante con las acciones */}
-      <div className="exp-menu" style={{ top, left: menuLeft }}>
+      <div className="exp-menu" ref={menuRef} style={{ top, left: menuLeft }}>
         <div className="exp-menu-title truncate">{expense.name}</div>
         <button type="button" className="em-item" onClick={onDetails}>
           <span className="ico"><Icon name="info" size={20} /></span>Detalles

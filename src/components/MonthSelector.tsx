@@ -6,6 +6,8 @@ import {
   type NewMonthInput,
 } from '../hooks/useBudget.ts';
 import { Icon } from './ui/Icon.tsx';
+import { MoneyInput } from './MoneyInput.tsx';
+import { parseLocalNumber } from '../utils/format.ts';
 
 interface Props {
   months: Month[];
@@ -43,7 +45,7 @@ export function MonthSelector({ months, activeMonthId, onSelect, onCreate }: Pro
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
-    const income = Number(newIncome);
+    const income = parseLocalNumber(newIncome) ?? 0;
     if (!newId || isNaN(income) || income <= 0) return;
 
     // Validación: el ID del mes ya existe
@@ -154,14 +156,11 @@ export function MonthSelector({ months, activeMonthId, onSelect, onCreate }: Pro
               <label className="block text-[11px] text-neutral-500 font-medium mb-1 dark:text-neutral-400">
                 Ingreso del mes (ARS) *
               </label>
-              <input
-                type="number"
-                step="any"
-                min="0"
+              <MoneyInput
+                symbol="$"
                 value={newIncome}
-                onChange={(e) => setNewIncome(e.target.value)}
-                placeholder="Ej: 5000000"
-                className="input-aura w-full px-3 py-2 text-sm"
+                onChange={setNewIncome}
+                placeholder="Ej: 5.000.000"
                 required
               />
             </div>

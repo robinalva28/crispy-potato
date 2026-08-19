@@ -46,3 +46,60 @@ export function formatInputNumber(value: number | null, decimals = 2): string {
     maximumFractionDigits: decimals,
   }).format(value);
 }
+
+/**
+ * Formatea el texto de un input de monto EN VIVO mientras se escribe (es-AR):
+ * - Separa miles con "." automáticamente: "1000000" → "1.000.000"
+ * - Acepta "." o "," como separador decimal: "5500.56" → "5.500,56"
+ * - Mantiene el decimal en curso ("5,") y limita a 2 decimales.
+ * - Devuelve string (no modifica números ya formateados con coma).
+ */
+export function formatInputString(raw: string): string {
+  // Si no hay nada que formatear, devolver tal cual
+  if (raw === '') return '';
+
+  // Normalizar: ambos separadores decimales ('.' o ',') pasan a cuenta propia
+  let hasDecimal = raw.includes(',');
+  let integerPart = '';
+  let decimalPart = '';
+
+  if (hasDecimal) {
+    const parts = raw.split(',');
+    integerPart = parts[0].replace(/\./g, '');
+    decimalPart = parts[1];
+  } else {
+    // Sin coma: puntos pueden ser miles o un decimal suelto.
+    const dotCount = (raw.match(/\./g) || []).length;
+    if (dotCount > 0) {
+      const parts = raw.split('.');
+      // Si el patrón es de miles puro (1.234.567) → sin decimal
+      if (/^\d{1,3}(\.\d{3})+$/.test(raw)) {
+        integerPart = raw.replace(/\./g, '');
+        decimalPart = '';
+      } else {
+        // Caso decimal: la última parte después del último punto es decimal
+        integerPart = parts.slice(0, -1).join('').replace(/\./g, '');
+        decimalPart = parts[parts.length - 1];
+        hasDecimal = true;
+      }
+    } else {
+      integerPart = raw;
+      decimalPart = '';
+    }
+  }
+
+  // Limpiar caracteres no numéricos
+  integerPart = integerPart.replace(/\D/g, '');
+  decimalPart = decimalPart.replace(/\D/g, '').slice(0, 2);
+
+  // Formatear miles con separador es-AR
+  const thousands = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+  // Armar el resultado
+  let result = thousands;
+  if (hasDecimal || raw.endsWith(',') || raw.endsWith('.')) {
+    result += ',';
+    if (decimalPart) result += decimalPart;
+  }
+  return result;
+}
