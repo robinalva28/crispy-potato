@@ -107,7 +107,6 @@ export default function App() {
   const [budgetInputs, setBudgetInputs] = useState<Partial<Record<Category, string>>>({});
   const [showPhotoModal, setShowPhotoModal] = useState(false);
   const [confirmDeleteMonth, setConfirmDeleteMonth] = useState<Month | null>(null);
-  const expenseFormRef = useRef<HTMLDivElement | null>(null);
   const [focusExpenseId, setFocusExpenseId] = useState<number | null>(null);
   const [contextExpense, setContextExpense] = useState<Expense | null>(null);
   const [contextRect, setContextRect] = useState<ExpenseRect | null>(null);
@@ -156,30 +155,8 @@ export default function App() {
     }
   }, [view]);
 
-  // Al abrir el formulario de gasto (agregar/editar), lo posiciona JUSTO
-  // debajo del header fijo (v4-stats): ni tapado ni centrado.
-  useEffect(() => {
-    if (!editing) return;
-    // Espera a que el form esté montado y el layout sea estable antes de medir.
-    const timer = setTimeout(() => {
-      const el = expenseFormRef.current;
-      if (!el) return;
-      const scroll = document.querySelector<HTMLElement>('.app-scroll');
-      // Las stats condicionales (.hdr-cond-stats) son el último elemento visual
-      // del header (semitransparentes con curva inferior). El form se posiciona
-      // debajo de SU bottom para que la línea superior quede totalmente visible.
-      const stats = document.querySelector<HTMLElement>('.hdr-cond-stats');
-      if (scroll && stats) {
-        const statsBottom = stats.getBoundingClientRect().bottom;
-        const elTop = el.getBoundingClientRect().top;
-        const target = scroll.scrollTop + (elTop - statsBottom) + 20;
-        scroll.scrollTo({ top: Math.max(target, 0), behavior: 'smooth' });
-      } else {
-        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    }, 60);
-    return () => clearTimeout(timer);
-  }, [editing]);
+  // (El form de gasto es un modal centrado que vive FUERA del <main>, junto a
+  // los overlays fixed. Ver su render al final del componente.)
 
   // Tras guardar/editar un gasto, scrollea hasta su fila y dispara el efecto
   // de recompensa "Snap + anillo" (efecto elegido en el preview, opción C).
@@ -530,26 +507,6 @@ export default function App() {
           <div className="px-3 pt-1 pb-1 space-y-2">
             {activeMonth && (
               <>
-                <div ref={expenseFormRef}>
-                  {activeMonth.status === 'abierto' && editing && editing.expense !== null && (
-                    <ExpenseForm
-                      initial={editing.expense}
-                      onSave={saveExpense}
-                      onCancel={() => setEditing(null)}
-                      onGetLastUsdRate={budget.getLastUsdRate}
-                    />
-                  )}
-
-                  {activeMonth.status === 'abierto' && editing?.adding && (
-                    <ExpenseForm
-                      initial={null}
-                      onSave={saveExpense}
-                      onCancel={() => setEditing(null)}
-                      onGetLastUsdRate={budget.getLastUsdRate}
-                    />
-                  )}
-                </div>
-
                 {budget.monthExpenses.length === 0 && (
                   <div className="py-8 text-center text-sm text-neutral-500 dark:text-neutral-400">
                     Sin gastos todavía. Toque "+ Agregar Gasto".
@@ -784,6 +741,18 @@ export default function App() {
 
     {/* Overlay unificado: cierra cualquier panel abierto */}
     <div className={`ov-v4 ${overlayOpen ? 'open' : ''}`} onClick={closePanels} />
+
+    {/* Form de gasto: modal centrado FUERA del main. El .glass-card crea un
+        stacking context y una instancia así bloquearía el overlay (z85) por
+        debajo del FAB (z60). Acá, en el contexto raíz, el blur tapa al FAB. */}
+    {activeMonth && activeMonth.status === 'abierto' && editing && (
+      <ExpenseForm
+        initial={editing.expense}
+        onSave={saveExpense}
+        onCancel={() => setEditing(null)}
+        onGetLastUsdRate={budget.getLastUsdRate}
+      />
+    )}
 
     <ExpenseDetailModal
       expense={detailExpense}
@@ -1031,9 +1000,7 @@ export default function App() {
             />
           </div>
           <div>
-            <label className="block text-[11px] text-neutral-500 font-medium mb-1 dark:text-neutral-400">
-              Ingreso (ARS)
-            </label>
+            <label className="block text-[11px] text-neutral-500 font-medium mb-1">Ingreso (ARS)</label>
             <MoneyInput
               symbol="$"
               value={editingMonth.income}

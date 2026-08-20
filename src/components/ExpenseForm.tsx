@@ -7,7 +7,7 @@ import { Button } from './ui/Button.tsx';
 import { Icon } from './ui/Icon.tsx';
 import { extractInvoice } from '../utils/invoiceExtract.ts';
 import { inferCategory } from '../utils/photoExtract.ts';
-import { CATEGORY_LABELS, CATEGORY_ORDER } from '../utils/money.ts';
+import { CATEGORY_LABELS, CATEGORY_ORDER, getExpenseTotal, fmtARS, fmtUSD } from '../utils/money.ts';
 
 const CATEGORIES: Category[] = CATEGORY_ORDER;
 
@@ -60,37 +60,18 @@ interface Props {
 type SectionKey = 'basicos' | 'montos' | 'extras';
 type CurrencyMode = 'real' | 'estimate';
 
-/** Clases para los botones segmentados (igual que la Opción D).
- *  variant 'success' → Pagado (gradiente esmeralda = éxito)
- *  variant 'warning' → Pendiente (delineado ámbar = aviso)
- *  default → divisas (gradiente lime) */
-function segButtonClass(on: boolean, variant: 'default' | 'success' | 'warning' = 'default') {
-  const activeCls =
-    variant === 'success'
-      ? 'grad-emerald text-white font-bold border-transparent'
-      : variant === 'warning'
-        ? 'bg-amber-500/[0.08] border-accent-amber text-accent-amber font-bold'
-        : 'grad-lime text-white font-bold border-transparent';
-  return `flex-1 min-h-[44px] px-2 rounded-full text-[13px] flex items-center justify-center gap-1.5 transition border ${
+/** Clases para el chip "Estimado" (misma paleta de "por confirmar": ámbar). */
+function miniChipClass(on: boolean) {
+  return `inline-flex items-center gap-1 border rounded-full px-2 py-1 text-[9px] font-bold cursor-pointer transition-all duration-150 ${
     on
-      ? activeCls
-      : 'bg-[var(--surface)] border-[var(--border)] text-[var(--muted)] font-medium'
-  }`;
-}
-
-/** Clases para el mini toggle Monto/Estimado: activo con delineado lime y texto lime. */
-function miniSegClass(on: boolean) {
-  return `flex-1 min-h-[32px] px-2 rounded-full text-[11px] font-semibold flex items-center justify-center gap-1 transition border ${
-    on
-      ? 'bg-lime-500/[0.08] border-accent-lime text-accent-lime'
-      : 'bg-transparent border-transparent text-[var(--muted)]'
+      ? 'border-accent-amber bg-amber-500/[0.1] text-accent-amber'
+      : 'border-[var(--border)] bg-[var(--surface)] text-[var(--muted)]'
   }`;
 }
 
 /**
  * Wrapper colapsable con animación de altura suave.
- * Mantiene los inputs montados (conserva valores y foco) y evita el
- * salto brusco de scroll al alternar divisas.
+ * Mantiene los inputs montados (conserva valores y foco).
  */
 function Collapse({ open, children }: { open: boolean; children: React.ReactNode }) {
   return (
@@ -129,18 +110,17 @@ function Section({
         <button
           type="button"
           onClick={onToggle}
-          className="flex items-center gap-2.5 w-full min-h-[52px] px-3"
+          className="flex items-center gap-2.5 w-full min-h-[46px] px-3"
           aria-expanded={open}
         >
-          <Icon name={icon} size={18} className="text-[var(--muted)] shrink-0" />
-          <span className="flex-1 text-left text-[13px] font-semibold text-[var(--txt)]">{title}</span>
+          <Icon name={icon} size={17} className="text-[var(--muted)] shrink-0" />
+          <span className="flex-1 text-left text-[12.5px] font-semibold text-[var(--txt)]">{title}</span>
           <Icon
             name="chevronDown"
-            size={16}
+            size={15}
             className={`shrink-0 transition-transform duration-200 ${
               open ? 'rotate-180 text-accent-lime' : 'text-[var(--muted)]'
             }`}
-            ariaHidden
           />
         </button>
         <Collapse open={open}>
@@ -151,83 +131,38 @@ function Section({
   );
 }
 
-/** Bloque de divisa con toggle Monto/Estimado y su input condicional. */
-function CurrencyBlock({
-  enabled,
-  mode,
-  onMode,
-  realLabel,
-  estimateLabel,
-  estimateHint,
-  realInput,
-  estimateInput,
-  usd = false,
-}: {
-  enabled: boolean;
-  mode: CurrencyMode;
-  onMode: (m: CurrencyMode) => void;
-  realLabel: string;
-  estimateLabel: string;
-  estimateHint?: string;
-  realInput: React.ReactNode;
-  estimateInput: React.ReactNode;
-  usd?: boolean;
-}) {
-  if (!enabled) return null;
-  return (
-    <div className={usd ? 'pt-3' : ''}>
-      <div className="flex items-center justify-between gap-2 mb-1.5">
-        <label className="text-[11px] text-neutral-500 font-medium dark:text-neutral-400 m-0">
-          {mode === 'real' ? realLabel : estimateLabel}
-        </label>
-        <div className="flex p-0.5 rounded-full bg-[var(--surface)] border border-[var(--border)] w-fit">
-          <button
-            type="button"
-            className={miniSegClass(mode === 'real')}
-            onClick={(e) => { e.preventDefault(); onMode('real'); }}
-          >
-            Monto
-          </button>
-          <button
-            type="button"
-            className={miniSegClass(mode === 'estimate')}
-            onClick={(e) => { e.preventDefault(); onMode('estimate'); }}
-          >
-            Estimado
-          </button>
-        </div>
-      </div>
-      {mode === 'real' ? realInput : estimateInput}
-      {mode === 'estimate' && estimateHint && (
-        <div className="mt-1 text-[11px] text-accent-amber">
-          <Icon name="alert" size={11} className="inline-block mr-1 align-[-1px]" />{estimateHint}
-        </div>
-      )}
-    </div>
-  );
-}
-
 export function ExpenseForm({ initial, onSave, onCancel, onGetLastUsdRate }: Props) {
   const [form, setForm] = useState<FormState>(() => toForm(initial));
   const [scanning, setScanning] = useState(false);
   const [scanError, setScanError] = useState('');
   const fileRef = useRef<HTMLInputElement | null>(null);
   // Acordeón exclusivo: cuando una sección se abre, las otras se cierran.
-  // null = todo colapsado (solo se ven los headers).
   const [openSection, setOpenSection] = useState<SectionKey | null>('basicos');
-  const [arsEnabled, setArsEnabled] = useState(true);
-  const [usdEnabled, setUsdEnabled] = useState(
+  // USD se expande DENTRO de la misma card de Montos (no en otra sección).
+  const [usdExpanded, setUsdExpanded] = useState(
     () => initial != null && (initial.amountUsd > 0 || initial.usdRate > 0)
   );
-  // Modo de monto por divisa: 'real' = monto confirmado, 'estimate' = estimado / por confirmar.
-  // No pueden convivir monto real y estimado a la vez: el toggle elige cuál se carga.
   const [arsMode, setArsMode] = useState<CurrencyMode>(() =>
     initial != null && initial.amountArs == null && initial.estimatedArs != null ? 'estimate' : 'real'
   );
   const [usdMode, setUsdMode] = useState<CurrencyMode>(() =>
     initial != null && initial.amountArs == null ? 'estimate' : 'real'
   );
-  const hasUsd = usdEnabled && form.amountUsd !== '';
+  // Confirmación final: mini modal con resumen ANTES de persistir.
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingSave, setPendingSave] = useState<Omit<Expense, 'id' | 'monthId'> | null>(null);
+  const shellRef = useRef<HTMLDivElement | null>(null);
+
+  // Refs de wrappers para la navegación "Siguiente" del teclado.
+  const nameWrap = useRef<HTMLDivElement | null>(null);
+  const catWrap = useRef<HTMLDivElement | null>(null);
+  const arsWrap = useRef<HTMLDivElement | null>(null);
+  const usdAmtWrap = useRef<HTMLDivElement | null>(null);
+  const usdRateWrap = useRef<HTMLDivElement | null>(null);
+  const dueWrap = useRef<HTMLDivElement | null>(null);
+  const notesWrap = useRef<HTMLDivElement | null>(null);
+
+  const hasUsd = usdExpanded && form.amountUsd !== '';
 
   /** Escanea una factura y autocompleta los campos con los datos detectados. */
   async function handleScan(e: React.ChangeEvent<HTMLInputElement>) {
@@ -240,21 +175,17 @@ export function ExpenseForm({ initial, onSave, onCancel, onGetLastUsdRate }: Pro
       setForm((f) => ({
         ...f,
         name: inv.name || f.name,
-        // La categoría se infiere del proveedor cuando sea posible
         category: inv.name ? inferCategory(inv.name) : f.category,
         amountArs: inv.amountArs != null ? formatInputNumber(inv.amountArs) : f.amountArs,
         amountUsd: inv.amountUsd > 0 ? formatInputNumber(inv.amountUsd) : f.amountUsd,
         dueDate: inv.dueDate || f.dueDate,
-        // Notes NO se rellenan con el detalle del escaneo (ya no son necesarias)
         notes: f.notes,
       }));
-      // Sincroniza los toggles de divisa y el modo con lo detectado en la factura
       if (inv.amountArs != null) {
-        setArsEnabled(true);
         setArsMode('real');
       }
       if (inv.amountUsd > 0) {
-        setUsdEnabled(true);
+        setUsdExpanded(true);
         setUsdMode('real');
       }
     } catch (err) {
@@ -284,41 +215,68 @@ export function ExpenseForm({ initial, onSave, onCancel, onGetLastUsdRate }: Pro
     setOpenSection((current) => (current === key ? null : key));
   }
 
-  /** Toggle de divisa (multi): siempre queda al menos una activa. */
-  function toggleCurrency(cur: 'ars' | 'usd') {
-    if (cur === 'ars') {
-      const next = !arsEnabled;
-      setArsEnabled(next);
-      if (!next && !usdEnabled) setUsdEnabled(true);
-    } else {
-      const next = !usdEnabled;
-      setUsdEnabled(next);
-      if (!next && !arsEnabled) setArsEnabled(true);
-    }
+  function toggleUsd() {
+    setUsdExpanded((v) => !v);
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  // ── Navegación por teclado: "Siguiente" salta al próximo input ──
+  // Si el próximo campo vive en otra sección, se ABRE esa sección primero.
+  const steps: { section: SectionKey; wrap: React.RefObject<HTMLDivElement | null> }[] = [
+    { section: 'basicos', wrap: nameWrap },
+    { section: 'basicos', wrap: catWrap },
+    { section: 'montos', wrap: arsWrap },
+    ...(usdExpanded
+      ? ([
+          { section: 'montos', wrap: usdAmtWrap },
+          { section: 'montos', wrap: usdRateWrap },
+        ] satisfies { section: SectionKey; wrap: React.RefObject<HTMLDivElement | null> }[])
+      : []),
+    { section: 'extras', wrap: dueWrap },
+    { section: 'extras', wrap: notesWrap },
+  ];
+
+  /** Atrapa Enter/Tab del teclado móvil ("Siguiente") y mueve el foco. */
+  function handleNext(e: React.KeyboardEvent, wrap: React.RefObject<HTMLDivElement | null>) {
+    if (e.key !== 'Enter' && e.key !== 'Tab') return;
     e.preventDefault();
-    // El modo por divisa decide qué campo se guarda:
-    // - ARS 'real' → amountArs; ARS 'estimate' → estimatedArs (amountArs = null)
-    // - USD 'real' → puede confirmar el gasto solo con cotización;
-    //   USD 'estimate' → el gasto queda "por confirmar" aunque haya USD.
-    const estimatedArs = arsEnabled && arsMode === 'estimate' && form.estimatedArs !== ''
-      ? parseLocalNumber(form.estimatedArs)
-      : null;
-    const amountUsd = usdEnabled && form.amountUsd !== '' ? (parseLocalNumber(form.amountUsd) ?? 0) : 0;
-    const usdRate = usdEnabled && form.usdRate === '' ? 0 : (parseLocalNumber(form.usdRate) ?? 0);
-    const hasConfirmedUsd = usdEnabled && usdMode === 'real' && amountUsd > 0 && usdRate > 0;
+    const idx = steps.findIndex((s) => s.wrap === wrap);
+    const next = steps[idx + 1];
+    if (!next) {
+      // Fin del formulario: enfocar el botón Guardar.
+      const btn = shellRef.current?.querySelector<HTMLButtonElement>('.exp-form-save');
+      btn?.focus();
+      return;
+    }
+    // Abre la sección destino (si está cerrada) y enfoca tras el re-render.
+    setOpenSection(next.section);
+    requestAnimationFrame(() => {
+      next.wrap.current?.querySelector<HTMLElement>('input,select,textarea')?.focus();
+    });
+  }
 
-    // Un gasto SOLO en USD con cotización cargada y modo "real" es CONFIRMADO:
-    // amountArs = 0 (no "por confirmar", que se marca con null).
-    const amountArs = !arsEnabled || arsMode === 'estimate' || form.amountArs === ''
-      ? (hasConfirmedUsd ? 0 : null)
-      : parseLocalNumber(form.amountArs);
+  /**
+   * Recolecta los datos del gasto (cálculo real, sin tocar Componentes).
+   * Devuelve null si no hay nada cargado.
+   */
+  function collectData(): Omit<Expense, 'id' | 'monthId'> | null {
+    const estimatedArs =
+      arsMode === 'estimate' && form.estimatedArs !== ''
+        ? parseLocalNumber(form.estimatedArs)
+        : null;
+    const amountUsd = form.amountUsd !== '' ? (parseLocalNumber(form.amountUsd) ?? 0) : 0;
+    const usdRate = form.usdRate === '' ? 0 : (parseLocalNumber(form.usdRate) ?? 0);
+    const hasConfirmedUsd = usdExpanded && usdMode === 'real' && amountUsd > 0 && usdRate > 0;
 
-    if (amountArs == null && estimatedArs == null && amountUsd === 0) return; // nada cargado
+    const amountArs =
+      arsMode === 'estimate' || form.amountArs === ''
+        ? hasConfirmedUsd
+          ? 0
+          : null
+        : parseLocalNumber(form.amountArs);
 
-    onSave({
+    if (amountArs == null && estimatedArs == null && amountUsd === 0) return null;
+
+    return {
       name: form.name.trim(),
       category: form.category,
       amountArs,
@@ -328,245 +286,346 @@ export function ExpenseForm({ initial, onSave, onCancel, onGetLastUsdRate }: Pro
       dueDate: form.dueDate || null,
       paid: form.paid,
       notes: form.notes.trim(),
-    });
+    };
+  }
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const data = collectData();
+    if (!data) return;
+    if (!confirmOpen) {
+      // Primera pasada: mostrar resumen para confirmar.
+      setPendingSave(data);
+      setConfirmOpen(true);
+      return;
+    }
+    onSave(data);
+  }
+
+  function confirmAndSave() {
+    if (!pendingSave) return;
+    onSave(pendingSave);
+    setConfirmOpen(false);
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="relative px-4 py-3 rounded-2xl border-2 border-accent-violet bg-violet-500/[0.06]"
-    >
-      <div className="flex items-center gap-2 mb-3.5 min-h-[32px]">
-        <span className="w-8 h-8 rounded-[10px] bg-[var(--surface)] flex items-center justify-center text-accent-violet shrink-0">
-          <Icon name={initial ? 'pencil' : 'plus'} size={18} />
-        </span>
-        <div className="flex-1 font-semibold text-sm text-neutral-700 dark:text-neutral-200">
-          {initial ? 'Editar gasto' : 'Agregar gasto'}
-        </div>
-        {/* Cerrar discreto: acceso rápido a cancelar sin scrollear hasta el footer */}
-        <button
-          type="button"
-          onClick={onCancel}
-          aria-label="Cancelar"
-          title="Cancelar"
-          className="flex items-center justify-center w-11 h-11 shrink-0 rounded-full text-[var(--muted)] transition hover:opacity-70 active:opacity-50 -mr-2"
-        >
-          <Icon name="x" size={18} />
-        </button>
-      </div>
+    <>
+      {/* Overlay blurreado: tocar afuera cierra el modal */}
+      <div className="exp-form-ov" onClick={onCancel} />
 
-      {/* Overlay de carga evidente mientras se escanea la factura */}
-      {scanning && (
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2.5 rounded-2xl bg-white/75 dark:bg-neutral-900/75 backdrop-blur-sm">
-          <div className="w-11 h-11 rounded-full border-4 border-violet-200 border-t-violet-600 animate-spin" />
-          <div className="text-sm font-semibold text-accent-violet">
-            Escaneando factura…
+      {/* Shell modal: ventana centrada con el fondo del menú contextual */}
+      <div className="exp-form-shell" role="dialog" aria-modal="true" ref={shellRef}>
+        {/* Overlay de carga mientras se escanea */}
+        {scanning && (
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2.5 rounded-[22px] bg-black/40 backdrop-blur-sm">
+            <div className="w-11 h-11 rounded-full border-4 border-violet-200 border-t-violet-600 animate-spin" />
+            <div className="text-sm font-semibold text-white">Escaneando factura…</div>
+            <div className="text-[11px] text-white/60">Leyendo la foto para autocompletar</div>
           </div>
-          <div className="text-[11px] text-neutral-500 dark:text-neutral-400">
-            Leyendo la foto para autocompletar los campos
-          </div>
-        </div>
-      )}
+        )}
 
-      {/* Sección 1: Datos básicos */}
-      <Section
-        icon="tag"
-        title="Datos básicos"
-        open={openSection === 'basicos'}
-        onToggle={() => toggleSection('basicos')}
-      >
-        <div className="mb-3">
-          <label className="block text-[11px] text-neutral-500 font-medium mb-1 dark:text-neutral-400">Nombre *</label>
-          <InputBase
-            value={form.name}
-            onChange={(e) => set('name', e.target.value)}
-            required
-            placeholder="Ej: Alquiler"
-          />
-        </div>
-        <div>
-          <label className="block text-[11px] text-neutral-500 font-medium mb-1 dark:text-neutral-400">Categoría</label>
-          <SelectBase
-            value={form.category}
-            onChange={(e) => set('category', e.target.value as Category)}
-          >
-            {CATEGORIES.map((c) => (
-              <option key={c} value={c}>{CATEGORY_LABELS[c]}</option>
-            ))}
-          </SelectBase>
-        </div>
-      </Section>
-
-      {/* Sección 2: Montos */}
-      <div className="mb-3">
-      <Section
-        icon="wallet"
-        title="Montos"
-        open={openSection === 'montos'}
-        onToggle={() => toggleSection('montos')}
-      >
-        <div className="mb-3">
-          <label className="block text-[11px] text-neutral-500 font-medium mb-1 dark:text-neutral-400">Estado</label>
-          <div className="flex gap-2">
+        <form onSubmit={handleSubmit} noValidate className="exp-form">
+          {/* Header: título + escanear (icono) + cerrar */}
+          <header className="exp-form-head">
+            <span className="exp-form-head-ic">
+              <Icon name={initial ? 'pencil' : 'plus'} size={17} strokeWidth={2.2} />
+            </span>
+            <div className="text-sm font-bold text-[var(--txt)]">{initial ? 'Editar gasto' : 'Agregar gasto'}</div>
             <button
               type="button"
-              className={segButtonClass(form.paid, 'success')}
-              onClick={(e) => { e.preventDefault(); set('paid', true); }}
+              className="exp-form-scan"
+              onClick={() => fileRef.current?.click()}
+              disabled={scanning}
+              aria-label="Escanear factura"
+              title="Escanear factura"
             >
-              <Icon name="check" size={16} />Pagado
+              <Icon name="scan" size={18} />
             </button>
-            <button
-              type="button"
-              className={segButtonClass(!form.paid, 'warning')}
-              onClick={(e) => { e.preventDefault(); set('paid', false); }}
+            <button type="button" className="exp-form-x" onClick={onCancel} aria-label="Cancelar" title="Cancelar">
+              <Icon name="x" size={15} />
+            </button>
+          </header>
+
+          {/* Scroll interno del form */}
+          <div className="exp-form-scroll">
+            {/* Sección 1: Datos básicos */}
+            <Section
+              icon="tag"
+              title="Datos básicos"
+              open={openSection === 'basicos'}
+              onToggle={() => toggleSection('basicos')}
             >
-              <Icon name="clock" size={16} />Pendiente
-            </button>
-          </div>
-        </div>
+              <div ref={nameWrap}>
+                <label className="block text-[11px] text-neutral-500 font-medium mb-1 dark:text-neutral-400">Nombre *</label>
+                <InputBase
+                  value={form.name}
+                  onChange={(e) => set('name', e.target.value)}
+                  required
+                  placeholder="Ej: Alquiler"
+                  enterKeyHint="next"
+                  onKeyDown={(e) => handleNext(e, nameWrap)}
+                />
+              </div>
+              <div ref={catWrap} className="mt-2">
+                <label className="block text-[11px] text-neutral-500 font-medium mb-1 dark:text-neutral-400">Categoría</label>
+                <SelectBase
+                  value={form.category}
+                  onChange={(e) => set('category', e.target.value as Category)}
+                  onKeyDown={(e) => handleNext(e, catWrap)}
+                >
+                  {CATEGORIES.map((c) => (
+                    <option key={c} value={c}>{CATEGORY_LABELS[c]}</option>
+                  ))}
+                </SelectBase>
+              </div>
+            </Section>
 
-        <div className="mb-3">
-          <label className="block text-[11px] text-neutral-500 font-medium mb-1 dark:text-neutral-400">
-            ¿En qué cargás el gasto?
-          </label>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              className={segButtonClass(arsEnabled)}
-              onClick={(e) => { e.preventDefault(); toggleCurrency('ars'); }}
+            {/* Sección 2: Montos (card única ultra compacta) */}
+            <Section
+              icon="wallet"
+              title="Montos"
+              open={openSection === 'montos'}
+              onToggle={() => toggleSection('montos')}
             >
-              AR$ Pesos
-            </button>
-            <button
-              type="button"
-              className={segButtonClass(usdEnabled)}
-              onClick={(e) => { e.preventDefault(); toggleCurrency('usd'); }}
-            >
-              u$d Dólares
-            </button>
-          </div>
-        </div>
-
-        <div className="h-px bg-[var(--border)] my-3" />
-
-        {/* ARS: un solo input según el modo Monto/Estimado */}
-        <Collapse open={arsEnabled}>
-          <CurrencyBlock
-            enabled={arsEnabled}
-            mode={arsMode}
-            onMode={setArsMode}
-            realLabel="Monto ARS ($)"
-            estimateLabel="Estimado ARS ($)"
-            estimateHint="si no cargás monto, queda por confirmar"
-            realInput={
-              <MoneyInput symbol="$" value={form.amountArs} onChange={(v) => set('amountArs', v)} placeholder="688.000" />
-            }
-            estimateInput={
-              <MoneyInput symbol="$" estimate value={form.estimatedArs} onChange={(v) => set('estimatedArs', v)} placeholder="80.000" />
-            }
-          />
-        </Collapse>
-
-        {/* USD: un solo input según el modo Monto/Estimado (estimado = por confirmar, ámbar) */}
-        <Collapse open={usdEnabled}>
-          <CurrencyBlock
-            enabled={usdEnabled}
-            mode={usdMode}
-            onMode={setUsdMode}
-            realLabel="Monto USD (u$d)"
-            estimateLabel="Monto USD estimado (u$d)"
-            estimateHint="monto sin confirmar"
-            usd
-            realInput={
-              <MoneyInput symbol="u$d" value={form.amountUsd} onChange={handleAmountUsdChange} placeholder="10,90" />
-            }
-            estimateInput={
-              <MoneyInput symbol="u$d" estimate value={form.amountUsd} onChange={handleAmountUsdChange} placeholder="10,90" />
-            }
-          />
-          <div className="grid grid-cols-1 gap-2 mt-3">
-            <div>
-              <label className="block text-[11px] text-neutral-500 font-medium mb-1 dark:text-neutral-400">
-                Cotización USD ($){usdEnabled && usdMode === 'real' && hasUsd && <span className="text-accent-amber"> (requerido)</span>}
-              </label>
-              <MoneyInput
-                symbol="$"
-                value={form.usdRate}
-                onChange={(v) => set('usdRate', v)}
-                placeholder="1.200"
-                required={usdEnabled && usdMode === 'real' && hasUsd}
-                estimate={usdMode === 'estimate'}
-              />
-              {usdEnabled && usdMode === 'real' && hasUsd && (
-                <div className="mt-1 text-[11px] text-accent-amber">
-                  <Icon name="alert" size={11} className="inline-block mr-1 align-[-1px]" />requerido si hay USD
+              <div className="mono-card">
+                {/* Fila 1: ARS (badge flotante). Sin "Estimado" activo es monto real. */}
+                <div className="mono-row1">
+                  <div className="cur-sel" ref={arsWrap}>
+                    <span className="cur-badge">
+                      <Icon name="dollar" size={10} strokeWidth={2.5} /> AR$
+                      <Icon name="chevronDown" size={9} />
+                    </span>
+                    <MoneyInput
+                      symbol="$"
+                      value={form.amountArs}
+                      onChange={(v) => set('amountArs', v)}
+                      placeholder="688.000"
+                      estimate={arsMode === 'estimate'}
+                      enterKeyHint="next"
+                      onKeyDown={(e) => handleNext(e, arsWrap)}
+                      className="pl-7"
+                    />
+                  </div>
                 </div>
-              )}
+
+                {/* Fila 2: Pagado · Pte · Estimado ··· u$d */}
+                <div className="mono-row2">
+                  <div className="state-mini">
+                    <button
+                      type="button"
+                      className={form.paid ? 'on-success' : ''}
+                      onClick={() => set('paid', true)}
+                    >
+                      <Icon name="check" size={11} strokeWidth={2.5} />Pagado
+                    </button>
+                    <button
+                      type="button"
+                      className={!form.paid ? 'on-warn' : ''}
+                      onClick={() => set('paid', false)}
+                    >
+                      <Icon name="clock" size={11} strokeWidth={2.5} />Pendiente
+                    </button>
+                    <button
+                      type="button"
+                      className={miniChipClass(arsMode === 'estimate')}
+                      onClick={() => setArsMode(arsMode === 'estimate' ? 'real' : 'estimate')}
+                      aria-pressed={arsMode === 'estimate'}
+                    >
+                      <Icon name="alert" size={11} strokeWidth={2.5} />Estimado
+                    </button>
+                  </div>
+                  <span className="flex-1" />
+                  <button
+                    type="button"
+                    className={`chip ${usdExpanded ? 'on-curr' : ''}`}
+                    onClick={toggleUsd}
+                    aria-expanded={usdExpanded}
+                  >
+                    <Icon name={usdExpanded ? 'x' : 'plus'} size={11} strokeWidth={2.5} />u$d
+                  </button>
+                </div>
+
+                {arsMode === 'estimate' && (
+                  <div className="hint-amber">
+                    <Icon name="alert" size={10} />
+                    <span>Estás cargando una estimación. No se sumará hasta que confirmes el monto real.</span>
+                  </div>
+                )}
+
+                {/* USD inline: se expande dentro de la MISMA card */}
+                <div className={`usd-inline ${usdExpanded ? 'open' : ''}`}>
+                  <div className="usd-pad">
+                    <div className="mono-row1" ref={usdAmtWrap}>
+                      <div className="cur-sel">
+                        <MoneyInput
+                          symbol="u$d"
+                          value={form.amountUsd}
+                          onChange={handleAmountUsdChange}
+                          placeholder="10,90"
+                          estimate={usdMode === 'estimate'}
+                          enterKeyHint="next"
+                          onKeyDown={(e) => handleNext(e, usdAmtWrap)}
+                          className="pl-10"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        className={miniChipClass(usdMode === 'estimate')}
+                        onClick={() => setUsdMode(usdMode === 'estimate' ? 'real' : 'estimate')}
+                        aria-pressed={usdMode === 'estimate'}
+                      >
+                        <Icon name="alert" size={11} strokeWidth={2.5} />Estimado
+                      </button>
+                    </div>
+                    <div className="mt-2" ref={usdRateWrap}>
+                      <label className="block text-[11px] text-neutral-500 font-medium mb-1 dark:text-neutral-400">
+                        Cotización USD ($){usdMode === 'real' && hasUsd && <span className="text-accent-amber"> (requerido)</span>}
+                      </label>
+                      <MoneyInput
+                        symbol="$"
+                        value={form.usdRate}
+                        onChange={(v) => set('usdRate', v)}
+                        placeholder="1.200"
+                        required={usdMode === 'real' && hasUsd}
+                        estimate={usdMode === 'estimate'}
+                        enterKeyHint="next"
+                        onKeyDown={(e) => handleNext(e, usdRateWrap)}
+                        className="pl-7"
+                      />
+                      {usdMode === 'real' && hasUsd && (
+                        <div className="hint-amber">
+                          <Icon name="alert" size={10} />requerido si hay USD
+                        </div>
+                      )}
+                    </div>
+                    {usdMode === 'estimate' && (
+                      <div className="hint-amber">
+                        <Icon name="alert" size={10} />
+                        <span>No se sumará hasta que confirmes el monto real.</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </Section>
+
+            {/* Sección 3: Extras */}
+            <Section
+              icon="paperclip"
+              title="Extras"
+              open={openSection === 'extras'}
+              onToggle={() => toggleSection('extras')}
+            >
+              <div ref={dueWrap}>
+                <label className="block text-[11px] text-neutral-500 font-medium mb-1 dark:text-neutral-400">Vencimiento</label>
+                <InputBase
+                  type="date"
+                  value={form.dueDate}
+                  onChange={(e) => set('dueDate', e.target.value)}
+                  onKeyDown={(e) => handleNext(e, dueWrap)}
+                />
+              </div>
+              <div ref={notesWrap} className="mt-2">
+                <label className="block text-[11px] text-neutral-500 font-medium mb-1 dark:text-neutral-400">Notas</label>
+                <InputBase
+                  value={form.notes}
+                  onChange={(e) => set('notes', e.target.value)}
+                  placeholder="Opcional"
+                  enterKeyHint="next"
+                  onKeyDown={(e) => handleNext(e, notesWrap)}
+                />
+              </div>
+            </Section>
+
+            {scanError && (
+              <p className="text-[11px] text-accent-red pt-1">
+                <Icon name="alert" size={14} className="inline-block mr-1 align-[-2px]" />{scanError}
+              </p>
+            )}
+
+            {/* Input file oculto: lo dispara el botón "Escanear" */}
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={handleScan}
+              className="hidden"
+            />
+          </div>
+
+          {/* Footer fijo: Cancelar (ghost) + Guardar (primario) */}
+          <footer className="exp-form-footer">
+            <div className="flex-1">
+              <Button variant="ghost" onClick={onCancel} fullWidth>
+                Cancelar
+              </Button>
+            </div>
+            <div className="flex-1">
+              <Button type="submit" className="exp-form-save inline-flex items-center justify-center gap-1.5" fullWidth>
+                <Icon name="check" size={16} />Guardar
+              </Button>
+            </div>
+          </footer>
+        </form>
+
+        {/* Mini modal de confirmación con el resumen */}
+        {confirmOpen && pendingSave && (
+          <div className="confirm-ov" onClick={(e) => e.stopPropagation()}>
+            <div className="confirm-modal">
+              <h3>
+                <span className="confirm-ic"><Icon name="check" size={14} strokeWidth={3} /></span>
+                Confirmar gasto
+              </h3>
+              <div className="confirm-list">
+                <div className="confirm-item">
+                  <span className="k">Nombre</span>
+                  <span className="v">{pendingSave.name || '—'}</span>
+                </div>
+                <div className="confirm-item">
+                  <span className="k">Categoría</span>
+                  <span className="v">{CATEGORY_LABELS[pendingSave.category]}</span>
+                </div>
+                <div className="confirm-item">
+                  <span className="k">Monto ARS</span>
+                  <span className={`v ${pendingSave.amountArs == null ? 'est' : ''}`}>
+                    {pendingSave.amountArs != null
+                      ? fmtARS(pendingSave.amountArs)
+                      : pendingSave.estimatedArs != null
+                        ? `~${fmtARS(pendingSave.estimatedArs)}`
+                        : '—'}
+                  </span>
+                </div>
+                {pendingSave.amountUsd > 0 && (
+                  <div className="confirm-item">
+                    <span className="k">USD</span>
+                    <span className="v">
+                      {fmtUSD(pendingSave.amountUsd)}
+                      {pendingSave.usdRate > 0 ? ` × ${fmtARS(pendingSave.usdRate)}` : ''}
+                    </span>
+                  </div>
+                )}
+                <div className="confirm-item">
+                  <span className="k">Estado</span>
+                  <span className="v">{pendingSave.paid ? 'Pagado' : 'Pendiente'}</span>
+                </div>
+                <div className="confirm-item total">
+                  <span className="k">Total estimado</span>
+                  <span className="v">{fmtARS(getExpenseTotal(pendingSave as Expense), 0)}</span>
+                </div>
+              </div>
+              <div className="confirm-actions">
+                <Button variant="ghost" onClick={() => setConfirmOpen(false)} fullWidth>
+                  Volver
+                </Button>
+                <Button onClick={confirmAndSave} className="inline-flex items-center justify-center gap-1.5" fullWidth>
+                  <Icon name="check" size={14} />Guardar
+                </Button>
+              </div>
             </div>
           </div>
-        </Collapse>
-      </Section>
+        )}
       </div>
-
-      {/* Sección 3: Extras */}
-      <Section
-        icon="paperclip"
-        title="Extras"
-        open={openSection === 'extras'}
-        onToggle={() => toggleSection('extras')}
-      >
-        <div className="mb-3">
-          <label className="block text-[11px] text-neutral-500 font-medium mb-1 dark:text-neutral-400">Vencimiento</label>
-          <InputBase
-            type="date"
-            value={form.dueDate}
-            onChange={(e) => set('dueDate', e.target.value)}
-          />
-        </div>
-        <div>
-          <label className="block text-[11px] text-neutral-500 font-medium mb-1 dark:text-neutral-400">Notas</label>
-          <InputBase
-            value={form.notes}
-            onChange={(e) => set('notes', e.target.value)}
-            placeholder="Opcional"
-          />
-        </div>
-      </Section>
-
-      {scanError && (
-        <p className="text-[11px] text-accent-red pt-1">
-          <Icon name="alert" size={14} className="inline-block mr-1 align-[-2px]" />{scanError}
-        </p>
-      )}
-
-      {/* Input file oculto: lo dispara el botón "Escanear" */}
-      <input
-        ref={fileRef}
-        type="file"
-        accept="image/*"
-        capture="environment"
-        onChange={handleScan}
-        className="hidden"
-      />
-
-      <div className="flex items-center gap-2 pt-3">
-        <Button variant="ghost" onClick={onCancel} className="flex-1 flex items-center justify-center gap-1.5">
-          Cancelar
-        </Button>
-        <Button
-          variant="violet"
-          onClick={() => fileRef.current?.click()}
-          disabled={scanning}
-          title="Escanear factura"
-          aria-label="Escanear factura"
-          className="flex-1 flex items-center justify-center gap-1.5"
-        >
-          <Icon name="scan" size={18} />Escanear
-        </Button>
-        <Button type="submit" className="flex-[1.6] flex items-center justify-center gap-1.5">
-          <Icon name="check" size={16} />Guardar
-        </Button>
-      </div>
-    </form>
+    </>
   );
 }
