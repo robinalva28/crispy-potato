@@ -143,7 +143,9 @@ function Section({
             ariaHidden
           />
         </button>
-        {open && <div className="px-3 pb-3.5 pt-1">{children}</div>}
+        <Collapse open={open}>
+          <div className="px-3 pb-3.5 pt-1">{children}</div>
+        </Collapse>
       </div>
     </div>
   );
@@ -210,11 +212,9 @@ export function ExpenseForm({ initial, onSave, onCancel, onGetLastUsdRate }: Pro
   const [scanning, setScanning] = useState(false);
   const [scanError, setScanError] = useState('');
   const fileRef = useRef<HTMLInputElement | null>(null);
-  const [openSections, setOpenSections] = useState<Record<SectionKey, boolean>>({
-    basicos: true,
-    montos: true,
-    extras: false,
-  });
+  // Acordeón exclusivo: cuando una sección se abre, las otras se cierran.
+  // null = todo colapsado (solo se ven los headers).
+  const [openSection, setOpenSection] = useState<SectionKey | null>('basicos');
   const [arsEnabled, setArsEnabled] = useState(true);
   const [usdEnabled, setUsdEnabled] = useState(
     () => initial != null && (initial.amountUsd > 0 || initial.usdRate > 0)
@@ -281,7 +281,7 @@ export function ExpenseForm({ initial, onSave, onCancel, onGetLastUsdRate }: Pro
   }
 
   function toggleSection(key: SectionKey) {
-    setOpenSections((s) => ({ ...s, [key]: !s[key] }));
+    setOpenSection((current) => (current === key ? null : key));
   }
 
   /** Toggle de divisa (multi): siempre queda al menos una activa. */
@@ -372,7 +372,7 @@ export function ExpenseForm({ initial, onSave, onCancel, onGetLastUsdRate }: Pro
       <Section
         icon="tag"
         title="Datos básicos"
-        open={openSections.basicos}
+        open={openSection === 'basicos'}
         onToggle={() => toggleSection('basicos')}
       >
         <div className="mb-3">
@@ -402,7 +402,7 @@ export function ExpenseForm({ initial, onSave, onCancel, onGetLastUsdRate }: Pro
       <Section
         icon="wallet"
         title="Montos"
-        open={openSections.montos}
+        open={openSection === 'montos'}
         onToggle={() => toggleSection('montos')}
       >
         <div className="mb-3">
@@ -512,7 +512,7 @@ export function ExpenseForm({ initial, onSave, onCancel, onGetLastUsdRate }: Pro
       <Section
         icon="paperclip"
         title="Extras"
-        open={openSections.extras}
+        open={openSection === 'extras'}
         onToggle={() => toggleSection('extras')}
       >
         <div className="mb-3">
