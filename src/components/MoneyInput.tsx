@@ -1,6 +1,7 @@
+import { forwardRef, type InputHTMLAttributes, type KeyboardEvent } from 'react';
 import { formatInputString } from '../utils/format.ts';
 
-interface MoneyInputProps {
+interface MoneyInputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'inputMode'> {
   symbol: '$' | 'u$d';
   value: string;
   onChange: (value: string) => void;
@@ -13,18 +14,25 @@ interface MoneyInputProps {
   estimate?: boolean;
 }
 
-/** Input de montos con símbolo ( $ o u$d ) integrado a la izquierda. */
-export function MoneyInput({
-  symbol,
-  value,
-  onChange,
-  placeholder,
-  className = '',
-  autoFocus,
-  required,
-  inputMode = 'decimal',
-  estimate = false,
-}: MoneyInputProps) {
+/** Input de montos con símbolo ( $ o u$d ) integrado a la izquierda.
+ *  Extiende el input nativo: acepta `ref`, `onKeyDown`, `onFocus`, etc.
+ *  (React 19: el ref viaja como prop normal). */
+export const MoneyInput = forwardRef<HTMLInputElement, MoneyInputProps>(function MoneyInput(
+  {
+    symbol,
+    value,
+    onChange,
+    placeholder,
+    className = '',
+    autoFocus,
+    required,
+    inputMode = 'decimal',
+    estimate = false,
+    onKeyDown,
+    ...rest
+  }: MoneyInputProps,
+  ref,
+) {
   const baseCls = 'input-aura w-full px-3 py-2 text-sm';
   const symbolWidth = symbol === 'u$d' ? 'pl-10' : 'pl-7';
 
@@ -42,15 +50,18 @@ export function MoneyInput({
         {symbol}
       </span>
       <input
+        ref={ref}
         type="text"
         inputMode={inputMode}
         autoFocus={autoFocus}
         required={required}
         value={value}
         onChange={(e) => onChange(formatInputString(e.target.value))}
+        onKeyDown={onKeyDown as (e: KeyboardEvent<HTMLInputElement>) => void}
         placeholder={placeholder}
         className={`${baseCls} ${estimate ? 'input-aura--estimate' : ''} ${symbolWidth} ${className}`.trim()}
+        {...rest}
       />
     </div>
   );
-}
+});
