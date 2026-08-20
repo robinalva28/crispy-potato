@@ -8,7 +8,7 @@ interface Props {
   onMore: () => void;
   /** Acceso directo a la vista Ahorro sin pasar por el mini menú. */
   onSavings: () => void;
-  /** Hace scroll al buscador y lo enfoca. */
+  /** Abre el buscador. */
   onSearch: () => void;
 }
 

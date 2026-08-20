@@ -24,6 +24,7 @@ import { SavingsCalculator } from './components/SavingsCalculator.tsx';
 import { SavingsGoalForm } from './components/SavingsGoalForm.tsx';
 import { MoneyInput } from './components/MoneyInput.tsx';
 import { parseLocalNumber, formatInputNumber } from './utils/format.ts';
+import { openSearch, closeSearch, hideSearchFromScroll } from './utils/search.ts';
 import {
   categoryTotals,
   CATEGORY_ORDER,
@@ -96,6 +97,8 @@ export default function App() {
   const [editing, setEditing] = useState<EditingState | null>(null);
   const [editingMonth, setEditingMonth] = useState<EditingMonthState | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<Expense | null>(null);
+  const appScrollRef = useRef<HTMLDivElement | null>(null);
+  const searchWrapRef = useRef<HTMLDivElement | null>(null);
   const [confirmAmount, setConfirmAmount] = useState<Expense | null>(null);
   const [confirmAmountValue, setConfirmAmountValue] = useState('');
   const [showGuide, setShowGuide] = useState(false);
@@ -103,6 +106,7 @@ export default function App() {
   const [editingGoal, setEditingGoal] = useState<SavingsGoal | null>(null);
   const [addingGoal, setAddingGoal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
   const [editingBudgets, setEditingBudgets] = useState(false);
   const [budgetInputs, setBudgetInputs] = useState<Partial<Record<Category, string>>>({});
   const [showPhotoModal, setShowPhotoModal] = useState(false);
@@ -176,6 +180,26 @@ export default function App() {
     }, 50);
     return () => clearTimeout(timer);
   }, [focusExpenseId]);
+
+  useEffect(() => {
+    if (!searchOpen || !searchWrapRef.current || !appScrollRef.current) return;
+    const target = searchWrapRef.current;
+    const root = appScrollRef.current;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) {
+            const next = hideSearchFromScroll({ open: true, query: '' });
+            setSearchOpen(next.open);
+            setSearchQuery(next.query);
+          }
+        }
+      },
+      { root, threshold: 0 }
+    );
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [searchOpen]);
 
   // --- Export / Import ---
   /** Exporta TODO: meses, gastos y segmentos de ahorro (backup completo). */
@@ -502,7 +526,7 @@ export default function App() {
       </header>
 
       {/* SCROLL interno: solo el contenido cambia según la vista */}
-      <div className="app-scroll">
+      <div className="app-scroll" ref={appScrollRef}>
         {view === 'budget' && (
           <div className="px-3 pt-1 pb-1 space-y-2">
             {activeMonth && (
@@ -512,8 +536,8 @@ export default function App() {
                     Sin gastos todavía. Toque "+ Agregar Gasto".
                   </div>
                 )}
-                {budget.monthExpenses.length > 0 && (
-                  <div className="app-scroll-sticky search-wrap">
+                {budget.monthExpenses.length > 0 && searchOpen && (
+                  <div className="app-scroll-sticky search-wrap" ref={searchWrapRef}>
                     <div className="glass rounded-full px-4 py-2 flex items-center gap-2 search-box">
                       <Icon name="search" size={16} className="opacity-40 shrink-0" ariaHidden />
                       <input
@@ -521,6 +545,7 @@ export default function App() {
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder="Buscar gasto…"
+                        autoFocus
                         className="w-full bg-transparent text-sm outline-none placeholder:opacity-50"
                       />
                     </div>
@@ -688,27 +713,20 @@ export default function App() {
           setFabOpen(false);
           setMoreOpen(false);
           setView('savings');
+          const next = closeSearch();
+          setSearchOpen(next.open);
+          setSearchQuery(next.query);
         }}
         onSearch={() => {
           setFabOpen(false);
           setMoreOpen(false);
           setView('budget');
-          // Espera a que el input exista tras el cambio de vista (más robusto
-          // que un timeout fijo: si venimos de Ahorro el input se monta después).
-          let attempts = 0;
-          const findInput = () => {
-            const input = document.querySelector<HTMLInputElement>('input[type="search"]');
-            if (input) {
-              // Scroll hacia ARRIBA: el buscador queda justo debajo del header.
-              input.scrollIntoView({ behavior: 'smooth', block: 'start' });
-              // El foco se difiere para que el teclado no corte el scroll suave.
-              setTimeout(() => input.focus(), 450);
-            } else if (attempts < 10) {
-              attempts += 1;
-              setTimeout(findInput, 50);
-            }
-          };
-          findInput();
+          const next = openSearch();
+          setSearchOpen(next.open);
+          setSearchQuery(next.query);
+          requestAnimationFrame(() => {
+            appScrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+          });
         }}
       />
     </main>

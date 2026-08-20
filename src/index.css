@@ -343,16 +343,24 @@
      los colores del glow viven acá como tokens rgba lime. */
   .search-wrap {
     scroll-margin-top: 14px;
-    padding-bottom: 12px;
+    padding-bottom: 8px;
   }
   .search-box input {
     scroll-margin-top: 14px;
   }
   .search-box {
+    min-height: 52px;
     border: 1px solid var(--border);
     transition: border-color 0.3s ease, box-shadow 0.3s ease;
   }
-  .search-box:focus-within {
+  /* Oculta la X nativa del input type="search" (WebKit) */
+  .search-box input[type="search"]::-webkit-search-cancel-button,
+  .search-box input[type="search"]::-webkit-search-decoration {
+    -webkit-appearance: none;
+    appearance: none;
+    display: none;
+  }
+.search-box:focus-within {
     animation: searchGlow 1.6s ease-in-out infinite alternate;
   }
   .search-box:focus-within input::placeholder {
