@@ -190,6 +190,8 @@ export function ExpenseForm({ initial, onSave, onCancel, onGetLastUsdRate }: Pro
       }
     } catch (err) {
       setScanError(err instanceof Error ? err.message : 'No se pudo leer la factura');
+      const scrollEl = document.querySelector<HTMLElement>('.exp-form-scroll');
+      scrollEl?.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       setScanning(false);
       if (fileRef.current) fileRef.current.value = '';
@@ -348,7 +350,7 @@ export function ExpenseForm({ initial, onSave, onCancel, onGetLastUsdRate }: Pro
 
           {/* Scroll interno del form */}
           <div className="exp-form-scroll">
-            {/* Sección 1: Datos básicos */}
+          {/* Sección 1: Datos básicos */}
             <Section
               icon="tag"
               title="Datos básicos"

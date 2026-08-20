@@ -40,15 +40,24 @@ function parseFromProse(text: string): Record<string, unknown> {
 
 export async function extractInvoice(file: File): Promise<InvoiceData> {
   const base64 = await fileToBase64(file);
+  // Timeout: si el worker no responde, el escaneo no se cuelga y muestra error.
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 20000);
   let res: Response;
   try {
     res = await fetch(WORKER_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ image: base64 }),
+      signal: controller.signal,
     });
   } catch (err) {
-    throw new Error(`No se pudo conectar al Worker (${err instanceof Error ? err.message : 'red'})`);
+    if (controller.signal.aborted) {
+      throw new Error('El servidor tardó demasiado. Probá de nuevo en unos segundos.');
+    }
+    throw new Error('No se pudo conectar al Worker (' + (err instanceof Error ? err.message : 'red') + ')');
+  } finally {
+    clearTimeout(timer);
   }
   if (!res.ok) {
     const detail = await res.text().catch(() => '');
