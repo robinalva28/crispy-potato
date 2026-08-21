@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import type { Month } from '../types.ts';
 import {
   currentMonthId,
@@ -16,7 +16,19 @@ interface Props {
   onCreate: (input: NewMonthInput) => Promise<void>;
 }
 
-export function MonthSelector({ months, activeMonthId, onSelect, onCreate }: Props) {
+export interface MonthSelectorHandle {
+  /** Abre el modal "Crear Nuevo Mes" programáticamente (desde EmptyState, etc.). */
+  openCreate: () => void;
+}
+
+export const MonthSelector = forwardRef<MonthSelectorHandle, Props>(function MonthSelector(
+  { months, activeMonthId, onSelect, onCreate },
+  ref
+) {
+  // Exponer openCreate para que el EmptyState pueda abrir el modal
+  useImperativeHandle(ref, () => ({
+    openCreate: openModal,
+  }), []);
   const [showModal, setShowModal] = useState(false);
   const [newId, setNewId] = useState(() => currentMonthId());
   const [newLabel, setNewLabel] = useState('');
@@ -185,4 +197,4 @@ export function MonthSelector({ months, activeMonthId, onSelect, onCreate }: Pro
       )}
     </div>
   );
-}
+});

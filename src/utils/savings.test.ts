@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { seedDemo } from '../seed.ts';
+import { seedDemo } from '../testFixtures.ts';
 import { monthRange, monthlySavings, monthlySavingsHistory, projectSavings, lastClosedSavings, type MonthProjection } from './savings.ts';
 import type { Month, SavingsGoal } from '../types.ts';
 

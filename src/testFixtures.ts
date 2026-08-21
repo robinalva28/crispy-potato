@@ -1,9 +1,8 @@
 import type { Month, Expense } from './types.ts';
 
 /**
- * Seed de DEMOSTRACIÓN (público, sin datos personales).
- * Solo se siembra en un dispositivo NUEVO (primera vez) o si nunca se usó.
- * Los dispositivos que ya tienen datos (flag `pe-seeded`) NO vuelven a sembrar.
+ * Fixture de tests (ex seed demo público, sin datos personales).
+ * Solo lo usan los tests de utils; NO se siembra en la app (arranca vacía).
  */
 export const seedDemo: { month: Month; expenses: Expense[] } = {
   month: {

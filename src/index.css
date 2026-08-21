@@ -388,6 +388,167 @@
     }
   }
 
+  /* ===== EmptyState (estado vacío) =====
+     Placeholder reutilizable: badge de icono + título + descripción + acciones.
+     Solo variables/tokens del tema — sin hex hardcodeado. */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 10px;
+    padding: 32px 20px;
+    border-radius: 20px;
+    background: var(--surface);
+    border: 1px dashed var(--border);
+  }
+  .empty-badge {
+    width: 64px;
+    height: 64px;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent-lime);
+    flex-shrink: 0;
+  }
+  .empty-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--txt);
+  }
+  .empty-text {
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--muted);
+    max-width: 260px;
+  }
+  .empty-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  /* ===== Guía interactiva (GuideModal v2) =====
+     Onboarding por capítulos: cover con índice, swipe, chips, dots, barra de progreso. */
+  .guide-modal {
+    overflow: hidden;
+  }
+  .guide-head {
+    min-height: 96px;
+  }
+  .guide-progress {
+    height: 4px;
+    margin-top: 10px;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.28);
+    overflow: hidden;
+  }
+  .guide-progress-fill {
+    height: 100%;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.95);
+    transition: width 0.3s ease;
+  }
+  .guide-body {
+    min-height: 130px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .guide-cap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 48px;
+    padding: 0 12px;
+    border-radius: 14px;
+    text-align: left;
+    width: 100%;
+    color: var(--txt);
+    transition: background-color 0.2s;
+  }
+  .guide-cap:active {
+    background: var(--surface-strong);
+  }
+  .guide-cap .ico {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface);
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+  .guide-cap.on .ico {
+    color: var(--accent-lime);
+  }
+  .guide-chips {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .guide-chips::-webkit-scrollbar {
+    display: none;
+  }
+  .guide-chip {
+    flex-shrink: 0;
+    min-height: 28px;
+    padding: 2px 10px;
+    border-radius: 9999px;
+    font-size: 10px;
+    font-weight: 700;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--muted);
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .guide-chip.on {
+    background: linear-gradient(135deg, #65a30d, #84cc16);
+    color: #fff;
+    border-color: transparent;
+  }
+  .guide-dots {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .guide-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 9999px;
+    background: var(--muted);
+    opacity: 0.4;
+    transition: all 0.25s;
+  }
+  .guide-dot.on {
+    width: 20px;
+    opacity: 1;
+    background: var(--accent-emerald);
+  }
+  .guide-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding-top: 4px;
+  }
+  .guide-skip {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    padding: 8px 10px;
+  }
+
   /* Sticky header heredado (vista vieja, ya no se usa en el shell v4) */
   .sticky-wrap {
     position: sticky;

@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { db } from '../db.ts';
 import type { Expense, Month, Category } from '../types.ts';
-import { seedDemo } from '../seed.ts';
 import { buildClonedExpenses } from '../utils/monthUtils.ts';
 
 const MONTH_NAMES = [
@@ -33,8 +32,6 @@ export interface NewMonthInput {
   income: number;
 }
 
-const SEEDED_KEY = 'pe-seeded';
-
 export function useBudget() {
   const [months, setMonths] = useState<Month[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -46,25 +43,9 @@ export function useBudget() {
 
   useEffect(() => {
     (async () => {
-      await seedIfEmpty();
       await refresh();
       setLoading(false);
     })();
-  }, []);
-
-  /** Puebla la BD con el seed de demostración SOLO la primera vez (flag en localStorage). */
-  const seedIfEmpty = useCallback(async () => {
-    if (localStorage.getItem(SEEDED_KEY) === '1') return;
-    const monthCount = await db.months.count();
-    if (monthCount > 0) {
-      localStorage.setItem(SEEDED_KEY, '1');
-      return;
-    }
-    await db.transaction('rw', db.months, db.expenses, async () => {
-      await db.months.add(seedDemo.month);
-      await db.expenses.bulkAdd(seedDemo.expenses);
-    });
-    localStorage.setItem(SEEDED_KEY, '1');
   }, []);
 
   const refresh = useCallback(async () => {

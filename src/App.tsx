@@ -4,7 +4,7 @@ import type { Category, Expense, Month, SavingsGoal, View } from './types.ts';
 import { useBudget, monthLabelFromId } from './hooks/useBudget.ts';
 import { useSavings } from './hooks/useSavings.ts';
 import { useDarkMode } from './hooks/useDarkMode.ts';
-import { MonthSelector } from './components/MonthSelector.tsx';
+import { MonthSelector, type MonthSelectorHandle } from './components/MonthSelector.tsx';
 import { ExpenseRow } from './components/ExpenseRow.tsx';
 import { ExpenseGroup } from './components/ExpenseGroup.tsx';
 import { CategoryBars } from './components/CategoryBars.tsx';
@@ -20,6 +20,7 @@ import { Icon } from './components/ui/Icon.tsx';
 import type { ExpenseDraft } from './utils/photoExtract.ts';
 import { canUsePhoto } from './utils/monthUtils.ts';
 import { GuideModal } from './components/GuideModal.tsx';
+import { EmptyState } from './components/EmptyState.tsx';
 import { SavingsCalculator } from './components/SavingsCalculator.tsx';
 import { SavingsGoalForm } from './components/SavingsGoalForm.tsx';
 import { MoneyInput } from './components/MoneyInput.tsx';
@@ -90,6 +91,43 @@ export default function App() {
     // Preview: al activar se siente un sample háptico de éxito
     if (next) playVibration('success');
   }
+
+  /** CTA "Probar ahora" de la guía: cierra el modal y dispara la acción real. */
+  function handleGuideAction(action: string) {
+    setShowGuide(false);
+    setShowSavingsGuide(false);
+    switch (action) {
+      case 'create-month':
+        setView('budget');
+        monthSelectorRef.current?.openCreate();
+        break;
+      case 'add-expense':
+      case 'scan':
+        setView('budget');
+        if (activeMonth && activeMonth.status === 'abierto') {
+          setEditing({ expense: null, adding: true });
+        } else if (!activeMonth) {
+          monthSelectorRef.current?.openCreate();
+        } else {
+          setMoreOpen(true);
+        }
+        break;
+      case 'photo':
+        setView('budget');
+        if (activeMonth) setShowPhotoModal(true);
+        else monthSelectorRef.current?.openCreate();
+        break;
+      case 'organize':
+      case 'close-month':
+      case 'export':
+        setView('budget');
+        setMoreOpen(true);
+        break;
+      case 'savings':
+        setView('savings');
+        break;
+    }
+  }
   const [view, setView] = useState<View>('budget');
   const [fabOpen, setFabOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
@@ -115,6 +153,7 @@ export default function App() {
   const [contextExpense, setContextExpense] = useState<Expense | null>(null);
   const [contextRect, setContextRect] = useState<ExpenseRect | null>(null);
   const [detailExpense, setDetailExpense] = useState<Expense | null>(null);
+  const monthSelectorRef = useRef<MonthSelectorHandle | null>(null);
 
   const { activeMonth } = budget;
   const filteredExpenses = filterExpensesByText(budget.monthExpenses, searchQuery);
@@ -463,6 +502,7 @@ export default function App() {
         {view === 'budget' && (
           <div className="-mx-2">
             <MonthSelector
+              ref={monthSelectorRef}
               months={budget.months}
               activeMonthId={budget.activeMonthId}
               onSelect={budget.setActiveMonthId}
@@ -532,9 +572,26 @@ export default function App() {
             {activeMonth && (
               <>
                 {budget.monthExpenses.length === 0 && (
-                  <div className="py-8 text-center text-sm text-neutral-500 dark:text-neutral-400">
-                    Sin gastos todavía. Toque "+ Agregar Gasto".
-                  </div>
+                  <EmptyState
+                    icon="clipboard"
+                    title="Todavía no hay gastos"
+                    text="Cargá tu primer gasto, escaneá una factura o sacá una foto de tus apuntes."
+                    actions={[
+                      {
+                        key: 'add',
+                        label: 'Agregar gasto',
+                        icon: 'plus',
+                        onClick: () => setEditing({ expense: null, adding: true }),
+                      },
+                      {
+                        key: 'photo',
+                        label: 'Foto de apuntes',
+                        icon: 'camera',
+                        variant: 'violet',
+                        onClick: () => setShowPhotoModal(true),
+                      },
+                    ]}
+                  />
                 )}
                 {budget.monthExpenses.length > 0 && searchOpen && (
                   <div className="app-scroll-sticky search-wrap" ref={searchWrapRef}>
@@ -624,9 +681,19 @@ export default function App() {
             )}
 
             {!activeMonth && (
-              <div className="py-10 text-center text-sm text-neutral-500 dark:text-neutral-400">
-                Creá un mes para empezar a cargar gastos.
-              </div>
+              <EmptyState
+                icon="calendar"
+                title="Empezá por tu primer mes"
+                text="Creá el mes con tu ingreso. Después agregás gastos o sacás una foto de tus apuntes."
+                actions={[
+                  {
+                    key: 'create',
+                    label: 'Crear mes',
+                    icon: 'plus',
+                    onClick: () => monthSelectorRef.current?.openCreate(),
+                  },
+                ]}
+              />
             )}
 
             {budget.lastDeleted && (
@@ -850,12 +917,14 @@ export default function App() {
       open={showGuide}
       onClose={() => setShowGuide(false)}
       type="budget"
+      onAction={handleGuideAction}
     />
 
     <GuideModal
       open={showSavingsGuide}
       onClose={() => setShowSavingsGuide(false)}
       type="savings"
+      onAction={handleGuideAction}
     />
 
     {confirmAmount && (

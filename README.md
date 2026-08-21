@@ -40,5 +40,5 @@ El proyecto incluye `netlify.toml` con el build y los redirects listos.
 ## 📦 Datos
 
 - Los datos persisten en Internet... no, **en tu dispositivo** (IndexedDB).
-- En un dispositivo nuevo se siembra un **seed de demostración genérico** (sin datos personales).
+- La app arranca **vacía**: el usuario crea su primer mes y carga sus gastos (guía interactiva incluida).
 - Para hacer backup: **Exportar JSON** desde la app.

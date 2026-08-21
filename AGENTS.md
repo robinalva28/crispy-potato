@@ -8,7 +8,7 @@ Este archivo le da contexto instantáneo a una sesión nueva de IA que trabaje s
 npm install        # solo la primera vez
 npm run dev        # servidor de desarrollo en http://localhost:5173
 npm run build      # build de producción (Cloudflare Pages usa esto)
-npm test           # tests Vitest (70 tests)
+npm test           # tests Vitest (83 tests)
 ```
 
 ## 2. Reglas de trabajo (resumen del CONTEXTO V2 + evolución)
@@ -112,7 +112,7 @@ Existe una capa de **primitivas** en `src/components/ui/` que debe usarse **siem
 src/
   types.ts              # Month, Expense, Category, SavingsGoal, View, ExpenseRect
   db.ts                 # Dexie (tablas months + expenses + savings)
-  seed.ts               # seed DEMO genérico público (NO datos personales)
+  testFixtures.ts       # fixture de tests (ex seed demo; NO se siembra en la app)
   utils/
     money.ts            # selectores puros + formatters es-AR (FÓRMULA CRÍTICA USD)
     format.ts           # parseLocalNumber (acepta "1.234,56")
@@ -141,14 +141,15 @@ src/
     SavingsCalculator.tsx  # tarjetas de segmentos de ahorro
     SavingsGoalForm.tsx   # formulario segmento de ahorro
     LockScreen.tsx      # PIN (postergado, no integrado)
+    EmptyState.tsx      # placeholder de estado vacío (sin mes / mes sin gastos)
   App.tsx               # app shell: header fijo + scroll interno + bottom bar + estados
 ```
 
 ## 6. Comportamiento de datos (IMPORTANTE)
 
 - Los datos viven en la **IndexedDB del dispositivo**, nunca en el servidor.
-- `pe-seeded` en localStorage evita re-sembrar el seed en dispositivos con datos.
-- El seed `seedDemo` (demo genérico) se siembra solo en un dispositivo nuevo.
+- **La app arranca vacía**: no se siembra ningún seed. El usuario crea su primer mes y carga sus gastos; hay guía interactiva por capítulos y placeholders de estado vacío accionables.
+- `src/testFixtures.ts` conserva los datos demo (ex `seedDemo`) SOLO como fixture de tests (`money.test.ts`, `savings.test.ts`).
 - `CONTEXTO.md` y `DECISIONS.md` son LOCALES (ignorados por git) — contienen decisiones personales/de proyecto. NO subirlos a GitHub (por eso `DECISIONS.md` no se commitea).
 
 ## 7. Estado actual (última sesión 2026-08-18)
@@ -163,7 +164,10 @@ Completado:
 - **Primitivas de UI (D24)**: `ui/Button`, `ui/InputBase`, `ui/Modal` refactorizados en todos los componentes.
 - Safe-area responsive (barra tradicional y gestos) + curvas internas iPhone (header/bbar).
 - CRUD gastos, cierre/reapertura mes, borrado con undo, clonación de meses, USD, backup, búsqueda, duplicado, presupuestos por categoría, ahorro, foto de apuntes (Workers AI cascada VLM), feedback háptico/sonoro.
-- Tests Vitest: **70 verdes**.
+- Tests Vitest: **83 verdes**.
+
+- Arranque en blanco: eliminado el seed demo de producción (`src/seed.ts`); los datos demo viven solo en `src/testFixtures.ts` como fixture de tests. Placeholder accionable con `EmptyState` (sin mes + mes sin gastos) conectado al modal de crear mes y al form/foto.
+- Guía rediseñada `GuideModal`: onboarding interactivo por capítulos (cover con índice, 10 capítulos actualizados a todas las features, chips, dots, barra de progreso, swipe, CTA "Probar ahora" con acciones reales y "Saltar guía"). Nuevos iconos Lucide: `receipt`, `image`, `sparkles`.
 
 Pendiente/iterable:
 - Implementar la **preview D del formulario de gastos** (acordeón + toggles + divisas multi) en `ExpenseForm.tsx` — la preview ya está actualizada a los estándares actuales en `rebranding-preview/formulario-opcion-d-combinada.html` (iconos Lucide, paleta semántica dual dark/light, toggle de tema, hints ámbar, botón **Escanear** con icono `scan`).
