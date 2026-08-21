@@ -4,6 +4,7 @@ import { projectSavings, monthlySavingsHistory } from '../utils/savings.ts';
 import { fmtARS } from '../utils/money.ts';
 import { SavingsChart } from './SavingsChart.tsx';
 import { Button } from './ui/Button.tsx';
+import { Modal } from './ui/Modal.tsx';
 import { Icon } from './ui/Icon.tsx';
 
 interface Props {
@@ -137,31 +138,34 @@ export function SavingsCalculator({ goals, months, expenses, onAdd, onEdit, onDe
         + Nuevo segmento
       </Button>
 
-      {/* Confirmación borrado */}
+      {/* Confirmación borrado (Modal estándar D27) */}
       {confirmDelete && (
-        <div className="modal-overlay fixed inset-0 z-[80] flex items-center justify-center p-4">
-          <div className="w-full max-w-sm glass-card rounded-3xl p-4 space-y-3">
-            <div className="font-bold text-neutral-900 dark:text-neutral-100">¿Eliminar segmento?</div>
-            <p className="text-sm text-neutral-600 dark:text-neutral-400">
-              Se borrará el segmento <span className="font-semibold">{confirmDelete.name}</span> y sus ingresos extra.
-            </p>
-            <div className="flex gap-2 pt-1">
-              <Button
-                variant="danger"
-                fullWidth
-                onClick={() => {
-                  if (confirmDelete.id) onDelete(confirmDelete.id);
-                  setConfirmDelete(null);
-                }}
-              >
-                Sí, borrar
-              </Button>
-              <Button variant="ghost" onClick={() => setConfirmDelete(null)}>
-                Cancelar
-              </Button>
-            </div>
+        <Modal
+          open
+          onClose={() => setConfirmDelete(null)}
+          icon="target"
+          danger
+          title="¿Eliminar segmento?"
+        >
+          <p className="text-sm text-neutral-600 dark:text-neutral-400">
+            Se borrará el segmento <span className="font-semibold">{confirmDelete.name}</span> y sus ingresos extra.
+          </p>
+          <div className="flex gap-2 pt-1">
+            <Button
+              variant="danger"
+              fullWidth
+              onClick={() => {
+                if (confirmDelete.id) onDelete(confirmDelete.id);
+                setConfirmDelete(null);
+              }}
+            >
+              Sí, borrar
+            </Button>
+            <Button variant="ghost" onClick={() => setConfirmDelete(null)}>
+              Cancelar
+            </Button>
           </div>
-        </div>
+        </Modal>
       )}
     </div>
   );

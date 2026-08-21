@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Icon } from './Icon.tsx';
+import { Icon, type IconName } from './Icon.tsx';
 
 interface ModalProps {
   open: boolean;
@@ -8,29 +8,42 @@ interface ModalProps {
   footer?: ReactNode;
   children: ReactNode;
   maxWidth?: string;
+  /** Ícono del badge del header (contexto: violeta por defecto, danger/success según rol). */
+  icon?: IconName;
+  /** Rol del badge: danger (destructivo), success (lime), por defecto violeta. */
+  danger?: boolean;
 }
 
-/** Modal base: overlay blur + panel glass estándar (mismo estilo en toda la app). */
-export function Modal({ open, onClose, title, footer, children, maxWidth = 'max-w-sm' }: ModalProps) {
+/**
+ * Modal estándar (D27): panel 100% opaco (--panel-solid) + header con badge/título/✕
+ * + cuerpo + footer de acciones. Reemplaza al glass-card translúcido.
+ * Es la ÚNICA superficie de modales de la app.
+ */
+export function Modal({ open, onClose, title, footer, children, maxWidth = 'max-w-sm', icon, danger }: ModalProps) {
   if (!open) return null;
   return (
     <div className="modal-overlay fixed inset-0 z-[80] flex items-center justify-center p-4">
-      <div className={`w-full ${maxWidth} glass-card rounded-3xl p-4 space-y-3`}>
-        {title != null && (
-          <div className="flex items-center justify-between gap-2">
-            <div className="font-bold text-neutral-900 dark:text-neutral-100">{title}</div>
+      <div className={`w-full ${maxWidth} modal-panel overflow-hidden`}>
+        {(title != null || icon != null) && (
+          <div className="form-head pt-4">
+            {icon != null && (
+              <div className={`form-badge ${danger ? 'danger' : ''}`}>
+                <Icon name={icon} size={16} />
+              </div>
+            )}
+            <div className="form-title">{title}</div>
             <button
               type="button"
               onClick={onClose}
               aria-label="Cerrar"
-              className="w-7 h-7 rounded-full glass flex items-center justify-center hover:opacity-70 transition shrink-0"
+              className="form-x"
             >
-              <Icon name="x" size={16} />
+              <Icon name="x" size={15} />
             </button>
           </div>
         )}
-        {children}
-        {footer != null && <div className="flex gap-2 pt-1">{footer}</div>}
+        <div className="form-body">{children}</div>
+        {footer != null && <div className="form-foot">{footer}</div>}
       </div>
     </div>
   );

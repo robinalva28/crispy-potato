@@ -118,19 +118,17 @@ export function PhotoExpenseModal({ month, onSave, onClose }: Props) {
 
   return (
     <div className="modal-overlay fixed inset-0 z-[80] flex items-center justify-center p-4">
-      <div className="w-full max-w-lg glass-card rounded-3xl p-4 space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="font-bold text-neutral-900 dark:text-neutral-100">
-            <Icon name="camera" size={18} className="inline-block mr-1 align-[-2px]" />Foto de apuntes — {month.label}
+      <div className="w-full max-w-lg modal-panel overflow-hidden">
+        <div className="form-head pt-4">
+          <div className="form-badge">
+            <Icon name="camera" size={16} />
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="w-7 h-7 rounded-full glass flex items-center justify-center text-sm hover:opacity-70 transition"
-          >
-            ✕
+          <div className="form-title">Foto de apuntes — {month.label}</div>
+          <button type="button" onClick={onClose} className="form-x" aria-label="Cerrar">
+            <Icon name="x" size={15} />
           </button>
         </div>
+        <div className="form-body">
 
         {error && (
           <div className="text-xs text-accent-red glass rounded-xl px-3 py-2">
@@ -325,6 +323,7 @@ export function PhotoExpenseModal({ month, onSave, onClose }: Props) {
             </div>
           </div>
         )}
+        </div>
       </div>
     </div>
   );

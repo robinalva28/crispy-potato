@@ -128,12 +128,20 @@ export function GuideModal({ open, onClose, type = 'budget', onAction }: Props) 
   const chapters = type === 'savings' ? SAVINGS_CHUNKS : BUDGET_CHUNKS;
   const [step, setStep] = useState<number | null>(null); // null = cover
   const touchX = useRef<number | null>(null);
+  const chipsRef = useRef<HTMLDivElement | null>(null);
   const total = chapters.length;
 
   // Reinicia al cover cada vez que se abre
   useEffect(() => {
     if (open) setStep(null);
   }, [open]);
+
+  // FIX auto-scroll: mantiene el chip activo siempre visible al navegar
+  useEffect(() => {
+    if (step == null || !chipsRef.current) return;
+    const chip = chipsRef.current.querySelector<HTMLElement>(`[data-guide-chip="${step}"]`);
+    chip?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  }, [step]);
 
   if (!open) return null;
 
@@ -172,8 +180,8 @@ export function GuideModal({ open, onClose, type = 'budget', onAction }: Props) 
 
   return (
     <div className="modal-overlay fixed inset-0 z-[80] flex items-center justify-center p-4">
-      <div className="w-full max-w-sm glass-card rounded-3xl guide-modal">
-        {/* Header con gradiente + barra de progreso (cover: índice) */}
+      <div className="w-full max-w-sm modal-panel overflow-hidden guide-modal">
+        {/* Header destacado grad-lime (se mantiene) + barra de progreso */}
         <div className="grad-lime-strong px-5 pt-5 pb-3 text-white guide-head">
           {step == null ? (
             <>
@@ -199,7 +207,7 @@ export function GuideModal({ open, onClose, type = 'budget', onAction }: Props) 
           )}
         </div>
 
-        {/* Cuerpo: índice (cover) o capítulo */}
+        {/* Cuerpo opaco estándar (D27): índice (cover) o capítulo */}
         <div className="px-5 py-4">
           {step == null ? (
             <div className="max-h-[280px] overflow-y-auto -mx-1 px-1">
@@ -221,12 +229,13 @@ export function GuideModal({ open, onClose, type = 'budget', onAction }: Props) 
             </div>
           ) : (
             <>
-              {/* Chips de capítulo (navegación directa) */}
-              <div className="guide-chips -mx-1 px-1">
+              {/* Chips de capítulo con auto-scroll (FIX) */}
+              <div className="guide-chips -mx-1 px-1" ref={chipsRef}>
                 {chapters.map((ch, i) => (
                   <button
                     key={ch.id}
                     type="button"
+                    data-guide-chip={i}
                     className={`guide-chip ${i === step ? 'on' : ''}`}
                     onClick={() => setStep(i)}
                   >

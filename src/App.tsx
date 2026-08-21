@@ -928,9 +928,8 @@ export default function App() {
     />
 
     {confirmAmount && (
-      <Modal open onClose={() => setConfirmAmount(null)}>
+      <Modal open onClose={() => setConfirmAmount(null)} icon="checkCircle" title="Confirmar gasto">
         <form onSubmit={confirmEstimatedAmount} className="space-y-3">
-          <div className="font-bold text-neutral-900 dark:text-neutral-100">Confirmar gasto</div>
 
           {/* Contexto completo del gasto por confirmar */}
           <div className="glass rounded-xl p-3 space-y-1 text-xs">
@@ -993,7 +992,7 @@ export default function App() {
     )}
 
     {confirmDelete && (
-      <Modal open onClose={() => setConfirmDelete(null)} title="¿Eliminar gasto?">
+      <Modal open onClose={() => setConfirmDelete(null)} icon="trash" danger title="¿Eliminar gasto?">
         <p className="text-sm text-neutral-600 dark:text-neutral-400">
           Se borrará <span className="font-semibold">{confirmDelete.name}</span>. Vas a poder
           deshacerlo por unos segundos después de confirmar.
@@ -1010,8 +1009,7 @@ export default function App() {
     )}
 
     {confirmDeleteMonth && (
-      <Modal open onClose={() => setConfirmDeleteMonth(null)}>
-        <div className="font-bold text-accent-red">¿Eliminar mes?</div>
+      <Modal open onClose={() => setConfirmDeleteMonth(null)} icon="lock" danger title="¿Eliminar mes?">
         <p className="text-sm text-neutral-600 dark:text-neutral-400">
           Se borrará <span className="font-semibold">{confirmDeleteMonth.label}</span> y TODOS
           sus gastos. Esta acción no se puede deshacer.
@@ -1028,9 +1026,8 @@ export default function App() {
     )}
 
     {editingBudgets && (
-      <Modal open onClose={() => setEditingBudgets(false)}>
+      <Modal open onClose={() => setEditingBudgets(false)} icon="settings" title="Presupuestos del mes">
         <form onSubmit={saveBudgets} className="space-y-3">
-          <div className="font-bold text-neutral-900 dark:text-neutral-100">Presupuestos del mes</div>
           <p className="text-xs text-neutral-500 dark:text-neutral-400">
             Definí un límite mensual por categoría (en ARS). Dejá vacío para no poner límite.
           </p>
@@ -1062,10 +1059,9 @@ export default function App() {
     )}
 
     {editingMonth && (
-      <Modal open onClose={() => setEditingMonth(null)}>
+      <Modal open onClose={() => setEditingMonth(null)} icon="calendar" title="Editar mes">
         <form onSubmit={saveMonth} className="space-y-3">
-          <div className="flex justify-between items-center">
-            <div className="font-bold text-neutral-900 dark:text-neutral-100">Editar mes</div>
+          <div className="flex justify-end">
             <Button
               variant="dangerGhost"
               size="sm"

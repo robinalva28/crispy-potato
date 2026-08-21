@@ -85,7 +85,7 @@ Existe una capa de **primitivas** en `src/components/ui/` que debe usarse **siem
 |---|---|---|
 | `ui/Button.tsx` | `Button` | `<Button variant="primary\|ghost\|danger\|violet\|dangerGhost" size="sm\|md\|lg" fullWidth>`. Default `variant="primary" size="md"`. |
 | `ui/InputBase.tsx` | `InputBase`, `SelectBase`, `Field` | `<InputBase/>` (input), `<SelectBase/>` (select), `<Field label={} hint={}>` (wraper con label + hint). Reemplaza el `inputCls` local duplicado. |
-| `ui/Modal.tsx` | `Modal` | `<Modal open onClose title footer maxWidth>` → overlay blur + panel glass + header con ✕. |
+| `ui/Modal.tsx` | `Modal` | `<Modal open onClose title icon danger footer maxWidth>` → overlay blur + **panel 100% opaco** (`--panel-solid`) + header con badge/título/✕ + cuerpo + footer. Es la ÚNICA superficie de modales. |
 
 **Regla**: si un botón/input/modal se usa más de 1 vez, usar la primitiva de `ui/`; nunca copiar el string de clases a mano.
 
@@ -152,6 +152,18 @@ src/
 - `src/testFixtures.ts` conserva los datos demo (ex `seedDemo`) SOLO como fixture de tests (`money.test.ts`, `savings.test.ts`).
 - `CONTEXTO.md` y `DECISIONS.md` son LOCALES (ignorados por git) — contienen decisiones personales/de proyecto. NO subirlos a GitHub (por eso `DECISIONS.md` no se commitea).
 
+## 6b. Estándar de modales y formularios — D27 (IMPORTANTE para crear UI nueva)
+
+Todo modal/formulario superpuesto de la app usa este estándar (ver preview: `rebranding-preview/formularios-estandarizados.html`):
+
+1. **Superficie**: `.modal-panel` → `background: var(--panel-solid)` (**100% opaco**, sin blur), radio 22px, borde `1px var(--border)`. **Prohibido usar `glass-card` en modales** (queda solo para tarjetas de contenido in-page: lista de ahorro, shells).
+2. **Header estándar**: `.form-head` con `.form-badge` (icono de contexto: violeta por defecto, `.danger` rojo si es destructivo, `.success` lime) + `.form-title` + `.form-x` (✕ para cerrar).
+3. **Cuerpo**: `.form-body` (padding + gap). Inputs SIEMPRE con `InputBase`/`SelectBase`/`MoneyInput` (input-aura). Hints con `.hint-amber` o `.form-hint`.
+4. **Footer**: `.form-foot` con `Cancelar` (`variant="ghost"`) + acción primaria (`primary` grad-lime ó `danger` según contexto). `.form-foot > *` flex:1 y `.form-foot .primary` flex:1.6.
+5. **Variantes canónicas**: `A` formulario con campos · `B` formulario con hint/condicional · `C` confirmación destructiva (icono `danger` + `Button variant="danger"`) · `D` guía por capítulos (header `grad-lime-strong` destacado + cuerpo opaco).
+6. **Cómo crear un modal nuevo**: usar la primitiva `<Modal open onClose title icon danger>` — NO copiar el markup de overlay/panel a mano. Si el modal es muy custom (foto, guía), usar `.modal-panel` como contenedor + `.form-head`/`.form-body`/`.form-foot`.
+7. **Guía por capítulos**: los chips (`.guide-chips`) tienen **auto-scroll** — cualquier navegación entre capítulos (chips, dots, swipe, botones) DEBE mantener el chip activo visible con `scrollIntoView({ inline: 'center' })` (ver `GuideModal.tsx`).
+
 ## 7. Estado actual (última sesión 2026-08-18)
 
 Completado:
@@ -167,7 +179,8 @@ Completado:
 - Tests Vitest: **83 verdes**.
 
 - Arranque en blanco: eliminado el seed demo de producción (`src/seed.ts`); los datos demo viven solo en `src/testFixtures.ts` como fixture de tests. Placeholder accionable con `EmptyState` (sin mes + mes sin gastos) conectado al modal de crear mes y al form/foto.
-- Guía rediseñada `GuideModal`: onboarding interactivo por capítulos (cover con índice, 10 capítulos actualizados a todas las features, chips, dots, barra de progreso, swipe, CTA "Probar ahora" con acciones reales y "Saltar guía"). Nuevos iconos Lucide: `receipt`, `image`, `sparkles`.
+- Guía rediseñada `GuideModal`: onboarding interactivo por capítulos (cover con índice, 10 capítulos actualizados a todas las features, chips con **auto-scroll**, dots, barra de progreso, swipe, CTA "Probar ahora" con acciones reales y "Saltar guía"). Nuevos iconos Lucide: `receipt`, `image`, `sparkles`.
+- Formularios/modales estandarizados (D27): `--panel-solid` 100% opaco + primitiva `Modal` con badge/título/✕ + `.form-head/body/foot`; migrados todos los modales (App, MonthSelector, PhotoExpenseModal, SavingsCalculator, GuideModal). Ver `rebranding-preview/formularios-estandarizados.html`.
 
 Pendiente/iterable:
 - Implementar la **preview D del formulario de gastos** (acordeón + toggles + divisas multi) en `ExpenseForm.tsx` — la preview ya está actualizada a los estándares actuales en `rebranding-preview/formulario-opcion-d-combinada.html` (iconos Lucide, paleta semántica dual dark/light, toggle de tema, hints ámbar, botón **Escanear** con icono `scan`).

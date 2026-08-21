@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="es" class="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Formularios estandarizados — Previews</title>
+  <!-- Preview base (tokens compartidos) + estilos estandarizados -->
+  <link rel="stylesheet" href="preview-base.css" />
+  <link rel="stylesheet" href="formularios-estandarizados.css" />
+  <script>
+    function toggle() {
+      const html = document.documentElement;
+      html.classList.toggle('dark');
+    }
+  </script>
+</head>
+<body>
+
+  <h1>Formularios estandarizados</h1>
+  <p class="sub">
+    Paneles 100% opacos (<code>--panel-solid</code>) · header con badge + título + ✕ ·
+    inputs <code>input-aura</code> · footer Cancelar + acción primaria.
+  </p>
+  <button class="theme-toggle" onclick="toggle()">🌙 Toggle tema</button>
+
+  <!-- ═══════════ A · FORMULARIO SIMPLE (crear / editar mes) ═══════════ -->
+  <section class="preview-card">
+    <div class="preview-label"><b>A</b> · Formulario simple (crear / editar mes)</div>
+    <div class="modal-panel">
+      <div class="form-head">
+        <div class="form-badge">📅</div>
+        <div class="form-title">Crear Nuevo Mes</div>
+        <button class="form-x" onclick="toggle()" title="Cerrar">✕</button>
+      </div>
+      <div class="form-body">
+        <label>Etiqueta (opcional — auto: "Agosto 2026")</label>
+        <input class="input" placeholder="Agosto 2026" />
+        <label>Ingreso del mes (ARS) *</label>
+        <div class="mon-input-row">
+          <span class="mon-sym">$</span>
+          <input type="text" value="5.000.000" />
+        </div>
+      </div>
+      <div class="form-foot">
+        <button class="btn">Cancelar</button>
+        <button class="btn primary strong">Crear y abrir</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ B · FORMULARIO CON HINT ÁMBAR (presupuestos / confirmar monto) ═══════════ -->
+  <section class="preview-card">
+    <div class="preview-label"><b>B</b> · Formulario con hint ámbar / campo condicional</div>
+    <div class="modal-panel">
+      <div class="form-head">
+        <div class="form-badge">⚙️</div>
+        <div class="form-title">Presupuestos del mes</div>
+        <button class="form-x" onclick="toggle()" title="Cerrar">✕</button>
+      </div>
+      <div class="form-body">
+        <label>Vivienda</label>
+        <div class="mon-input-row">
+          <span class="mon-sym">$</span>
+          <input type="text" placeholder="Sin límite" />
+        </div>
+        <label>Servicios</label>
+        <div class="mon-input-row">
+          <span class="mon-sym">$</span>
+          <input type="text" value="120.000" />
+        </div>
+        <div class="form-hint">
+          ⚠️ <span>Dejá vacío para no poner límite. El semáforo avisa cuando te acercás.</span>
+        </div>
+      </div>
+      <div class="form-foot">
+        <button class="btn">Cancelar</button>
+        <button class="btn primary strong">Guardar presupuestos</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ C · CONFIRMACIÓN DESTRUCTIVA (eliminar gasto / mes / segmento) ═══════════ -->
+  <section class="preview-card">
+    <div class="preview-label"><b>C</b> · Confirmación destructiva (eliminar)</div>
+    <div class="modal-panel">
+      <div class="form-head">
+        <div class="form-badge danger">🗑️</div>
+        <div class="form-title">¿Eliminar gasto?</div>
+        <button class="form-x" onclick="toggle()" title="Cerrar">✕</button>
+      </div>
+      <div class="form-body">
+        <p style="font-size:12.5px;line-height:1.5;opacity:.85">
+          Se borrará <b>Alquiler</b>. Vas a poder deshacerlo por unos segundos después de confirmar.
+        </p>
+      </div>
+      <div class="form-foot">
+        <button class="btn">Cancelar</button>
+        <button class="btn danger strong">Sí, borrar</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ D · GUÍA POR CAPÍTULOS (header destacado + cuerpo opaco + chips auto-scroll) ═══════════ -->
+  <section class="preview-card">
+    <div class="preview-label"><b>D</b> · Guía por capítulos (header grad-lime + chips auto-scroll)</div>
+    <div class="modal-panel guide">
+      <div class="guide-head">
+        <div class="guide-title"><em style="font-style:normal">✦</em> Paso 3/10 · Gastos en dólares</div>
+        <div class="g-sub">Card índice: 5</div>
+        <div class="guide-progress"><div class="guide-progress-fill" style="width:30%"></div></div>
+      </div>
+      <div class="guide-chips" id="chips">
+        <button class="guide-chip">1. Primeros pasos</button>
+        <button class="guide-chip">2. Cargar gastos</button>
+        <button class="guide-chip on">3. Gastos en dólares</button>
+        <button class="guide-chip">4. Estados</button>
+        <button class="guide-chip">5. Escanear factura</button>
+        <button class="guide-chip">6. Foto de apuntes</button>
+        <button class="guide-chip">7. Organizar</button>
+        <button class="guide-chip">8. El mes</button>
+        <button class="guide-chip">9. Ahorro</button>
+        <button class="guide-chip">10. Backup</button>
+      </div>
+      <div class="guide-body">
+        <p>
+          Si tu tarjeta trae consumos en USD, activá "u$d" en Montos y cargá el monto +
+          la cotización. El total en pesos se calcula solo.
+        </p>
+      </div>
+      <div class="guide-dots">
+        <span class="guide-dot"></span><span class="guide-dot"></span><span class="guide-dot on"></span>
+        <span class="guide-dot"></span><span class="guide-dot"></span><span class="guide-dot"></span>
+        <span class="guide-dot"></span><span class="guide-dot"></span><span class="guide-dot"></span>
+        <span class="guide-dot"></span>
+      </div>
+      <div class="guide-actions">
+        <button class="guide-skip" type="button">Saltar guía</button>
+        <button class="btn primary strong">Siguiente →</button>
+      </div>
+    </div>
+  </section>
+
+</body>
+</html>

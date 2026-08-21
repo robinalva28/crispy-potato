@@ -6,6 +6,7 @@ import {
   type NewMonthInput,
 } from '../hooks/useBudget.ts';
 import { Icon } from './ui/Icon.tsx';
+import { Button } from './ui/Button.tsx';
 import { MoneyInput } from './MoneyInput.tsx';
 import { parseLocalNumber } from '../utils/format.ts';
 
@@ -123,76 +124,76 @@ export const MonthSelector = forwardRef<MonthSelectorHandle, Props>(function Mon
       </div>
 
       {showModal && (
-        <div className="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4">
-          <form
-            onSubmit={handleCreate}
-            className="w-full max-w-sm glass-card rounded-3xl p-4 space-y-3"
-          >
-            <div className="font-bold text-neutral-900 dark:text-neutral-100">Crear Nuevo Mes</div>
-            <p className="text-xs text-neutral-500 dark:text-neutral-400">
-              Se clonarán los gastos del mes anterior (los arrancan sin pagar).
-            </p>
-
-            {errorMsg && (
-              <div className="text-xs text-accent-red glass rounded-xl px-3 py-2">
-                ⚠️ {errorMsg}
+        <div className="modal-overlay fixed inset-0 z-[80] flex items-center justify-center p-4">
+          <div className="w-full max-w-sm modal-panel overflow-hidden">
+            <div className="form-head pt-4">
+              <div className="form-badge">
+                <Icon name="calendar" size={16} />
               </div>
-            )}
-
-            <div>
-              <label className="block text-[11px] text-neutral-500 font-medium mb-1 dark:text-neutral-400">
-                ID (AAAA-MM)
-              </label>
-              <input
-                type="month"
-                value={newId}
-                onChange={(e) => setNewId(e.target.value)}
-                className="input-aura w-full px-3 py-2 text-sm"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-[11px] text-neutral-500 font-medium mb-1 dark:text-neutral-400">
-                Etiqueta (opcional — auto: "Agosto 2026")
-              </label>
-              <input
-                value={newLabel}
-                onChange={(e) => setNewLabel(e.target.value)}
-                placeholder={monthLabelFromId(newId)}
-                className="input-aura w-full px-3 py-2 text-sm"
-              />
-            </div>
-
-            <div>
-              <label className="block text-[11px] text-neutral-500 font-medium mb-1 dark:text-neutral-400">
-                Ingreso del mes (ARS) *
-              </label>
-              <MoneyInput
-                symbol="$"
-                value={newIncome}
-                onChange={setNewIncome}
-                placeholder="Ej: 5.000.000"
-                required
-              />
-            </div>
-
-            <div className="flex gap-2 pt-1">
-              <button
-                type="submit"
-                className="flex-1 px-3 py-2 text-sm font-semibold rounded-full btn-aura transition"
-              >
-                Crear y abrir
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowModal(false)}
-                className="px-3 py-2 text-sm font-medium glass rounded-full hover:opacity-80 transition"
-              >
-                Cancelar
+              <div className="form-title">Crear Nuevo Mes</div>
+              <button type="button" className="form-x" onClick={() => setShowModal(false)} aria-label="Cerrar">
+                <Icon name="x" size={15} />
               </button>
             </div>
-          </form>
+            <form onSubmit={handleCreate} className="form-body">
+              <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                Se clonarán los gastos del mes anterior (los arrancan sin pagar).
+              </p>
+
+              {errorMsg && (
+                <div className="text-xs text-accent-red glass rounded-xl px-3 py-2">
+                  ⚠️ {errorMsg}
+                </div>
+              )}
+
+              <div>
+                <label className="block text-[11px] text-neutral-500 font-medium mb-1 dark:text-neutral-400">
+                  ID (AAAA-MM)
+                </label>
+                <input
+                  type="month"
+                  value={newId}
+                  onChange={(e) => setNewId(e.target.value)}
+                  className="input-aura w-full px-3 py-2 text-sm"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] text-neutral-500 font-medium mb-1 dark:text-neutral-400">
+                  Etiqueta (opcional — auto: "Agosto 2026")
+                </label>
+                <input
+                  value={newLabel}
+                  onChange={(e) => setNewLabel(e.target.value)}
+                  placeholder={monthLabelFromId(newId)}
+                  className="input-aura w-full px-3 py-2 text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] text-neutral-500 font-medium mb-1 dark:text-neutral-400">
+                  Ingreso del mes (ARS) *
+                </label>
+                <MoneyInput
+                  symbol="$"
+                  value={newIncome}
+                  onChange={setNewIncome}
+                  placeholder="Ej: 5.000.000"
+                  required
+                />
+              </div>
+
+              <div className="form-foot px-0 pb-0">
+                <Button variant="ghost" onClick={() => setShowModal(false)} fullWidth>
+                  Cancelar
+                </Button>
+                <Button type="submit" className="primary" fullWidth>
+                  Crear y abrir
+                </Button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>
